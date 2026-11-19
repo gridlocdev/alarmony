@@ -16,12 +16,12 @@ just run-desktop   # the desktop app
 
 ## Where your data is kept
 
-| Runs as | File                                                                        |
-| ------- | --------------------------------------------------------------------------- |
-| Desktop | `clock.json` in `Documents/Alarmony`, or the folder `ALARMONY_FOLDER` names |
-| Browser | The browser's private storage for the site                                  |
+| Runs as | File |
+| --- | --- |
+| Desktop | `clock.json` in the folder you pick on first start (`Documents/Alarmony` or your own), or the one `ALARMONY_FOLDER` names |
+| Browser | The browser's private storage for the site, or in Chrome and Edge a folder you pick with Open Folder… (⌘O) |
 
-It is plain JSON, so you can back it up or sync the folder. Each device keeps its own settings (theme, time format, volume, whether it rings) and its own record of what it has rung, so two computers sharing the folder never ring each other's timers twice.
+It is plain JSON, so you can back it up or sync the folder. In a browser, Export clock.json… and Import clock.json… in the ⌘K menu save and restore a copy. Each device keeps its own settings (theme, time format, volume, whether it rings) and its own record of what it has rung, so two computers sharing the folder never ring each other's timers twice.
 
 ## Timers in the browser
 

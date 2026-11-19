@@ -44,4 +44,11 @@ Each slice leaves `just check` green and the app working.
     - `folder.json` and the desktop app's data folder moved to `packages/node-files`, so the CLI finds the same folder as the app.
     - `apps/cli/skill/SKILL.md` is the guide for agents; a test checks it names every command, and another that `man` and `schema` cover them.
     - Checked by unit tests that run every command in-process on a temp folder with a fixed clock, including a merge, a conflict and `--wait`.
-- [ ] **7. Release polish**: icon, docs, CHANGELOG, CI and release workflows, accessibility pass (§16).
+- [x] **7. Release polish**: icon, docs, CHANGELOG, CI and release workflows, accessibility pass (§16).
+  - The icon, the tray icon, `check.yml` and `release.yml` were already in place. Added with this slice:
+    - A file from a newer Alarmony opens read-only, and the status bar names the folder (§3.3, §3.7).
+    - Drag to reorder world clocks (§6).
+    - Right-click menus on clocks, alarms, timers, presets and laps, and Shift+F10 (§14). They run the catalog's own commands; Rename Preset and Copy lap time exist only there and in ⌘K.
+    - In the browser: Open Folder through the File System Access API, Use This Browser's Storage, and Export and Import clock.json (§3.7). The prompt the browser shows again for a remembered folder isn't covered by a scenario, since folders in the page's own storage never ask.
+    - Accessibility (§16): the checklist was already met except contrast; faint text and the light accent were below AA and now pass, checked by a test that reads the theme colours from `styles.css`.
+    - README, getting started, features and the CHANGELOG cover everything up to 1.0.
