@@ -78,11 +78,9 @@ async function start(): Promise<void> {
     });
   if (import.meta.env.DEV) Object.assign(globalThis, { alarmony: { app, catalog } });
 
-  // Changes made elsewhere show up when the window comes back, and every so often while it's open (PRD §3.5).
+  // Changes made elsewhere show up when the window comes back, and every so often, hidden or not (PRD §3.5).
   const refresh = () => {
-    app.tick();
-    if (document.hidden || app.dialog.peek()) return;
-    void session.refresh().then((changed) => {
+    void app.refreshFromFile(document.hidden).then((changed) => {
       if (changed)
         app.say(`Updated with ${changed === 1 ? 'a change' : `${changed} changes`} made elsewhere.`);
     });

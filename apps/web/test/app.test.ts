@@ -135,6 +135,41 @@ describe('notices', () => {
   });
 });
 
+describe('changes made elsewhere', () => {
+  it('looks every 15 s while shown, every minute while hidden, and never behind a dialog', async () => {
+    const { app, store, clock } = await withTimer();
+    await app.session.flush();
+    const elsewhere = (label: string) => {
+      const data = JSON.parse(store.text!) as { timers: { label: string }[] };
+      data.timers[0]!.label = label;
+      store.text = `${JSON.stringify(data, null, 2)}\n`;
+    };
+    elsewhere('Rice');
+    expect(await app.refreshFromFile(false)).toBe(1);
+    expect(app.data.value.timers[0]!.label).toBe('Rice');
+    elsewhere('Soup');
+    clock.at += 15_000;
+    expect(await app.refreshFromFile(true), 'hidden, too soon').toBeNull();
+    clock.at += 45_000;
+    expect(await app.refreshFromFile(true)).toBe(1);
+    elsewhere('Stew');
+    app.open({ kind: 'settings' });
+    expect(await app.refreshFromFile(false)).toBeNull();
+  });
+
+  it('tries a failed save again on the next look', async () => {
+    const { app, catalog, store, session } = await withTimer();
+    await session.flush();
+    store.failSaves = 3;
+    catalog.run('timer.toggle');
+    await session.flush();
+    expect(session.status.value).toBe('failed');
+    await app.refreshFromFile(false);
+    await session.flush();
+    expect(session.status.value).toBe('saved');
+  });
+});
+
 describe('ringing', () => {
   it('rings a finished timer once, and Stop leaves it showing Done', async () => {
     const { app, clock, sound, id } = await withTimer(1);

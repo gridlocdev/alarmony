@@ -31,6 +31,8 @@ import {
 
 /** How long a notice stays (PRD §5.3). */
 export const NOTICE_MS = 5000;
+/** A hidden window looks for changes made elsewhere this often, so it rings what was added there (PRD §3.5). */
+export const HIDDEN_REFRESH_MS = 60_000;
 
 /** The tabs slice 1 has, in toolbar order (World Clock and Alarms come in later slices). */
 export const TABS: readonly { readonly id: Tab; readonly title: string }[] = [
@@ -124,6 +126,7 @@ export class AppController {
   readonly #sound: SoundOut;
   readonly #saveSettings: (s: DeviceSettings) => void;
   #dropNotice: (() => void) | null = null;
+  #lastRefresh = -Infinity;
   /** A sticky error a passing notice covers for now. */
   #underneath: Notice | null = null;
   /** The names in the Missed notice now showing, so the next miss joins it. */
@@ -239,6 +242,20 @@ export class AppController {
       if (tryAgain(this.#underneath)) this.#underneath = null;
       if (tryAgain(this.notice.peek())) this.notice.value = null;
     }
+  }
+
+  /**
+   * Looks for changes made elsewhere (PRD §3.5): the page calls this on focus, on showing and every 15 s; while
+   * hidden it reads at most once a minute. A failed save is tried again first. Returns how many items changed.
+   */
+  async refreshFromFile(hidden: boolean): Promise<number | null> {
+    this.tick();
+    if (this.session.status.peek() === 'failed') this.session.retry();
+    const now = this.now();
+    if (this.dialog.peek()) return null;
+    if (hidden && now - this.#lastRefresh < HIDDEN_REFRESH_MS) return null;
+    this.#lastRefresh = now;
+    return this.session.refresh();
   }
 
   // ── Tabs, dialogs, settings ──────────────────────────────────────────────
