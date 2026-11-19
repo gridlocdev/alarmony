@@ -1,0 +1,758 @@
+/* Alarmony: theme tokens and component styles (PRD §5.2). Light by default; [data-theme] or the OS picks dark. */
+:root {
+  --al-bg: #ffffff;
+  --al-bar: #f7f6f4;
+  --al-raised: #ffffff;
+  --al-card: #faf9f7;
+  --al-hover: rgba(0, 0, 0, 0.045);
+  --al-chosen: #fff3e3;
+  --al-border: #e6e3df;
+  --al-border-strong: #cfcac4;
+  --al-text: #1f1d1a;
+  --al-text-2: #615c55;
+  --al-text-3: #857f77;
+  --al-accent: #c25e00;
+  --al-accent-soft: #f5a142;
+  --al-accent-text: #ffffff;
+  --al-focus: #246fe0;
+  --al-danger: #c7372f;
+  --al-fast: #1d7a37;
+  --al-slow: #c7372f;
+  --al-shadow: 0 10px 32px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.08);
+  --al-radius: 6px;
+  --al-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --al-bg: #1c1b1a;
+    --al-bar: #252321;
+    --al-raised: #2a2826;
+    --al-card: #242220;
+    --al-hover: rgba(255, 255, 255, 0.06);
+    --al-chosen: #3b2e1f;
+    --al-border: #36332f;
+    --al-border-strong: #4c4842;
+    --al-text: #ece9e4;
+    --al-text-2: #b0aaa2;
+    --al-text-3: #8b857d;
+    --al-accent: #f59a3a;
+    --al-accent-soft: #f59a3a;
+    --al-accent-text: #1c1b1a;
+    --al-focus: #5a9bff;
+    --al-danger: #ff776d;
+    --al-fast: #4fcf72;
+    --al-slow: #ff776d;
+    --al-shadow: 0 10px 32px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --al-bg: #1c1b1a;
+  --al-bar: #252321;
+  --al-raised: #2a2826;
+  --al-card: #242220;
+  --al-hover: rgba(255, 255, 255, 0.06);
+  --al-chosen: #3b2e1f;
+  --al-border: #36332f;
+  --al-border-strong: #4c4842;
+  --al-text: #ece9e4;
+  --al-text-2: #b0aaa2;
+  --al-text-3: #8b857d;
+  --al-accent: #f59a3a;
+  --al-accent-soft: #f59a3a;
+  --al-accent-text: #1c1b1a;
+  --al-focus: #5a9bff;
+  --al-danger: #ff776d;
+  --al-fast: #4fcf72;
+  --al-slow: #ff776d;
+  --al-shadow: 0 10px 32px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+body {
+  font: 14px/1.45 var(--al-font);
+  color: var(--al-text);
+  background: var(--al-bg);
+  overflow: hidden;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+:focus-visible {
+  outline: 2px solid var(--al-focus);
+  outline-offset: 1px;
+}
+kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 0 5px;
+  border: 1px solid var(--al-border-strong);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  font: 12px/1.5 var(--al-font);
+  text-align: center;
+  color: var(--al-text-2);
+  background: var(--al-raised);
+}
+.al-num {
+  font-variant-numeric: tabular-nums;
+}
+.al-icon {
+  display: inline-flex;
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+.al-icon svg {
+  width: 100%;
+  height: 100%;
+}
+.al-muted {
+  color: var(--al-text-2);
+}
+.al-error-text {
+  color: var(--al-danger);
+}
+.al-small-text {
+  font-size: 12px;
+}
+.al-sr,
+.al-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Buttons */
+.al-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--al-radius);
+  background: none;
+  color: var(--al-text-2);
+  cursor: pointer;
+}
+.al-icon-button:hover {
+  background: var(--al-hover);
+  color: var(--al-text);
+}
+.al-icon-button.al-small {
+  width: 22px;
+  height: 22px;
+}
+.al-icon-button.al-small .al-icon {
+  width: 14px;
+  height: 14px;
+}
+.al-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--al-border-strong);
+  border-radius: var(--al-radius);
+  background: var(--al-raised);
+  cursor: pointer;
+  font-weight: 500;
+}
+.al-button:hover {
+  background: var(--al-hover);
+}
+.al-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.al-button-primary {
+  border-color: var(--al-accent);
+  background: var(--al-accent);
+  color: var(--al-accent-text);
+}
+.al-button-primary:hover {
+  background: var(--al-accent);
+  filter: brightness(0.94);
+}
+.al-button-small {
+  padding: 3px 10px;
+  font-size: 13px;
+}
+.al-link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--al-accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .al-link-button:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Window: toolbar of tabs, the panel, the status bar (PRD §5.1) */
+.al-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.al-toolbar {
+  flex: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--al-border);
+  background: var(--al-bar);
+}
+.al-tabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 8px;
+  background: var(--al-hover);
+}
+.al-tab {
+  padding: 4px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--al-text-2);
+  font-weight: 550;
+  cursor: pointer;
+}
+.al-tab[aria-selected='true'] {
+  background: var(--al-raised);
+  color: var(--al-text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+.al-plus {
+  position: absolute;
+  right: 12px;
+  font-size: 22px;
+  line-height: 1;
+}
+/* The desktop app hides the title bar; the toolbar drags the window, its controls don't (PRD §5.1). */
+.al-unified .al-toolbar {
+  -webkit-app-region: drag;
+  padding-left: 80px;
+}
+.al-unified.al-fullscreen .al-toolbar {
+  padding-left: 12px;
+}
+.al-unified :is(button, input, select, textarea, a, [role='dialog'], [role='alertdialog']) {
+  -webkit-app-region: no-drag;
+}
+.al-panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px;
+}
+.al-empty {
+  margin: 15vh 0 0;
+  text-align: center;
+  color: var(--al-text-2);
+}
+
+/* Stopwatch (PRD §8.1) */
+.al-stopwatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+.al-dial {
+  width: min(220px, 40vh);
+  height: auto;
+}
+.al-dial-face {
+  fill: var(--al-card);
+  stroke: var(--al-border);
+  stroke-width: 1;
+}
+.al-tick {
+  stroke: var(--al-text-3);
+  stroke-width: 1;
+}
+.al-tick-major {
+  stroke: var(--al-text-2);
+  stroke-width: 2;
+}
+.al-hand {
+  stroke: var(--al-accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+.al-hand-lap {
+  stroke: var(--al-text-3);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.al-hand-pin {
+  fill: var(--al-accent);
+}
+.al-big-time {
+  font-size: 56px;
+  font-weight: 300;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.al-row-buttons {
+  display: flex;
+  gap: 16px;
+}
+.al-round {
+  width: 88px;
+  height: 40px;
+  border-radius: 20px;
+}
+.al-laps {
+  list-style: none;
+  width: 100%;
+  margin: 8px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--al-border);
+}
+.al-lap {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 4px;
+  border-bottom: 1px solid var(--al-border);
+}
+.al-lap-current {
+  color: var(--al-text-2);
+}
+.al-lap-fastest {
+  color: var(--al-fast);
+}
+.al-lap-slowest {
+  color: var(--al-slow);
+}
+.al-lap-tag {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Timers (PRD §8.2) */
+.al-timers {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.al-presets {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 0;
+}
+.al-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 4px;
+  border: 1px solid var(--al-border-strong);
+  border-radius: 16px;
+  background: var(--al-raised);
+}
+.al-chip-start {
+  display: inline-flex;
+  gap: 8px;
+  padding: 4px 6px 4px 12px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  cursor: pointer;
+}
+.al-chip-start:hover {
+  color: var(--al-accent);
+}
+.al-preset-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.al-timer-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+}
+.al-timer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 14px 14px;
+  border: 1px solid var(--al-border);
+  border-radius: 12px;
+  background: var(--al-card);
+  cursor: default;
+}
+.al-timer.al-selected {
+  border-color: var(--al-accent-soft);
+  background: var(--al-chosen);
+}
+.al-timer-ring {
+  position: absolute;
+  top: 14px;
+  width: 132px;
+  height: 132px;
+  transform: rotate(-90deg);
+}
+.al-ring-track {
+  fill: none;
+  stroke: var(--al-border);
+  stroke-width: 5;
+}
+.al-ring-left {
+  fill: none;
+  stroke: var(--al-accent);
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+}
+.al-timer-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 132px;
+  height: 132px;
+  text-align: center;
+}
+.al-timer-left {
+  font-size: 26px;
+  font-weight: 400;
+}
+.al-timer-label {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 550;
+}
+.al-timer-status {
+  color: var(--al-text-2);
+  font-size: 12px;
+}
+.al-timer-done .al-timer-left,
+.al-timer-done .al-timer-status {
+  color: var(--al-accent);
+  font-weight: 600;
+}
+.al-timer-paused .al-ring-left {
+  stroke: var(--al-text-3);
+}
+.al-timer-idle .al-ring-left {
+  stroke: transparent;
+}
+.al-timer-buttons {
+  display: flex;
+  gap: 8px;
+}
+.al-timer-delete {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  opacity: 0;
+}
+.al-timer:hover .al-timer-delete,
+.al-timer:focus-within .al-timer-delete {
+  opacity: 1;
+}
+
+/* Dialogs */
+.al-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.32);
+}
+.al-backdrop-top {
+  align-items: flex-start;
+  padding-top: 12vh;
+}
+.al-dialog:focus {
+  outline: none;
+}
+.al-dialog {
+  width: 440px;
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  background: var(--al-raised);
+  box-shadow: var(--al-shadow);
+}
+.al-dialog-wide {
+  width: 640px;
+}
+.al-dialog form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.al-dialog h2 {
+  margin: 0;
+  padding: 18px 20px 4px;
+  font-size: 17px;
+}
+.al-dialog-body {
+  padding: 10px 20px;
+  overflow-y: auto;
+}
+.al-dialog-body p {
+  margin: 0 0 10px;
+}
+.al-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px 18px;
+}
+.al-push-left {
+  margin-right: auto;
+}
+.al-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  min-width: 0;
+}
+.al-field > span {
+  color: var(--al-text-2);
+  font-size: 13px;
+  font-weight: 550;
+}
+.al-field input:not([type='range']),
+.al-field select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--al-border-strong);
+  border-radius: var(--al-radius);
+  background: var(--al-bg);
+}
+.al-field input[type='range'] {
+  accent-color: var(--al-accent);
+}
+.al-field small {
+  font-size: 12px;
+}
+.al-field-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0 12px;
+}
+.al-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.al-check input {
+  accent-color: var(--al-accent);
+}
+
+/* The ringing sheet (PRD §9.2) */
+.al-ringing {
+  border-top: 4px solid var(--al-accent);
+}
+.al-ringing-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+.al-ringing-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+.al-ringing-name {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Command menu */
+.al-palette {
+  width: 560px;
+  overflow: hidden;
+}
+.al-palette input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--al-border);
+  background: none;
+  font-size: 15px;
+  outline: none;
+}
+.al-palette ul {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.al-palette li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.al-palette li[aria-selected='true'] {
+  background: var(--al-chosen);
+}
+.al-palette li.al-disabled {
+  opacity: 0.45;
+}
+.al-palette-title {
+  flex: 1;
+}
+.al-palette-group {
+  color: var(--al-text-3);
+  font-size: 12px;
+}
+.al-palette-empty {
+  margin: 0;
+  padding: 14px 16px;
+  color: var(--al-text-2);
+}
+
+/* Keyboard Shortcuts */
+.al-shortcuts {
+  columns: 2 260px;
+}
+.al-shortcuts section {
+  break-inside: avoid;
+  margin-bottom: 14px;
+}
+.al-shortcuts h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--al-text-2);
+}
+.al-shortcuts dl {
+  margin: 0;
+}
+.al-shortcut {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 3px 0;
+}
+.al-shortcut dt {
+  flex: 1;
+}
+.al-shortcut dd {
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* Status bar (PRD §5.3) */
+.al-status {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 30px;
+  padding: 0 14px;
+  border-top: 1px solid var(--al-border);
+  background: var(--al-bar);
+  font-size: 13px;
+}
+.al-notice {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+.al-notice > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.al-notice-error > span {
+  color: var(--al-danger);
+  font-weight: 550;
+}
+.al-save {
+  color: var(--al-text-3);
+}
+.al-save-failed,
+.al-save-conflict {
+  color: var(--al-danger);
+}
+.al-where {
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--al-text-3);
+}
+
+@media (max-width: 600px) {
+  .al-panel {
+    padding: 16px;
+  }
+  .al-big-time {
+    font-size: 44px;
+  }
+  .al-where {
+    display: none;
+  }
+}

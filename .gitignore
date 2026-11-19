@@ -1,0 +1,15 @@
+node_modules/
+dist/
+out/
+release/
+*.tsbuildinfo
+.DS_Store
+coverage/
+.types/
+/build/
+.types-test/
+.headless-data/
+.e2e-results/
+.e2e-report/
+.e2e-soak/
+.types-e2e/

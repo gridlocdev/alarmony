@@ -1,0 +1,17 @@
+dist
+out
+release
+pnpm-lock.yaml
+docs/plans/prd.md
+packages/ui/src/icons
+.types
+# The 1.x app, kept running until the rewrite replaces it.
+apps/desktop/legacy
+packages/core/test/fixtures
+.types-test
+.e2e-data
+.e2e-results
+.e2e-report
+.e2e-soak
+.types-e2e
+e2e/__screenshots__

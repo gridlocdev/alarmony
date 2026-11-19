@@ -1,0 +1,21 @@
+{
+  "name": "@alarmony/ui",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css"
+  },
+  "dependencies": {
+    "@preact/signals": "2.11.4",
+    "@alarmony/core": "workspace:*",
+    "preact": "11.1.1"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "2.10.6",
+    "@alarmony/node-files": "workspace:*",
+    "vite": "8.3.5"
+  }
+}

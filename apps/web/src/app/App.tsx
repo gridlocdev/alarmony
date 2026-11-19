@@ -1,0 +1,86 @@
+import { useRef } from 'preact/hooks';
+import { keyFocus, type CommandCatalog } from '@alarmony/ui';
+import { TABS, type AppController } from './controller.ts';
+import { CommandMenu } from './CommandMenu.tsx';
+import { AppDialogs } from './Dialogs.tsx';
+import { RingingSheet } from './RingingSheet.tsx';
+import { StatusBar } from './StatusBar.tsx';
+import { StopwatchView } from './StopwatchView.tsx';
+import { TimersView } from './TimersView.tsx';
+
+/** Runs the catalog command for a key press (the page's one key listener calls it, PRD §14). */
+export function handleKey(app: AppController, catalog: CommandCatalog, e: KeyboardEvent): void {
+  if (e.defaultPrevented) return;
+  app.unlockSound();
+  const result = catalog.forEvent(e, keyFocus(document.activeElement));
+  if (!result) return;
+  e.preventDefault();
+  if (result.kind === 'run') catalog.run(result.command.id);
+}
+
+/** The window: a toolbar of tabs, the open tab, the status bar, and whatever dialog is in front (PRD §5.1). */
+export function App({ app, catalog }: { readonly app: AppController; readonly catalog: CommandCatalog }) {
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const dialog = app.dialog.value;
+  const tab = app.tab.value;
+  const plus = catalog.get('timer.new');
+  return (
+    <div class="al-app" onPointerDown={() => app.unlockSound()}>
+      <header class="al-toolbar">
+        <div
+          class="al-tabs"
+          role="tablist"
+          aria-label="Clock"
+          ref={tabsRef}
+          onKeyDown={(e) => {
+            if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+            e.preventDefault();
+            const at = TABS.findIndex((t) => t.id === tab);
+            const next = TABS[(at + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length]!;
+            app.showTab(next.id);
+            tabsRef.current?.querySelector<HTMLElement>(`#al-tab-${next.id}`)?.focus();
+          }}
+        >
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              id={`al-tab-${t.id}`}
+              type="button"
+              role="tab"
+              class="al-tab"
+              aria-selected={tab === t.id}
+              aria-controls="al-panel"
+              tabIndex={tab === t.id ? 0 : -1}
+              title={`${t.title} (${catalog.keys(catalog.get(`view.${t.id}`)!).join('')})`}
+              onClick={() => app.showTab(t.id)}
+            >
+              {t.title}
+            </button>
+          ))}
+        </div>
+        {tab === 'timers' && plus && (
+          <button
+            type="button"
+            class="al-icon-button al-plus"
+            aria-label="New Timer"
+            title={`New Timer (${catalog.keys(plus).join('')})`}
+            onClick={() => catalog.run('timer.new')}
+          >
+            +
+          </button>
+        )}
+      </header>
+      <div id="al-panel" class="al-panel" role="tabpanel" aria-labelledby={`al-tab-${tab}`}>
+        {tab === 'stopwatch' ? (
+          <StopwatchView app={app} catalog={catalog} />
+        ) : (
+          <TimersView app={app} catalog={catalog} />
+        )}
+      </div>
+      <StatusBar app={app} />
+      {app.ringing.value.length > 0 && <RingingSheet app={app} />}
+      {dialog?.kind === 'menu' && <CommandMenu app={app} catalog={catalog} initial={dialog.initial} />}
+      <AppDialogs app={app} catalog={catalog} />
+    </div>
+  );
+}
