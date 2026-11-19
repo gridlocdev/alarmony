@@ -99,6 +99,15 @@ describe('timer commands', () => {
     expect(catalog.run('view.commandMenu')).toBe(true);
   });
 
+  it('closes the edit dialog when its timer goes away, so keys work again', async () => {
+    const { app, catalog, id } = await withTimer();
+    catalog.run('timer.edit');
+    expect(app.dialog.value).toEqual({ kind: 'editTimer', id });
+    app.undo();
+    expect(app.dialog.value).toBeNull();
+    expect(app.blocked()).toBe(false);
+  });
+
   it('saves every edit to the file', async () => {
     const { app, catalog, session, store } = await withTimer();
     catalog.run('timer.toggle');

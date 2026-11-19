@@ -147,6 +147,10 @@ export class AppController {
         if (n?.action && change.kind !== 'setting')
           this.notice.value = n.sticky ? { ...n, action: undefined } : null;
         this.#forgetGoneRings();
+        // An editor for a timer that went (undo, Use Theirs, a change made elsewhere) has nothing to show.
+        const d = this.dialog.peek();
+        if (d?.kind === 'editTimer' && !session.doc.data.timers.some((t) => t.id === d.id))
+          this.dialog.value = null;
       });
     });
   }
