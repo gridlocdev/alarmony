@@ -10,6 +10,7 @@ In a browser tab, the browser keeps **⌘N** (**Ctrl+N**) for its own windows, s
 
 |                                      | macOS         | Windows / Linux      |
 | ------------------------------------ | ------------- | -------------------- |
+| World Clock                          | **⌘1**        | **Ctrl+1**           |
 | Alarms                               | **⌘2**        | **Ctrl+2**           |
 | Stopwatch                            | **⌘3**        | **Ctrl+3**           |
 | Timers                               | **⌘4**        | **Ctrl+4**           |
@@ -18,6 +19,20 @@ In a browser tab, the browser keeps **⌘N** (**Ctrl+N**) for its own windows, s
 | Keyboard Shortcuts                   | **⌘/**        | **Ctrl+/**           |
 | Settings                             | **⌘,**        | **Ctrl+,**           |
 | Close a window or the command menu   | **⎋**         | **Esc**              |
+
+## World Clock
+
+|                                          | macOS                   | Windows / Linux                    |
+| ---------------------------------------- | ----------------------- | ---------------------------------- |
+| Add a clock (on the World Clock tab)     | **⌘N** or **N**         | **Ctrl+N** or **N**                |
+| Add the highlighted place (in Add Clock) | **↩**                   | **Enter**                          |
+| Move between clocks                      | **←** **→** **↑** **↓** | **Left** **Right** **Up** **Down** |
+| Rename the selected clock                | **↩**                   | **Enter**                          |
+| Move the selected clock up / down        | **⌥↑** / **⌥↓**         | **Alt+Up** / **Alt+Down**          |
+| Delete the selected clock                | **⌫** or **⌦**          | **Backspace** or **Delete**        |
+| Cards or list                            | **⌘L**                  | **Ctrl+L**                         |
+
+Add Clock stays open after each place, so you can add several; press **⎋** when done.
 
 ## Alarms
 

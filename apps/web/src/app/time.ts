@@ -18,3 +18,22 @@ export function clockTime(ms: number, format: TimeFormat): string {
   }
   return f.format(ms);
 }
+
+const zoneFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/** The time in another zone, as `clockTime` shows it, with seconds when asked (PRD §6.2, §13). */
+export function zoneClockTime(ms: number, zone: string, format: TimeFormat, seconds: boolean): string {
+  const key = `${zone}|${format}|${seconds}`;
+  let f = zoneFormatters.get(key);
+  if (!f) {
+    f = new Intl.DateTimeFormat(undefined, {
+      timeZone: zone,
+      hour: 'numeric',
+      minute: '2-digit',
+      ...(seconds ? { second: '2-digit' } : {}),
+      hourCycle: CYCLE[format],
+    });
+    zoneFormatters.set(key, f);
+  }
+  return f.format(ms);
+}

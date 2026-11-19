@@ -21,6 +21,7 @@ export {
   type Tab,
   type Theme,
   type TimeFormat,
+  type WorldView,
 } from './store/deviceSettings.ts';
 export {
   ClockSession,

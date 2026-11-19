@@ -38,6 +38,7 @@ test.describe('Keeping your data', () => {
       );
       const window = await app.firstWindow();
       const errors = watchErrors(window);
+      await window.getByRole('tab', { name: 'Timers' }).click();
       const timer = window.getByRole('listitem', { name: /^Bread, 10 minutes$/ });
       await expect(timer).toBeVisible();
       await timer.getByRole('button', { name: 'Start' }).click();

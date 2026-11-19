@@ -11,6 +11,7 @@ import {
   type Preset,
   type Stopwatch,
   type Timer,
+  type WorldClock,
 } from './format.ts';
 import type { Op } from './ops.ts';
 import { stopwatchElapsed } from './stopwatch.ts';
@@ -210,6 +211,35 @@ export function duplicateAlarm(data: ClockData, id: string, newId: string): Op[]
   const index = data.alarms.findIndex((a) => a.id === id);
   const item = data.alarms[index];
   return item ? [{ kind: 'insert', list: 'alarms', index: index + 1, item: { ...item, id: newId } }] : null;
+}
+
+// ── World clocks ───────────────────────────────────────────────────────────
+
+/** A clock for `zone` at the end of the list; null when that zone already has one (PRD §6.1). */
+export function addClock(data: ClockData, id: string, zone: string): Op[] | null {
+  if (data.clocks.some((c) => c.zone === zone)) return null;
+  const item: WorldClock = { id, zone, label: '', extra: NO_EXTRA };
+  return [{ kind: 'insert', list: 'clocks', index: data.clocks.length, item }];
+}
+
+export function renameClock(data: ClockData, id: string, label: string): Op[] | null {
+  const c = data.clocks.find((x) => x.id === id);
+  if (!c || clean(label) === c.label) return null;
+  return [{ kind: 'update', list: 'clocks', before: c, after: { ...c, label: clean(label) } }];
+}
+
+/** One place earlier (−1) or later (+1); null at either end. */
+export function moveClock(data: ClockData, id: string, by: -1 | 1): Op[] | null {
+  const from = data.clocks.findIndex((c) => c.id === id);
+  const to = from + by;
+  if (from < 0 || to < 0 || to >= data.clocks.length) return null;
+  return [{ kind: 'move', list: 'clocks', id, from, to }];
+}
+
+export function deleteClock(data: ClockData, id: string): Op[] | null {
+  const index = data.clocks.findIndex((c) => c.id === id);
+  const item = data.clocks[index];
+  return item ? [{ kind: 'remove', list: 'clocks', index, item }] : null;
 }
 
 // ── Presets ────────────────────────────────────────────────────────────────

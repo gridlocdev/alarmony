@@ -1,5 +1,8 @@
 /** Every command in the app (PRD §14). The keyboard, ⌘K, the menu bar and the Shortcuts window all read this list. */
 import {
+  clockName,
+  deleteClock,
+  moveClock,
   deleteAlarm,
   duplicateAlarm,
   toggleAlarm,
@@ -21,7 +24,12 @@ import {
 import { CommandCatalog, type CommandSpec, type MenuEntry } from '@alarmony/ui';
 import { TABS, type AppController } from './controller.ts';
 
-const TAB_KEYS: Record<string, string> = { alarms: 'mod+2', stopwatch: 'mod+3', timers: 'mod+4' };
+const TAB_KEYS: Record<string, string> = {
+  world: 'mod+1',
+  alarms: 'mod+2',
+  stopwatch: 'mod+3',
+  timers: 'mod+4',
+};
 
 export function commandSpecs(app: AppController): CommandSpec[] {
   const now = () => app.now();
@@ -31,6 +39,12 @@ export function commandSpecs(app: AppController): CommandSpec[] {
   const withTimer = (run: (id: string) => void) => () => {
     const t = timer();
     if (t) run(t.id);
+  };
+  const clock = () => app.selectedClock.value;
+  const onWorld = () => app.tab.value === 'world' && clock() !== null;
+  const withClock = (run: (id: string) => void) => () => {
+    const c = clock();
+    if (c) run(c.id);
   };
   const alarm = () => app.selectedAlarm.value;
   const onAlarms = () => app.tab.value === 'alarms' && alarm() !== null;
@@ -47,12 +61,27 @@ export function commandSpecs(app: AppController): CommandSpec[] {
     // File
     {
       id: 'item.new',
-      title: 'New Alarm or Timer',
-      description: 'Add an alarm on the Alarms tab, or start a timer on the others.',
+      title: 'New Clock, Alarm or Timer',
+      description:
+        'Add a clock on the World Clock tab, an alarm on the Alarms tab, or start a timer on the others.',
       group: 'File',
       shortcuts: ['mod+n', 'n'],
       hidden: true,
-      run: () => app.open({ kind: app.tab.value === 'alarms' ? 'newAlarm' : 'newTimer' }),
+      run: () =>
+        app.open({
+          kind: app.tab.value === 'world' ? 'addClock' : app.tab.value === 'alarms' ? 'newAlarm' : 'newTimer',
+        }),
+    },
+    {
+      id: 'clock.add',
+      title: 'Add Clock…',
+      description: 'Add a world clock: search for a city or time zone.',
+      group: 'File',
+      keywords: 'world city time zone place',
+      run: () => {
+        app.showTab('world');
+        app.open({ kind: 'addClock' });
+      },
     },
     {
       id: 'alarm.new',
@@ -117,6 +146,18 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       run: () => app.showTab(t.id),
     })),
     {
+      id: 'view.worldList',
+      title: 'World Clocks as List',
+      description: 'Show world clocks as a list instead of cards with faces.',
+      group: 'View',
+      shortcuts: ['mod+l'],
+      checked: () => app.settings.value.worldView === 'list',
+      run: () => {
+        app.showTab('world');
+        app.setSettings({ worldView: app.settings.peek().worldView === 'list' ? 'cards' : 'list' });
+      },
+    },
+    {
       id: 'view.commandMenu',
       title: 'Command Menu…',
       description: 'Find and run any command by typing its name.',
@@ -128,6 +169,52 @@ export function commandSpecs(app: AppController): CommandSpec[] {
     },
 
     // Clock
+    {
+      id: 'clock.rename',
+      title: 'Rename Clock…',
+      description: 'Give the selected clock a name of its own, shown instead of the city.',
+      group: 'Clock',
+      shortcuts: ['enter'],
+      keysOnly: true,
+      context: true,
+      enabled: onWorld,
+      run: withClock((id) => app.open({ kind: 'renameClock', id })),
+    },
+    {
+      id: 'clock.moveUp',
+      title: 'Move Clock Up',
+      description: 'Move the selected clock one place earlier.',
+      group: 'Clock',
+      shortcuts: ['alt+up'],
+      context: true,
+      enabled: () => onWorld() && app.data.value.clocks[0]?.id !== clock()?.id,
+      run: withClock((id) => app.edit(moveClock(app.data.peek(), id, -1), 'Move')),
+    },
+    {
+      id: 'clock.moveDown',
+      title: 'Move Clock Down',
+      description: 'Move the selected clock one place later.',
+      group: 'Clock',
+      shortcuts: ['alt+down'],
+      context: true,
+      enabled: () => onWorld() && app.data.value.clocks.at(-1)?.id !== clock()?.id,
+      run: withClock((id) => app.edit(moveClock(app.data.peek(), id, 1), 'Move')),
+    },
+    {
+      id: 'clock.delete',
+      title: 'Delete Clock',
+      description: 'Remove the selected world clock.',
+      group: 'Clock',
+      shortcuts: ['delete', 'backspace'],
+      keysOnly: true,
+      context: true,
+      danger: true,
+      enabled: onWorld,
+      run: withClock((id) => {
+        const name = clockName(clock()!);
+        app.edit(deleteClock(app.data.peek(), id), 'Delete', `Deleted ${name}.`);
+      }),
+    },
     {
       id: 'alarm.toggle',
       title: 'Turn Alarm On or Off',

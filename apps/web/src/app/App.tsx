@@ -6,6 +6,7 @@ import { AppDialogs } from './Dialogs.tsx';
 import { RingingSheet } from './RingingSheet.tsx';
 import { StatusBar } from './StatusBar.tsx';
 import { AlarmsView } from './AlarmsView.tsx';
+import { WorldView } from './WorldView.tsx';
 import { StopwatchView } from './StopwatchView.tsx';
 import { TimersView } from './TimersView.tsx';
 
@@ -18,6 +19,9 @@ export function handleKey(app: AppController, catalog: CommandCatalog, e: Keyboa
   e.preventDefault();
   if (result.kind === 'run') catalog.run(result.command.id);
 }
+
+/** What the + button does on each tab that has one. */
+const PLUS: Record<string, string> = { world: 'Add Clock', alarms: 'New Alarm', timers: 'New Timer' };
 
 /** The window: a toolbar of tabs, the open tab, the status bar, and whatever dialog is in front (PRD §5.1). */
 export function App({ app, catalog }: { readonly app: AppController; readonly catalog: CommandCatalog }) {
@@ -63,8 +67,8 @@ export function App({ app, catalog }: { readonly app: AppController; readonly ca
           <button
             type="button"
             class="al-icon-button al-plus"
-            aria-label={tab === 'alarms' ? 'New Alarm' : 'New Timer'}
-            title={`${tab === 'alarms' ? 'New Alarm' : 'New Timer'} (${catalog.keys(plus).join('')})`}
+            aria-label={PLUS[tab]}
+            title={`${PLUS[tab]} (${catalog.keys(plus).join('')})`}
             onClick={() => catalog.run('item.new')}
           >
             +
@@ -72,7 +76,9 @@ export function App({ app, catalog }: { readonly app: AppController; readonly ca
         )}
       </header>
       <div id="al-panel" class="al-panel" role="tabpanel" aria-labelledby={`al-tab-${tab}`}>
-        {tab === 'alarms' ? (
+        {tab === 'world' ? (
+          <WorldView app={app} catalog={catalog} />
+        ) : tab === 'alarms' ? (
           <AlarmsView app={app} catalog={catalog} />
         ) : tab === 'stopwatch' ? (
           <StopwatchView app={app} catalog={catalog} />

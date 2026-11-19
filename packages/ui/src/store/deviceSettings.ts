@@ -8,6 +8,7 @@ import type { RecoveryStorage } from '../session/clockSession.ts';
 export type Theme = 'system' | 'light' | 'dark';
 export type TimeFormat = 'system' | '12' | '24';
 export type Tab = 'world' | 'alarms' | 'stopwatch' | 'timers';
+export type WorldView = 'cards' | 'list';
 
 export interface DeviceSettings {
   readonly theme: Theme;
@@ -17,6 +18,10 @@ export interface DeviceSettings {
   /** 0–1. */
   readonly volume: number;
   readonly tab: Tab;
+  /** World clocks as cards with faces, or as a list (PRD §6.2). */
+  readonly worldView: WorldView;
+  /** World clocks show seconds in their digital time. */
+  readonly showSeconds: boolean;
 }
 
 export const DEFAULT_SETTINGS: DeviceSettings = {
@@ -25,7 +30,9 @@ export const DEFAULT_SETTINGS: DeviceSettings = {
   ring: true,
   notifications: true,
   volume: 0.8,
-  tab: 'timers',
+  tab: 'world',
+  worldView: 'cards',
+  showSeconds: false,
 };
 
 const SETTINGS_KEY = 'alarmony.settings';
@@ -75,6 +82,8 @@ export function loadSettings(): DeviceSettings {
     notifications: typeof r.notifications === 'boolean' ? r.notifications : d.notifications,
     volume: typeof r.volume === 'number' && r.volume >= 0 && r.volume <= 1 ? r.volume : d.volume,
     tab: oneOf(r.tab, ['world', 'alarms', 'stopwatch', 'timers'], d.tab),
+    worldView: oneOf(r.worldView, ['cards', 'list'], d.worldView),
+    showSeconds: typeof r.showSeconds === 'boolean' ? r.showSeconds : d.showSeconds,
   };
 }
 

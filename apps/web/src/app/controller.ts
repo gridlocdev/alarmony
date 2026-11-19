@@ -18,6 +18,7 @@ import {
   timerLeft,
   formatCountdown,
   type Alarm,
+  type WorldClock,
   type AlarmWindow,
   type ClockData,
   type Due,
@@ -45,8 +46,9 @@ export const HIDDEN_REFRESH_MS = 60_000;
 /** How often the device notes that it is running, so a later start knows what it missed (PRD §9.4). */
 const SEEN_EVERY_MS = 60_000;
 
-/** The tabs so far, in toolbar order (World Clock comes in a later slice). */
+/** The tabs, in toolbar order (PRD §5.1). */
 export const TABS: readonly { readonly id: Tab; readonly title: string }[] = [
+  { id: 'world', title: 'World Clock' },
   { id: 'alarms', title: 'Alarms' },
   { id: 'stopwatch', title: 'Stopwatch' },
   { id: 'timers', title: 'Timers' },
@@ -56,6 +58,8 @@ export type DialogState =
   | { readonly kind: 'menu'; readonly initial: string }
   | { readonly kind: 'shortcuts' }
   | { readonly kind: 'settings' }
+  | { readonly kind: 'addClock' }
+  | { readonly kind: 'renameClock'; readonly id: string }
   | { readonly kind: 'newTimer' }
   | { readonly kind: 'editTimer'; readonly id: string }
   | { readonly kind: 'newAlarm' }
@@ -109,7 +113,7 @@ const SILENT: SoundOut = {
   preview: () => undefined,
 };
 
-const shown = (tab: Tab): Tab => (TABS.some((t) => t.id === tab) ? tab : 'timers');
+const shown = (tab: Tab): Tab => (TABS.some((t) => t.id === tab) ? tab : 'world');
 const quoted = (label: string) => (label ? `“${label}”` : 'timer');
 /** What decides when an alarm rings: a change to any of it starts its due times afresh. */
 const ringSig = (a: Alarm) => `${a.enabled}|${a.time}|${a.days.join(',')}|${a.once ?? ''}`;
@@ -144,6 +148,9 @@ export class AppController {
   );
   readonly selectedTimer = computed<Timer | null>(
     () => this.data.value.timers.find((t) => t.id === this.selected.value) ?? null,
+  );
+  readonly selectedClock = computed<WorldClock | null>(
+    () => this.data.value.clocks.find((c) => c.id === this.selected.value) ?? null,
   );
   readonly selectedAlarm = computed<Alarm | null>(
     () => this.data.value.alarms.find((a) => a.id === this.selected.value) ?? null,
@@ -206,7 +213,8 @@ export class AppController {
         const data = session.doc.data;
         if (
           (d?.kind === 'editTimer' && !data.timers.some((t) => t.id === d.id)) ||
-          (d?.kind === 'editAlarm' && !data.alarms.some((a) => a.id === d.id))
+          (d?.kind === 'editAlarm' && !data.alarms.some((a) => a.id === d.id)) ||
+          (d?.kind === 'renameClock' && !data.clocks.some((c) => c.id === d.id))
         )
           this.dialog.value = null;
       });

@@ -14,6 +14,7 @@ import type { AppController } from './controller.ts';
 import { startPreset } from './commands.ts';
 import { shortcutGroups } from './shortcuts.ts';
 import { AlarmDialog } from './AlarmDialogs.tsx';
+import { ClockDialog } from './ClockDialogs.tsx';
 
 const BAD_DURATION = 'Type a length from 1 second to 99:59:59, like 5, 5m, 1h30m, 90s or 25:00.';
 
@@ -214,6 +215,14 @@ function SettingsDialog({ app, folder }: { readonly app: AppController; readonly
           </select>
         </label>
       </div>
+      <label class="al-check">
+        <input
+          type="checkbox"
+          checked={s.showSeconds}
+          onChange={(e) => app.setSettings({ showSeconds: e.currentTarget.checked })}
+        />
+        Show seconds on world clocks
+      </label>
       <label class="al-check">
         <input
           type="checkbox"
@@ -419,6 +428,9 @@ export function AppDialogs({
     case 'newAlarm':
     case 'editAlarm':
       return <AlarmDialog app={app} />;
+    case 'addClock':
+    case 'renameClock':
+      return <ClockDialog app={app} />;
     case 'menu':
     case undefined:
       return null;

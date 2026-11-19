@@ -505,6 +505,176 @@ kbd {
   opacity: 1;
 }
 
+/* World Clock */
+.al-clock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 190px);
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  list-style: none;
+}
+@media (max-width: 599px) {
+  .al-clock-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.al-clock-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 16px;
+  list-style: none;
+}
+.al-clock {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 12px 14px;
+  border: 1px solid var(--al-border);
+  border-radius: 12px;
+  background: var(--al-card);
+  cursor: default;
+  text-align: center;
+}
+.al-clock.al-clock-row {
+  flex-direction: row;
+  padding: 10px 14px;
+  text-align: left;
+}
+.al-clock.al-selected {
+  border-color: var(--al-accent-soft);
+  background: var(--al-chosen);
+}
+.al-clock-unknown {
+  opacity: 0.55;
+}
+.al-clock-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.al-clock-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.al-clock-city,
+.al-clock-day {
+  color: var(--al-text-2);
+  font-size: 0.9em;
+}
+.al-clock-time {
+  font-size: 1.4rem;
+  font-weight: 300;
+}
+.al-clock-row .al-clock-time {
+  font-size: 1.6rem;
+}
+.al-clock-delete {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  opacity: 0;
+}
+.al-clock-row .al-clock-delete {
+  position: static;
+}
+.al-clock:hover .al-clock-delete,
+.al-clock:focus-within .al-clock-delete {
+  opacity: 1;
+}
+.al-face {
+  width: 120px;
+  height: 120px;
+}
+.al-face-rim {
+  stroke-width: 1.5;
+}
+.al-face-day .al-face-rim {
+  fill: #fdfcfa;
+  stroke: #d8d3cc;
+}
+.al-face-night .al-face-rim {
+  fill: #23211f;
+  stroke: #45413c;
+}
+.al-face-tick,
+.al-face-hour,
+.al-face-minute {
+  stroke-linecap: round;
+}
+.al-face-day :is(.al-face-tick, .al-face-hour, .al-face-minute) {
+  stroke: #1f1d1a;
+}
+.al-face-night :is(.al-face-tick, .al-face-hour, .al-face-minute) {
+  stroke: #ece9e4;
+}
+.al-face-tick {
+  stroke-width: 1.5;
+}
+.al-face-hour {
+  stroke-width: 4;
+}
+.al-face-minute {
+  stroke-width: 2.5;
+}
+.al-face-second {
+  stroke: var(--al-accent);
+  stroke-width: 1;
+  transform-origin: 50px 50px;
+  transition: transform 1s linear;
+}
+.al-face-jump {
+  transition: none;
+}
+.al-face-pin {
+  fill: var(--al-accent);
+}
+.al-zone-search {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--al-border-strong);
+  border-radius: var(--al-radius);
+  background: var(--al-bg);
+}
+.al-zone-list {
+  max-height: 300px;
+  margin: 8px 0 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.al-zone-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.al-zone-list li[aria-selected='true'] {
+  background: var(--al-chosen);
+}
+.al-zone-list li.al-disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.al-zone-city {
+  font-weight: 500;
+}
+.al-zone-added {
+  margin-left: auto;
+  color: var(--al-text-2);
+  font-size: 0.85em;
+}
+
 /* Alarms */
 .al-alarm-list {
   display: flex;

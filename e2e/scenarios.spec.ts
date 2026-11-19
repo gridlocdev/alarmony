@@ -16,6 +16,62 @@ const card = (page: Page, name: RegExp) =>
   page.getByRole('list', { name: 'Timers' }).getByRole('listitem', { name });
 const tab = (page: Page, name: string) => page.getByRole('tab', { name });
 
+const place = (page: Page, name: RegExp) =>
+  page.getByRole('list', { name: 'World clocks' }).getByRole('listitem', { name });
+
+test.describe('World Clock', () => {
+  test('starts with this place, adds two more by search, renames, moves and deletes with Undo', async ({
+    page,
+  }) => {
+    const errors = watchErrors(page);
+    await openApp(page);
+    await expect(tab(page, 'World Clock')).toHaveAttribute('aria-selected', 'true');
+    // The browser runs in UTC at 9:00 AM.
+    await expect(place(page, /^UTC, 9:00 AM, Today, same time$/)).toBeVisible();
+    await page.keyboard.press('KeyN');
+    const dialog = page.getByRole('dialog', { name: 'Add Clock' });
+    const search = dialog.getByRole('combobox', { name: 'City or time zone' });
+    await expect(search).toBeFocused();
+    await page.keyboard.type('tokyo');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('ControlOrMeta+KeyA');
+    await page.keyboard.type('sao paulo');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('ControlOrMeta+KeyA');
+    await page.keyboard.type('tokyo');
+    await expect(dialog.getByRole('option', { name: /Tokyo.*Added/ })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(place(page, /^Tokyo, 6:00 PM, Today, \+9 hrs$/)).toBeVisible();
+    await expect(place(page, /^Sao Paulo, 6:00 AM, Today, −3 hrs$/)).toBeVisible();
+
+    await place(page, /^Tokyo/).focus();
+    await page.keyboard.press('Enter');
+    const rename = page.getByRole('dialog', { name: 'Rename Clock' });
+    await expect(rename.getByRole('textbox', { name: 'Name' })).toBeFocused();
+    await page.keyboard.type('Office');
+    await page.keyboard.press('Enter');
+    await expect(rename).toBeHidden();
+    const office = place(page, /^Office, 6:00 PM/);
+    await expect(office).toBeVisible();
+    await expect(office).toContainText('Tokyo');
+
+    await office.focus();
+    await page.keyboard.press('Alt+ArrowUp');
+    const names = page.getByRole('list', { name: 'World clocks' }).locator('.al-clock-name');
+    await expect(names).toHaveText(['Office', 'UTC', 'Sao Paulo']);
+    await page.keyboard.press('Delete');
+    await expect(names).toHaveText(['UTC', 'Sao Paulo']);
+    await page.getByRole('button', { name: 'Undo' }).click();
+    await expect(names).toHaveText(['Office', 'UTC', 'Sao Paulo']);
+
+    await page.keyboard.press('ControlOrMeta+KeyL');
+    await expect(page.locator('.al-clock-row')).toHaveCount(3);
+    await expect(page.locator('.al-face')).toHaveCount(0);
+    expect(errors).toEqual([]);
+  });
+});
+
 const alarm = (page: Page, name: RegExp) =>
   page.getByRole('list', { name: 'Alarms' }).getByRole('listitem', { name });
 
@@ -122,6 +178,7 @@ test.describe('Timers', () => {
   test('a new timer counts down, pauses, and comes back after Delete and Undo', async ({ page }) => {
     const errors = watchErrors(page);
     await openApp(page);
+    await page.keyboard.press('ControlOrMeta+Digit4');
     await expect(page.getByText('No timers.')).toBeVisible();
     await newTimer(page, '3m', 'Pasta');
     await expect(card(page, /^Pasta, 3 minutes left$/)).toBeVisible();
@@ -155,6 +212,7 @@ test.describe('Timers', () => {
 
   test('a preset saved from New Timer starts from its chip', async ({ page }) => {
     await openApp(page);
+    await page.keyboard.press('ControlOrMeta+Digit4');
     await page.keyboard.press('KeyN');
     const dialog = page.getByRole('dialog', { name: 'New Timer' });
     await expect(dialog.getByRole('textbox', { name: 'Length' })).toBeFocused();
@@ -240,7 +298,7 @@ test.describe('Commands and shortcuts', () => {
   test('⌘K runs a command by name and ⌘/ lists the shortcuts', async ({ page }) => {
     const errors = watchErrors(page);
     await openApp(page);
-    await expect(tab(page, 'Timers')).toHaveAttribute('aria-selected', 'true');
+    await expect(tab(page, 'World Clock')).toHaveAttribute('aria-selected', 'true');
     await runCommand(page, 'Stopwatch');
     await expect(tab(page, 'Stopwatch')).toHaveAttribute('aria-selected', 'true');
     await page.keyboard.press('ControlOrMeta+Slash');

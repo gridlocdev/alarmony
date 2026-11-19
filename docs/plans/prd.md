@@ -134,7 +134,7 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 
 ### §6.2 Cards
 
-- Cards in a grid, in the file's order. Each: an analog face (light by day 06:00–17:59 in that zone, dark otherwise), the name, "Today, +9 hrs" / "Yesterday, −8 hrs" / "Tomorrow, +13:30 hrs" against this device's zone, and the digital time in the chosen format (§13). The second hand sweeps; everything updates each second while the window shows and stops while hidden.
+- Cards in a grid, in the file's order. Each: an analog face (light by day 06:00–17:59 in that zone, dark otherwise), the name, "Today, +9 hrs" / "Yesterday, −8 hrs" / "Tomorrow, +13:30 hrs" / "Today, same time" against this device's zone, and the digital time in the chosen format (§13). The second hand sweeps; everything updates each second while the window shows and stops while hidden.
 - **List view** (View menu, ⌘L toggles, remembered per device): one row per clock with name, day and offset, digital time.
 - Arrow keys move the selection; Enter renames.
 

@@ -83,8 +83,9 @@ export async function runCommand(page: Page, name: string): Promise<void> {
   await expect(menu).toBeHidden();
 }
 
-/** Starts a timer through New Timer, the way a person does. */
+/** Starts a timer through New Timer on the Timers tab, the way a person does. */
 export async function newTimer(page: Page, length: string, label = ''): Promise<void> {
+  await page.keyboard.press('ControlOrMeta+Digit4');
   await page.keyboard.press('KeyN');
   const dialog = page.getByRole('dialog', { name: 'New Timer' });
   await expect(dialog.getByRole('textbox', { name: 'Length' })).toBeFocused();

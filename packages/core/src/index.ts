@@ -25,6 +25,10 @@ export {
 } from './duration.ts';
 export {
   addAlarm,
+  addClock,
+  deleteClock,
+  moveClock,
+  renameClock,
   addPreset,
   addTimer,
   deleteAlarm,
@@ -103,3 +107,17 @@ export { DEFAULT_SOUND, SOUNDS, soundFor, type Note, type Sound, type Wave } fro
 export { MIN_LAPS_TO_MARK, currentLap, lapMarks, stopwatchElapsed, type LapMarks } from './stopwatch.ts';
 export { isFinished, soonestTimer, timerLeft, timerProgress } from './timers.ts';
 export { addDays, instantOf, knownZone, offsetAt, wallAt, weekday, type Wall } from './zoneTime.ts';
+export {
+  clockName,
+  compareToHere,
+  fold,
+  handAngles,
+  isDaytime,
+  offsetText,
+  searchZones,
+  systemZones,
+  zoneChoices,
+  zoneCity,
+  zoneRegion,
+  type ZoneChoice,
+} from './clocks.ts';
