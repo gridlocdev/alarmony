@@ -59,7 +59,7 @@ function TimerCard({
       class={`al-timer al-timer-${done ? 'done' : timer.state}${app.selected.value === timer.id ? ' al-selected' : ''}`}
       tabIndex={0}
       aria-label={label}
-      onFocus={select}
+      onFocusIn={select}
       onClick={select}
       onDblClick={run('timer.edit')}
     >

@@ -59,6 +59,19 @@ test.describe('Timers', () => {
     expect(errors).toEqual([]);
   });
 
+  test('Delete acts on the card that holds focus, even on one of its buttons', async ({ page }) => {
+    await openApp(page);
+    await newTimer(page, '3m', 'Pasta');
+    await newTimer(page, '5m', 'Tea');
+    await card(page, /^Tea/).focus();
+    await card(page, /^Pasta/)
+      .getByRole('button', { name: 'Delete Pasta' })
+      .focus();
+    await page.keyboard.press('Delete');
+    await expect(card(page, /^Pasta/)).toHaveCount(0);
+    await expect(card(page, /^Tea/)).toHaveCount(1);
+  });
+
   test('a preset saved from New Timer starts from its chip', async ({ page }) => {
     await openApp(page);
     await page.keyboard.press('KeyN');
