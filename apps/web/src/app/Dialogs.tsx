@@ -341,14 +341,15 @@ function RecoveryDialog({ app }: { readonly app: AppController }) {
   return (
     <Dialog
       title="Restore unsaved changes?"
-      onClose={() => app.session.discardRecovered()}
+      // Escape or a click outside must not throw the only copy away: only Discard does.
+      onClose={() => undefined}
       onSubmit={() => app.session.restoreRecovered()}
       actions={
         <>
           <button type="button" class="al-button" onClick={() => app.session.discardRecovered()}>
             Discard
           </button>
-          <button type="submit" class="al-button al-button-primary">
+          <button type="submit" class="al-button al-button-primary" data-autofocus>
             Restore
           </button>
         </>

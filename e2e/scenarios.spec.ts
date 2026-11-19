@@ -107,6 +107,23 @@ test.describe('Keeping your data', () => {
     await writeClock(page, { ...data, timers: timers.map((t) => ({ ...t, label: 'Dishes' })) });
     await expect(card(page, /^Dishes, /)).toBeVisible();
   });
+
+  test('unsaved changes from last time come back, and only Discard throws them away', async ({ page }) => {
+    await openApp(page);
+    await newTimer(page, '10m', 'Laundry');
+    await expect(page.locator('.al-save')).toHaveClass(/al-save-saved/);
+    const data = await readClock(page);
+    const timers = (data?.timers ?? []) as { label: string }[];
+    const unsaved = { ...data, timers: timers.map((t) => ({ ...t, label: 'Ironing' })) };
+    await page.evaluate((text) => localStorage.setItem('alarmony.unsaved', text), JSON.stringify(unsaved));
+    await page.reload();
+    const ask = page.getByRole('dialog', { name: 'Restore unsaved changes?' });
+    await expect(ask.getByRole('button', { name: 'Restore' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(ask).toBeVisible();
+    await ask.getByRole('button', { name: 'Restore' }).click();
+    await expect(card(page, /^Ironing, /)).toBeVisible();
+  });
 });
 
 test.describe('Commands and shortcuts', () => {
