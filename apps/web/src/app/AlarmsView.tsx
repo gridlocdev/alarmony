@@ -1,6 +1,7 @@
 import { alarmClock, describeIn, describeRepeat, nextAlarm, sortAlarms, type Alarm } from '@alarmony/core';
 import { Icon, type CommandCatalog, type TimeFormat } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
+import { onMenu } from './ContextMenu.tsx';
 import { clockTime } from './time.ts';
 
 /** An alarm's `HH:MM` in the chosen format: "7:00 AM" or "07:00". */
@@ -38,6 +39,7 @@ function AlarmRow({
       class={`al-alarm${on ? '' : ' al-alarm-off'}${app.selected.value === alarm.id ? ' al-selected' : ''}`}
       tabIndex={0}
       data-id={alarm.id}
+      onContextMenu={onMenu(app, 'alarm', alarm.id)}
       aria-label={`${alarm.label || 'Alarm'}, ${time}, ${repeat}, ${on ? 'on' : 'off'}`}
       onFocusIn={select}
       onClick={select}

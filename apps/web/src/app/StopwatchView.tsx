@@ -1,6 +1,7 @@
 import { currentLap, formatStopwatch, lapMarks, stopwatchElapsed } from '@alarmony/core';
 import type { CommandCatalog } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
+import { onMenu } from './ContextMenu.tsx';
 
 const DIAL = 100;
 const MINUTE = 60_000;
@@ -83,7 +84,11 @@ export function StopwatchView({
             .map(({ ms, i }) => {
               const tag = i === marks.fastest ? 'fastest' : i === marks.slowest ? 'slowest' : '';
               return (
-                <li key={i} class={`al-lap${tag ? ` al-lap-${tag}` : ''}`}>
+                <li
+                  key={i}
+                  class={`al-lap${tag ? ` al-lap-${tag}` : ''}`}
+                  onContextMenu={onMenu(app, 'lap', String(i))}
+                >
                   <span>
                     Lap {i + 1}
                     {tag && <span class="al-lap-tag">{tag === 'fastest' ? 'Fastest' : 'Slowest'}</span>}

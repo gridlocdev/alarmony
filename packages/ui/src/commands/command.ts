@@ -28,8 +28,6 @@ export interface CommandSpec {
   readonly enabled?: () => boolean;
   /** Left out of the command menu (the command menu itself, say). */
   readonly hidden?: boolean;
-  /** In an item's right-click menu. */
-  readonly context?: boolean;
   /** A ticked menu item (the current theme, say). */
   readonly checked?: () => boolean;
   /** Shown in red in menus. */

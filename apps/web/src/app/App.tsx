@@ -2,6 +2,7 @@ import { useRef } from 'preact/hooks';
 import { keyFocus, type CommandCatalog } from '@alarmony/ui';
 import { TABS, type AppController } from './controller.ts';
 import { CommandMenu } from './CommandMenu.tsx';
+import { ContextMenu } from './ContextMenu.tsx';
 import { AppDialogs } from './Dialogs.tsx';
 import { RingingSheet } from './RingingSheet.tsx';
 import { StatusBar } from './StatusBar.tsx';
@@ -88,6 +89,7 @@ export function App({ app, catalog }: { readonly app: AppController; readonly ca
       </div>
       <StatusBar app={app} />
       {dialog?.kind === 'menu' && <CommandMenu app={app} catalog={catalog} initial={dialog.initial} />}
+      <ContextMenu app={app} catalog={catalog} />
       <AppDialogs app={app} catalog={catalog} />
       {/* Last, so it covers any open dialog: what rings is what the keys act on (PRD §9.2). */}
       {app.ringing.value.length > 0 && <RingingSheet app={app} />}

@@ -11,6 +11,7 @@ import {
 } from '@alarmony/core';
 import { Icon, type CommandCatalog } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
+import { onMenu } from './ContextMenu.tsx';
 import { zoneClockTime } from './time.ts';
 
 const TICKS = Array.from({ length: 12 }, (_, i) => i * 30);
@@ -102,6 +103,7 @@ function ClockItem({
       tabIndex={0}
       data-id={clock.id}
       draggable
+      onContextMenu={onMenu(app, 'clock', clock.id)}
       onDragStart={(e) => {
         e.dataTransfer?.setData('text/plain', name);
         if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';

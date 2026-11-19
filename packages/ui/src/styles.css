@@ -1079,3 +1079,52 @@ kbd {
     display: none;
   }
 }
+
+/* An item's right-click menu (PRD §14). */
+.al-context-menu {
+  position: fixed;
+  z-index: 40;
+  min-width: 180px;
+  padding: 4px;
+  background: var(--al-raised);
+  border: 1px solid var(--al-border);
+  border-radius: var(--al-radius);
+  box-shadow: var(--al-shadow);
+  display: flex;
+  flex-direction: column;
+}
+.al-context-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--al-text);
+  font: inherit;
+  text-align: left;
+  cursor: default;
+}
+.al-context-item:hover:not(:disabled),
+.al-context-item:focus {
+  background: var(--al-chosen);
+  outline: none;
+}
+.al-context-item:disabled {
+  color: var(--al-text-2);
+  opacity: 0.6;
+}
+.al-context-item.al-danger:not(:disabled) {
+  color: var(--al-danger);
+}
+.al-context-key {
+  color: var(--al-text-2);
+  font-size: 12px;
+}
+.al-context-line {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--al-border);
+}

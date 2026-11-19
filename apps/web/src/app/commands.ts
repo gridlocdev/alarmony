@@ -18,11 +18,15 @@ import {
   resetTimer,
   restartTimer,
   addPreset,
+  deletePreset,
+  formatStopwatch,
   toggleStopwatch,
   toggleTimer,
 } from '@alarmony/core';
 import { CommandCatalog, type CommandSpec, type MenuEntry } from '@alarmony/ui';
 import { TABS, type AppController } from './controller.ts';
+import { openSelectedMenu } from './ContextMenu.tsx';
+import { targetOf } from './itemMenu.ts';
 
 const TAB_KEYS: Record<string, string> = {
   world: 'mod+1',
@@ -51,6 +55,14 @@ export function commandSpecs(app: AppController): CommandSpec[] {
   const withAlarm = (run: (id: string) => void) => () => {
     const a = alarm();
     if (a) run(a.id);
+  };
+  const preset = () => {
+    const id = targetOf(app.itemMenu, 'preset');
+    return app.data.value.presets.find((p) => p.id === id) ?? null;
+  };
+  const lap = () => {
+    const at = targetOf(app.itemMenu, 'lap');
+    return at === null ? null : (sw().laps[Number(at)] ?? null);
   };
   const alarmName = () => {
     const a = alarm();
@@ -169,6 +181,17 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       },
     },
     {
+      id: 'item.menu',
+      title: 'Show Item Menu',
+      description: 'Open the right-click menu of the selected clock, alarm or timer.',
+      group: 'View',
+      shortcuts: ['shift+f10'],
+      keysOnly: true,
+      hidden: true,
+      enabled: () => onWorld() || onAlarms() || onTimers(),
+      run: () => openSelectedMenu(app),
+    },
+    {
       id: 'view.commandMenu',
       title: 'Command Menu…',
       description: 'Find and run any command by typing its name.',
@@ -187,7 +210,6 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       group: 'Clock',
       shortcuts: ['enter'],
       keysOnly: true,
-      context: true,
       enabled: onWorld,
       run: withClock((id) => app.open({ kind: 'renameClock', id })),
     },
@@ -197,7 +219,6 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       description: 'Move the selected clock one place earlier.',
       group: 'Clock',
       shortcuts: ['alt+up'],
-      context: true,
       enabled: () => onWorld() && app.data.value.clocks[0]?.id !== clock()?.id,
       run: withClock((id) => app.edit(moveClock(app.data.peek(), id, -1), 'Move')),
     },
@@ -207,7 +228,6 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       description: 'Move the selected clock one place later.',
       group: 'Clock',
       shortcuts: ['alt+down'],
-      context: true,
       enabled: () => onWorld() && app.data.value.clocks.at(-1)?.id !== clock()?.id,
       run: withClock((id) => app.edit(moveClock(app.data.peek(), id, 1), 'Move')),
     },
@@ -218,7 +238,6 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       group: 'Clock',
       shortcuts: ['delete', 'backspace'],
       keysOnly: true,
-      context: true,
       danger: true,
       enabled: onWorld,
       run: withClock((id) => {
@@ -233,7 +252,6 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       group: 'Clock',
       shortcuts: ['space'],
       keysOnly: true,
-      context: true,
       enabled: onAlarms,
       run: withAlarm((id) => {
         const on = app.alarmOn(alarm()!);
@@ -251,7 +269,6 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       group: 'Clock',
       shortcuts: ['enter'],
       keysOnly: true,
-      context: true,
       enabled: onAlarms,
       run: withAlarm((id) => app.open({ kind: 'editAlarm', id })),
     },
@@ -260,7 +277,6 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Duplicate Alarm',
       description: 'Add a copy of the selected alarm.',
       group: 'Clock',
-      context: true,
       enabled: onAlarms,
       run: withAlarm((id) => {
         const copy = app.newId('a');
@@ -275,7 +291,6 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       group: 'Clock',
       shortcuts: ['delete', 'backspace'],
       keysOnly: true,
-      context: true,
       danger: true,
       enabled: onAlarms,
       run: withAlarm((id) => {
@@ -324,7 +339,6 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       group: 'Clock',
       shortcuts: ['space'],
       keysOnly: true,
-      context: true,
       enabled: onTimers,
       run: withTimer((id) => app.edit(toggleTimer(app.data.peek(), id, now()), 'Pause or resume')),
     },
@@ -335,7 +349,6 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       group: 'Clock',
       shortcuts: ['enter'],
       keysOnly: true,
-      context: true,
       enabled: onTimers,
       run: withTimer((id) => app.open({ kind: 'editTimer', id })),
     },
@@ -344,7 +357,6 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Restart Timer',
       description: 'Start the selected timer again from its full length.',
       group: 'Clock',
-      context: true,
       enabled: () => onTimers() && timer()?.state !== 'idle',
       run: withTimer((id) => app.edit(restartTimer(app.data.peek(), id, now()), 'Restart')),
     },
@@ -353,7 +365,6 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Cancel Timer',
       description: 'Stop the selected timer and put it back to its full length.',
       group: 'Clock',
-      context: true,
       enabled: () => onTimers() && timer()?.state !== 'idle',
       run: withTimer((id) => {
         const t = timer();
@@ -366,7 +377,6 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Save Timer as Preset',
       description: 'Keep the selected timer’s length and label as a preset.',
       group: 'Clock',
-      context: true,
       enabled: onTimers,
       run: withTimer(() => {
         const t = timer()!;
@@ -384,7 +394,6 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       group: 'Clock',
       shortcuts: ['delete', 'backspace'],
       keysOnly: true,
-      context: true,
       danger: true,
       enabled: onTimers,
       run: withTimer((id) => {
@@ -400,6 +409,50 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       enabled: () =>
         app.data.value.timers.some((t) => t.state === 'running' && !isFinished(t, app.clock.value)),
       run: () => void app.edit(pauseAllTimers(app.data.peek(), now()), 'Pause all', 'Paused all timers.'),
+    },
+    {
+      id: 'preset.start',
+      title: 'Start Preset',
+      description: 'Start a timer from the preset.',
+      group: 'Clock',
+      hidden: true,
+      enabled: () => preset() !== null,
+      run: () => startPreset(app, preset()!.id),
+    },
+    {
+      id: 'preset.rename',
+      title: 'Rename Preset…',
+      description: 'Change the preset’s label.',
+      group: 'Clock',
+      hidden: true,
+      enabled: () => preset() !== null,
+      run: () => app.open({ kind: 'renamePreset', id: preset()!.id }),
+    },
+    {
+      id: 'preset.delete',
+      title: 'Delete Preset',
+      description: 'Remove the preset.',
+      group: 'Clock',
+      hidden: true,
+      danger: true,
+      enabled: () => preset() !== null,
+      run: () => deletePresetFrom(app, preset()!.id),
+    },
+    {
+      id: 'lap.copy',
+      title: 'Copy Lap Time',
+      description: 'Copy the lap’s time, to paste somewhere else.',
+      group: 'Clock',
+      hidden: true,
+      enabled: () => lap() !== null,
+      run: () => {
+        const n = Number(targetOf(app.itemMenu, 'lap'));
+        const text = formatStopwatch(lap()!);
+        void navigator.clipboard.writeText(text).then(
+          () => app.say(`Copied Lap ${n + 1}, ${text}.`),
+          () => app.say('Alarmony couldn’t copy to the clipboard.', { tone: 'error' }),
+        );
+      },
     },
     {
       id: 'ringing.snooze',
@@ -459,4 +512,14 @@ export function startPreset(app: AppController, presetId: string): void {
   const id = app.newId('t');
   if (app.edit(addTimer(app.data.peek(), { id, ms: p.ms, label: p.label }, app.now()), 'New timer'))
     app.selected.value = id;
+}
+
+export function deletePresetFrom(app: AppController, presetId: string): void {
+  const p = app.data.peek().presets.find((x) => x.id === presetId);
+  if (!p) return;
+  app.edit(
+    deletePreset(app.data.peek(), p.id),
+    'Delete preset',
+    `Deleted preset${p.label ? ` “${p.label}”` : ''}.`,
+  );
 }

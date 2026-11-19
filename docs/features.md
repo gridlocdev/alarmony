@@ -38,7 +38,7 @@ Closing the desktop window doesn't quit Alarmony: it keeps running in the menu b
 
 ## Commands and shortcuts
 
-Every action is in the command menu (**⌘K**), which also starts presets by name, and in the Keyboard Shortcuts window (**⌘/**). See [controls](controls.md) for the full list.
+Every action is in the command menu (**⌘K**), which also starts presets by name, and in the Keyboard Shortcuts window (**⌘/**). Right-click a clock, an alarm, a timer, a preset or a lap for a menu of what it can do (**⇧F10** from the keyboard); a preset's menu is where you rename it, and a lap's copies its time. See [controls](controls.md) for the full list.
 
 ## Command line
 

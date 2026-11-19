@@ -7,6 +7,7 @@ import {
   editTimer,
   formatCountdown,
   parseDuration,
+  renamePreset,
   setSnoozeMinutes,
 } from '@alarmony/core';
 import { Dialog, isMac, type CommandCatalog, type Theme, type TimeFormat } from '@alarmony/ui';
@@ -18,6 +19,45 @@ import { ClockDialog } from './ClockDialogs.tsx';
 
 const BAD_DURATION = 'Type a length from 1 second to 99:59:59, like 5, 5m, 1h30m, 90s or 25:00.';
 
+/** Right-click Rename on a preset chip (PRD §8.2). */
+function RenamePresetDialog({ app, id }: { readonly app: AppController; readonly id: string }) {
+  const preset = app.data.peek().presets.find((p) => p.id === id);
+  const [label, setLabel] = useState(preset?.label ?? '');
+  if (!preset) return null;
+  const save = () => {
+    app.close();
+    app.edit(renamePreset(app.data.peek(), id, label), 'Rename preset', 'Renamed the preset.');
+  };
+  return (
+    <Dialog
+      title="Rename Preset"
+      onClose={() => app.close()}
+      onSubmit={save}
+      actions={
+        <>
+          <button type="button" class="al-button" onClick={() => app.close()}>
+            Cancel
+          </button>
+          <button type="submit" class="al-button al-button-primary">
+            Rename
+          </button>
+        </>
+      }
+    >
+      <label class="al-field">
+        <span>Label</span>
+        <input
+          type="text"
+          value={label}
+          placeholder={describeDuration(preset.ms)}
+          maxLength={100}
+          data-autofocus
+          onInput={(e) => setLabel(e.currentTarget.value)}
+        />
+      </label>
+    </Dialog>
+  );
+}
 /** The duration and label fields both timer dialogs share. */
 function TimerFields(props: {
   readonly duration: string;
@@ -438,6 +478,8 @@ export function AppDialogs({
       return <NewTimerDialog app={app} />;
     case 'editTimer':
       return <EditTimerDialog key={d.id} app={app} id={d.id} />;
+    case 'renamePreset':
+      return <RenamePresetDialog key={d.id} app={app} id={d.id} />;
     case 'settings':
       return <SettingsDialog app={app} folder={app.session.store.location()} />;
     case 'shortcuts':

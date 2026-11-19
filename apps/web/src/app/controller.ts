@@ -39,6 +39,7 @@ import {
 } from '@alarmony/ui';
 import { clockTime } from './time.ts';
 import { trayState } from './tray.ts';
+import { ItemMenu } from './itemMenu.ts';
 
 /** How long a notice stays (PRD §5.3). */
 export const NOTICE_MS = 5000;
@@ -65,7 +66,8 @@ export type DialogState =
   | { readonly kind: 'newTimer' }
   | { readonly kind: 'editTimer'; readonly id: string }
   | { readonly kind: 'newAlarm' }
-  | { readonly kind: 'editAlarm'; readonly id: string };
+  | { readonly kind: 'editAlarm'; readonly id: string }
+  | { readonly kind: 'renamePreset'; readonly id: string };
 
 export interface Notice {
   readonly text: string;
@@ -143,6 +145,7 @@ export class AppController {
   readonly notice = signal<Notice | null>(null);
   readonly announcement = signal('');
   readonly selected = signal<string | null>(null);
+  readonly itemMenu = new ItemMenu();
   /** What is ringing on this device, newest first (PRD §9.2). */
   readonly ringing = signal<readonly Due[]>([]);
   /** Something rings but the browser won't play sound until the page is clicked (PRD §9.4). */
@@ -236,7 +239,8 @@ export class AppController {
         if (
           (d?.kind === 'editTimer' && !data.timers.some((t) => t.id === d.id)) ||
           (d?.kind === 'editAlarm' && !data.alarms.some((a) => a.id === d.id)) ||
-          (d?.kind === 'renameClock' && !data.clocks.some((c) => c.id === d.id))
+          (d?.kind === 'renameClock' && !data.clocks.some((c) => c.id === d.id)) ||
+          (d?.kind === 'renamePreset' && !data.presets.some((p) => p.id === d.id))
         )
           this.dialog.value = null;
       });

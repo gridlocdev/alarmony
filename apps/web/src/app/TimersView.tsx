@@ -1,5 +1,4 @@
 import {
-  deletePreset,
   describeDuration,
   formatCountdown,
   isFinished,
@@ -10,7 +9,8 @@ import {
 import { Icon, type CommandCatalog } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
 import { clockTime } from './time.ts';
-import { startPreset } from './commands.ts';
+import { deletePresetFrom, startPreset } from './commands.ts';
+import { onMenu } from './ContextMenu.tsx';
 
 const RING_R = 44;
 const RING_LENGTH = 2 * Math.PI * RING_R;
@@ -58,6 +58,8 @@ function TimerCard({
     <li
       class={`al-timer al-timer-${done ? 'done' : timer.state}${app.selected.value === timer.id ? ' al-selected' : ''}`}
       tabIndex={0}
+      data-id={timer.id}
+      onContextMenu={onMenu(app, 'timer', timer.id)}
       aria-label={label}
       onFocusIn={select}
       onClick={select}
@@ -141,7 +143,7 @@ export function TimersView({
       {data.presets.length > 0 && (
         <ul class="al-presets" aria-label="Presets">
           {data.presets.map((p) => (
-            <li key={p.id} class="al-chip">
+            <li key={p.id} class="al-chip" onContextMenu={onMenu(app, 'preset', p.id)}>
               <button
                 type="button"
                 class="al-chip-start"
@@ -155,13 +157,7 @@ export function TimersView({
                 type="button"
                 class="al-icon-button al-small"
                 aria-label={`Delete preset ${p.label || describeDuration(p.ms)}`}
-                onClick={() =>
-                  app.edit(
-                    deletePreset(data, p.id),
-                    'Delete preset',
-                    `Deleted preset${p.label ? ` “${p.label}”` : ''}.`,
-                  )
-                }
+                onClick={() => deletePresetFrom(app, p.id)}
               >
                 <Icon name="x" />
               </button>

@@ -381,6 +381,39 @@ test.describe('Commands and shortcuts', () => {
     await expect(shortcuts).toBeHidden();
     expect(errors).toEqual([]);
   });
+
+  test('right-click menus act on their item, and Shift+F10 opens one from the keyboard', async ({ page }) => {
+    const errors = watchErrors(page);
+    await openApp(page);
+    await newTimer(page, '3m', 'Pasta');
+    const menu = page.getByRole('menu', { name: 'Timer actions' });
+    await card(page, /^Pasta/).click({ button: 'right' });
+    await expect(menu.getByRole('menuitem', { name: 'Pause' })).toBeFocused();
+    await menu.getByRole('menuitem', { name: 'Save as Preset' }).click();
+    await expect(menu).toBeHidden();
+    const chip = page.getByRole('list', { name: 'Presets' }).getByRole('listitem');
+    await chip.click({ button: 'right' });
+    await page
+      .getByRole('menu', { name: 'Preset actions' })
+      .getByRole('menuitem', { name: 'Rename…' })
+      .click();
+    const rename = page.getByRole('dialog', { name: 'Rename Preset' });
+    await rename.getByRole('textbox', { name: 'Label' }).fill('Spaghetti');
+    await rename.getByRole('button', { name: 'Rename' }).click();
+    await expect(chip).toContainText('Spaghetti');
+    await card(page, /^Pasta/).focus();
+    await page.keyboard.press('Shift+F10');
+    await expect(menu).toBeVisible();
+    await page.keyboard.press('ArrowUp');
+    await expect(menu.getByRole('menuitem', { name: 'Delete' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeHidden();
+    await expect(card(page, /^Pasta/)).toBeFocused();
+    await page.keyboard.press('Shift+F10');
+    await page.keyboard.press('Enter');
+    await expect(card(page, /^Pasta, .* paused$/)).toBeVisible();
+    expect(errors).toEqual([]);
+  });
 });
 
 test.describe('Look', () => {

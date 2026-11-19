@@ -85,3 +85,4 @@ export { Dialog } from './components/Dialog.tsx';
 export { focusables, trapIndex, trapTab } from './components/focusTrap.ts';
 export { Icon } from './components/Icon.tsx';
 export { ListPopup, listStep } from './components/ListPopup.tsx';
+export { PopupMenu, menuMove } from './components/PopupMenu.tsx';

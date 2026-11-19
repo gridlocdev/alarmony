@@ -57,7 +57,11 @@ const RENDERER = ['packages/ui', 'apps/web'];
 
 // Things the page may do only in the folders or files listed. The test fails on an entry that doesn't exist.
 // Each device's own settings and ringing log live in the store folder, so only it touches browser storage.
-const SHARED_DIALOGS = ['packages/ui/src/components/Dialog.tsx', 'packages/ui/src/components/ListPopup.tsx'];
+const SHARED_DIALOGS = [
+  'packages/ui/src/components/Dialog.tsx',
+  'packages/ui/src/components/ListPopup.tsx',
+  'packages/ui/src/components/PopupMenu.tsx',
+];
 const CONFINED: { rule: Rule; allowed: readonly string[] }[] = [
   { rule: 'fetch', allowed: ['packages/ui/src/store/'] },
   { rule: 'storage', allowed: ['packages/ui/src/store/'] },

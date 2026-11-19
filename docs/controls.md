@@ -71,6 +71,17 @@ An existing alarm's editor saves each change as you make it. Duplicate Alarm is 
 
 Click a timer to select it, or move to it with **Tab**. Its card has the same actions as buttons. Cancel, Restart, Save as Preset and Pause All Timers are in the command menu and the menu bar.
 
+## Right-click menus
+
+Right-click a clock, an alarm, a timer, a preset or a lap for its menu. A clock has Rename, Move Up, Move Down and Delete; an alarm has Edit, Turn On or Off, Duplicate and Delete; a timer has Start, Pause or Resume, Edit, Cancel, Save as Preset and Delete; a preset has Start, Rename and Delete; a lap has Copy Time.
+
+|                               | macOS          | Windows / Linux                   |
+| ----------------------------- | -------------- | --------------------------------- |
+| Open the selected item's menu | **⇧F10**       | **Shift+F10** or the **Menu** key |
+| Move in the menu              | **↓** / **↑**  | **Down** / **Up**                 |
+| Run the highlighted item      | **↩** or **␣** | **Enter** or **Space**            |
+| Close the menu                | **⎋**          | **Esc**                           |
+
 ## Undo
 
 |      | macOS   | Windows / Linux  |
