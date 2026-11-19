@@ -156,6 +156,29 @@ describe('ringing', () => {
     expect(app.notice.value).toMatchObject({ text: 'Missed: Pasta finished.', sticky: true });
   });
 
+  it('names every missed timer in one notice, and stays quiet about ones over a day old', async () => {
+    const { app, clock } = await withTimer(1);
+    app.edit(addTimer(app.data.peek(), { id: app.newId('t'), ms: 2 * MIN, label: 'Tea' }, NOW), 'New timer');
+    app.edit(addTimer(app.data.peek(), { id: app.newId('t'), ms: 3 * MIN, label: '' }, NOW), 'New timer');
+    clock.at = NOW + 20 * MIN;
+    app.tick();
+    expect(app.notice.value).toMatchObject({ text: 'Missed: Pasta, Tea and Timer finished.', sticky: true });
+    clock.at += 15 * MIN;
+    app.edit(
+      addTimer(app.data.peek(), { id: app.newId('t'), ms: MIN, label: 'Eggs' }, clock.at),
+      'New timer',
+    );
+    clock.at += 20 * MIN;
+    app.tick();
+    expect(app.notice.value?.text).toBe('Missed: Pasta, Tea, Timer and Eggs finished.');
+
+    const old = await withTimer(1, 'Old');
+    old.clock.at = NOW + 2 * 24 * 60 * MIN;
+    old.app.tick();
+    expect(old.app.notice.value).toBeNull();
+    expect(old.app.ringing.value).toEqual([]);
+  });
+
   it('stops by itself after 15 minutes', async () => {
     const { app, clock } = await withTimer(1);
     clock.at = NOW + MIN;

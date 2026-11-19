@@ -5,6 +5,7 @@
 import { batch, computed, signal, type Signal } from '@preact/signals';
 import {
   DEFAULT_SOUND,
+  MISSED_LOOKBACK_MS,
   RING_LIMIT_MS,
   dueNow,
   isFinished,
@@ -123,6 +124,9 @@ export class AppController {
   readonly #sound: SoundOut;
   readonly #saveSettings: (s: DeviceSettings) => void;
   #dropNotice: (() => void) | null = null;
+  /** The names in the Missed notice now showing, so the next miss joins it. */
+  #missed: string[] = [];
+  #missedNotice: Notice | null = null;
 
   constructor(session: ClockSession, deps: AppDeps) {
     this.session = session;
@@ -285,18 +289,34 @@ export class AppController {
   #checkDue(now: number): void {
     const due = dueNow(this.data.peek(), now, this.#rung.keys());
     const ring: Due[] = [];
+    const missed: Due[] = [];
     for (const d of due) {
       this.#rung.add(d.key, now);
       if (!this.settings.peek().ring) continue;
       if (shouldRing(d, now)) ring.push(d);
-      else this.say(`Missed: ${d.label || 'Timer'} finished.`, { sticky: true });
+      // Anything older than a day is past news, not a missed timer (PRD §9.4).
+      else if (now - d.at <= MISSED_LOOKBACK_MS) missed.push(d);
     }
     // Ringing stops by itself after 15 minutes and leaves a notice (PRD §9.2).
     const left = this.ringing.peek().filter((r) => now - r.at < RING_LIMIT_MS || ring.includes(r));
     const timedOut = this.ringing.peek().filter((r) => !left.includes(r));
-    for (const r of timedOut) this.say(`Missed: ${r.label || 'Timer'} finished.`, { sticky: true });
+    this.#sayMissed([...missed, ...timedOut]);
     if (ring.length || timedOut.length) this.#setRinging([...ring.reverse(), ...left]);
     if (ring.length) this.announcement.value = `${ring.map((r) => r.label || 'Timer').join(', ')} done.`;
+  }
+
+  /** One sticky notice names everything missed since it was last dismissed (PRD §9.4). */
+  #sayMissed(list: readonly Due[]): void {
+    if (!list.length) return;
+    const shown = this.notice.peek();
+    const before = shown !== null && shown === this.#missedNotice ? this.#missed : [];
+    this.#missed = [...before, ...list.map((d) => d.label || 'Timer')];
+    const names =
+      this.#missed.length === 1
+        ? this.#missed[0]!
+        : `${this.#missed.slice(0, -1).join(', ')} and ${this.#missed.at(-1)!}`;
+    this.say(`Missed: ${names} finished.`, { sticky: true });
+    this.#missedNotice = this.notice.peek();
   }
 
   #setRinging(list: readonly Due[]): void {
