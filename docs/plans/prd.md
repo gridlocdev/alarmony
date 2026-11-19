@@ -93,7 +93,8 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 ### §3.7 Where the folder lives
 
 - Desktop: **Open Folder…** (⌘O); the last one reopens, remembered in `folder.json` in the app's data folder. First start asks before showing anything: **Use Documents/Alarmony** (created when chosen) or **Choose Folder…**, or Quit. When the remembered folder is gone, the same question names it and nothing is created in its place. The status bar shows the folder's name, with its path on hover.
-- Browser: a folder through the File System Access API where the browser has it; otherwise the file lives in the browser's storage and the status bar says "Stored in this browser". **Export clock.json…** and **Import clock.json…** are the way out and in there.
+- Browser: a folder through the File System Access API where the browser has it (**Open Folder…**, ⌘O); otherwise the file lives in the browser's storage and the status bar says "Stored in this browser". A picked folder with no `clock.json` gets a copy of the current one; one that has a `clock.json` is opened as it is. The folder is remembered in IndexedDB. When the browser wants to ask again, the next start shows the folder's name with **Open “name”** and **Use This Browser Instead** before anything else; refused or gone, the clock is kept in the browser and a notice says so. **Use This Browser's Storage** copies the folder's clock back into the browser and forgets the folder. The status bar shows the folder's name.
+- **Export clock.json…** downloads the clock as it is (a newer Alarmony's file exactly as stored). **Import clock.json…** replaces everything with the picked file as one change that Undo takes back; a newer or unreadable file is refused, and the same file says so. Both are in every browser, not on the desktop, where the file is already in a folder.
 - Paths outside the folder, `..` and symlinks that lead out are refused.
 
 ## §4 Engine

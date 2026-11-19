@@ -283,7 +283,7 @@ function SettingsDialog({ app, folder }: { readonly app: AppController; readonly
         />
         Show notifications
       </label>
-      {app.openFolder && (
+      {app.session.store.kind === 'native' && (
         <>
           <label class="al-check">
             <input

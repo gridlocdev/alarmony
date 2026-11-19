@@ -12,6 +12,12 @@ import {
   writeClock,
 } from './fixtures.ts';
 
+async function readStream(stream: NodeJS.ReadableStream): Promise<string> {
+  let text = '';
+  for await (const chunk of stream) text += String(chunk);
+  return text;
+}
+
 const card = (page: Page, name: RegExp) =>
   page.getByRole('list', { name: 'Timers' }).getByRole('listitem', { name });
 const tab = (page: Page, name: string) => page.getByRole('tab', { name });
@@ -363,6 +369,72 @@ test.describe('Keeping your data', () => {
     await expect(ask).toBeVisible();
     await ask.getByRole('button', { name: 'Restore' }).click();
     await expect(card(page, /^Ironing, /)).toBeVisible();
+  });
+});
+
+test.describe('Keeping your data', () => {
+  test('Export downloads clock.json, and Import replaces the clock until Undo', async ({ page }) => {
+    await openApp(page);
+    await newTimer(page, '10m', 'Laundry');
+    await expect(page.locator('.al-save')).toHaveClass(/al-save-saved/);
+    const download = page.waitForEvent('download');
+    await runCommand(page, 'Export clock.json');
+    const file = await download;
+    expect(file.suggestedFilename()).toBe('clock.json');
+    const exported = JSON.parse(await readStream(await file.createReadStream())) as Record<string, unknown>;
+    expect(exported).toEqual(await readClock(page));
+
+    const timers = exported.timers as { label: string }[];
+    const other = { ...exported, timers: timers.map((t) => ({ ...t, label: 'Dishes' })) };
+    const chooser = page.waitForEvent('filechooser');
+    await runCommand(page, 'Import clock.json');
+    await (
+      await chooser
+    ).setFiles({
+      name: 'clock.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(other)),
+    });
+    await expect(card(page, /^Dishes, /)).toBeVisible();
+    await expect(page.locator('.al-notice')).toContainText('Imported clock.json.');
+    await page.locator('.al-notice').getByRole('button', { name: 'Undo' }).click();
+    await expect(card(page, /^Laundry, /)).toBeVisible();
+  });
+
+  test('Open Folder moves the clock into a picked folder, and back to the browser', async ({ page }) => {
+    // The folder picker is the browser's own window; here it hands back a folder in the page's storage.
+    await page.addInitScript(() => {
+      Object.assign(window, {
+        showDirectoryPicker: async () =>
+          (await navigator.storage.getDirectory()).getDirectoryHandle('picked', { create: true }),
+      });
+    });
+    await openApp(page);
+    await newTimer(page, '10m', 'Laundry');
+    await expect(page.locator('.al-save')).toHaveClass(/al-save-saved/);
+    const loaded = page.waitForEvent('load');
+    await runCommand(page, 'Open Folder');
+    await loaded;
+    await page.getByRole('tablist', { name: 'Clock' }).waitFor();
+    await expect(page.locator('.al-where')).toHaveText('picked');
+    await expect(card(page, /^Laundry, /)).toBeVisible();
+
+    await newTimer(page, '5m', 'Tea');
+    await expect(page.locator('.al-save')).toHaveClass(/al-save-saved/);
+    const inFolder = await page.evaluate(async () => {
+      const dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('picked');
+      const text = await (await (await dir.getFileHandle('clock.json')).getFile()).text();
+      return (JSON.parse(text) as { timers: { label: string }[] }).timers.map((t) => t.label);
+    });
+    expect(inFolder.sort()).toEqual(['Laundry', 'Tea']);
+    expect(((await readClock(page))?.timers as unknown[]).length).toBe(1);
+
+    const back = page.waitForEvent('load');
+    await runCommand(page, 'Use This Browser');
+    await back;
+    await page.getByRole('tablist', { name: 'Clock' }).waitFor();
+    await expect(page.locator('.al-where')).toHaveText('Stored in this browser');
+    await expect(card(page, /^Tea, /)).toBeVisible();
   });
 });
 

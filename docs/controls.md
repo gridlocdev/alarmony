@@ -18,7 +18,7 @@ In a browser tab, the browser keeps **⌘N** (**Ctrl+N**) for its own windows, s
 | Command menu                         | **⌘K**        | **Ctrl+K**           |
 | Keyboard Shortcuts                   | **⌘/**        | **Ctrl+/**           |
 | Settings                             | **⌘,**        | **Ctrl+,**           |
-| Open Folder… (desktop)               | **⌘O**        | **Ctrl+O**           |
+| Open Folder…                         | **⌘O**        | **Ctrl+O**           |
 | Close a window or the command menu   | **⎋**         | **Esc**              |
 
 ## World Clock

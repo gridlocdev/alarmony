@@ -27,6 +27,7 @@ import { CommandCatalog, type CommandSpec, type MenuEntry } from '@alarmony/ui';
 import { TABS, type AppController } from './controller.ts';
 import { openSelectedMenu } from './ContextMenu.tsx';
 import { targetOf } from './itemMenu.ts';
+import { exportClock, importClock, inPickedFolder, leaveFolder } from './transfer.ts';
 
 const TAB_KEYS: Record<string, string> = {
   world: 'mod+1',
@@ -127,6 +128,40 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       enabled: () => app.openFolder !== null,
       hidden: app.openFolder === null,
       run: () => void app.openFolder?.(),
+    },
+    {
+      id: 'file.useBrowser',
+      title: 'Use This Browser’s Storage',
+      description: 'Stop using the picked folder: the clock, as it is, goes back into this browser.',
+      group: 'File',
+      keywords: 'folder forget leave',
+      hidden: !inPickedFolder(app.session),
+      run: () =>
+        void leaveFolder(app.session, () => location.reload()).catch((e: unknown) =>
+          app.say(`Couldn't move the clock back: ${String(e)}`, { tone: 'error' }),
+        ),
+    },
+    {
+      id: 'file.export',
+      title: 'Export clock.json…',
+      description: 'Save a copy of your clocks, alarms, timers and stopwatch to the Downloads folder.',
+      group: 'File',
+      keywords: 'backup download save copy',
+      hidden: app.session.store.kind === 'native',
+      run: () =>
+        void exportClock(app).catch((e: unknown) =>
+          app.say(`Couldn't export: ${String(e)}`, { tone: 'error' }),
+        ),
+    },
+    {
+      id: 'file.import',
+      title: 'Import clock.json…',
+      description: 'Replace everything here with a clock.json you pick. Undo takes it back.',
+      group: 'File',
+      keywords: 'restore upload load backup',
+      hidden: app.session.store.kind === 'native',
+      enabled: () => !app.session.readOnly.value,
+      run: () => importClock(app),
     },
     {
       id: 'app.settings',

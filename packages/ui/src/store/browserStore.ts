@@ -27,16 +27,27 @@ function isNotFound(e: unknown): boolean {
  * clock.json in the origin's private file system (PRD §3.7). Every tab shares it, so a save holds a Web Lock
  * while it checks the version and writes: a second tab can't pass the same check and overwrite it (PRD §3.4).
  */
+const BROWSER_PLACE = 'Stored in this browser';
+
 export class BrowserStore implements ClockStore {
   readonly kind = 'browser';
   readonly #root: () => Promise<DirHandle>;
   readonly #locks: LockManagerLike | null;
+  readonly #place: string;
   #queue: Promise<unknown> = Promise.resolve();
 
-  /** `root` defaults to `navigator.storage.getDirectory()`, `locks` to `navigator.locks`. */
-  constructor(root?: () => Promise<DirHandle>, locks: LockManagerLike | null = defaultLocks()) {
+  /**
+   * `root` defaults to `navigator.storage.getDirectory()`, `locks` to `navigator.locks`. `place` is what
+   * `location()` says: a picked folder's name, else "Stored in this browser".
+   */
+  constructor(
+    root?: () => Promise<DirHandle>,
+    locks: LockManagerLike | null = defaultLocks(),
+    place = BROWSER_PLACE,
+  ) {
     this.#root = root ?? (() => navigator.storage.getDirectory() as Promise<unknown> as Promise<DirHandle>);
     this.#locks = locks;
+    this.#place = place;
   }
 
   /** Is there a private file system here? (Not in old browsers or some private windows.) */
@@ -98,6 +109,11 @@ export class BrowserStore implements ClockStore {
   }
 
   location(): string {
-    return 'Stored in this browser';
+    return this.#place;
+  }
+
+  /** Whether this is a folder someone picked, not the browser's own storage. */
+  get inFolder(): boolean {
+    return this.#place !== BROWSER_PLACE;
   }
 }

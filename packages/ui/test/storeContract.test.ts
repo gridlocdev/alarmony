@@ -89,6 +89,16 @@ describe('the browser store in two tabs', () => {
   });
 });
 
+describe('a picked folder', () => {
+  it('is named by the folder, where the browser’s own storage says so', () => {
+    const { root } = fakeFolder('picked');
+    const folder = new BrowserStore(() => Promise.resolve(root as unknown as DirHandle), null, 'Clocks');
+    const own = new BrowserStore(() => Promise.resolve(root as unknown as DirHandle), null);
+    expect([folder.location(), folder.inFolder]).toEqual(['Clocks', true]);
+    expect([own.location(), own.inFolder]).toEqual(['Stored in this browser', false]);
+  });
+});
+
 describe('the native store', () => {
   it('says which folder the file is in', async () => {
     const file = path.join(dir, 'Alarmony', 'clock.json');

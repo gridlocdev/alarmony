@@ -5,6 +5,15 @@ export {
   type LockManagerLike,
 } from './store/browserStore.ts';
 export { MemoryStore } from './store/memoryStore.ts';
+export {
+  canPickFolder,
+  folderAccess,
+  folderStore,
+  pickFolder,
+  rememberFolder,
+  savedFolder,
+  type PickedFolder,
+} from './store/folderStore.ts';
 export { NativeStore, type NativeData, type AlarmonyNative, type TrayState } from './store/nativeStore.ts';
 export { ConflictError, sha256Hex, type ClockStore, type StoredFile } from './store/clockStore.ts';
 export {

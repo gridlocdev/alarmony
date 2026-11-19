@@ -8,6 +8,12 @@ import {
   NativeStore,
   SoundPlayer,
   after,
+  canPickFolder,
+  folderAccess,
+  folderStore,
+  rememberFolder,
+  savedFolder,
+  type PickedFolder,
   deviceMemory,
   every,
   frames,
@@ -18,6 +24,8 @@ import {
   type ClockStore,
 } from '@alarmony/ui';
 import { App, handleKey } from './app/App.tsx';
+import { FolderGate } from './app/FolderGate.tsx';
+import { openBrowserFolder } from './app/transfer.ts';
 import { buildCommands } from './app/commands.ts';
 import { AppController } from './app/controller.ts';
 import { nativeBridge } from './app/native.ts';
@@ -55,22 +63,49 @@ function notifier(): { notify: (title: string) => void; ask: () => void } {
   };
 }
 
-/** The desktop app's folder, else this browser's own storage, else memory only (PRD §3.7). */
-function chooseStore(): { store: ClockStore; notice: string | null } {
+/** Shows the folder gate and waits for a click: true to open the folder, false to use the browser instead. */
+function askForFolder(folder: PickedFolder): Promise<boolean> {
+  return new Promise((resolve) => render(<FolderGate name={folder.name} choose={resolve} />, root));
+}
+
+/** The folder picked in this browser, if it may still be opened; the gate asks when the browser wants a click. */
+async function pickedFolder(): Promise<{ store: ClockStore | null; notice: string | null }> {
+  const folder = await savedFolder().catch((e: unknown) => {
+    console.warn('Could not read the folder picked last time:', e);
+    return null;
+  });
+  if (!folder) return { store: null, notice: null };
+  let access = await folderAccess(folder, false);
+  if (access === 'prompt' && (await askForFolder(folder))) access = await folderAccess(folder, true);
+  if (access === 'granted') return { store: folderStore(folder), notice: null };
+  await rememberFolder(null);
+  return {
+    store: null,
+    notice: `Not using the folder “${folder.name}”. Your clock is kept in this browser.`,
+  };
+}
+
+/** The desktop app's folder, else a folder picked in this browser, else its own storage, else memory (PRD §3.7). */
+async function chooseStore(): Promise<{ store: ClockStore; notice: string | null }> {
   if (native) return { store: new NativeStore(native), notice: null };
-  if (BrowserStore.available()) return { store: new BrowserStore(), notice: null };
+  if (BrowserStore.available()) {
+    const picked = canPickFolder() ? await pickedFolder() : { store: null, notice: null };
+    return { store: picked.store ?? new BrowserStore(), notice: picked.notice };
+  }
   return {
     store: new MemoryStore(null),
     notice: "This browser can't keep files, so nothing here is saved after the tab closes.",
   };
 }
 
+const reload = () => location.reload();
+
 async function start(): Promise<void> {
-  const choice = chooseStore();
+  const choice = await chooseStore();
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const { session, notice } = await ClockSession.open(choice.store, { recovery: localRecovery(), zone });
   const notifications = notifier();
-  const app = new AppController(session, {
+  const app: AppController = new AppController(session, {
     now: () => Date.now(),
     zone,
     memory: deviceMemory(),
@@ -86,7 +121,16 @@ async function start(): Promise<void> {
           // Saves still waiting go to the old folder before the window reloads from the new one.
           openFolder: () => session.flush().then(() => native.openFolder()),
         }
-      : {}),
+      : canPickFolder() && choice.store instanceof BrowserStore
+        ? {
+            openFolder: (): Promise<void> =>
+              openBrowserFolder(session, reload).catch((e: unknown) =>
+                app.say(`Couldn't open that folder: ${e instanceof Error ? e.message : String(e)}`, {
+                  tone: 'error',
+                }),
+              ),
+          }
+        : {}),
   });
   const catalog = buildCommands(app);
   render(<App app={app} catalog={catalog} />, root);

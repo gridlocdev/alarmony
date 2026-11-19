@@ -1128,3 +1128,15 @@ kbd {
   margin: 4px 6px;
   background: var(--al-border);
 }
+
+/* Before start-up, when the browser asks again for the folder picked last time. */
+.al-gate {
+  max-width: 28rem;
+  margin: 15vh auto 0;
+  padding: 0 16px;
+}
+.al-gate-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
