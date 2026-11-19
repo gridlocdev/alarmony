@@ -318,7 +318,9 @@ function ConflictDialog({ app }: { readonly app: AppController }) {
             type="button"
             class="al-button al-button-primary"
             disabled={busy}
-            onClick={() => void app.session.keepMine().catch(fail)}
+            onClick={() =>
+              void app.session.keepMine().then((notice) => notice && app.say(notice, { sticky: true }), fail)
+            }
           >
             Keep Mine
           </button>

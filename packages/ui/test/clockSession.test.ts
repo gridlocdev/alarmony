@@ -116,6 +116,18 @@ describe('ClockSession', () => {
     expect(session.doc.data.timers).toEqual([]);
   });
 
+  it('keeps an unreadable file aside before Keep Mine writes over it', async () => {
+    const { session, store } = await open();
+    store.text = '{ half a file';
+    addOne(session);
+    await session.flush();
+    expect(session.status.value).toBe('conflict');
+    const notice = await session.keepMine();
+    expect([...store.copies.values()]).toEqual(['{ half a file']);
+    expect(notice).toMatch(/^clock\.json couldn't be read\. It was kept as clock unreadable .*\.json\.$/);
+    expect(fileData(store).timers).toHaveLength(1);
+  });
+
   it('offers last time’s unsaved data, and restores it', async () => {
     const { store } = await open();
     const recovery = memoryRecovery();

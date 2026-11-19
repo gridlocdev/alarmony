@@ -318,18 +318,23 @@ export class ClockSession {
     return this.#choosing(() => this.#takeTheirs());
   }
 
-  /** Conflict → Keep Mine: save this window's data over the file. */
-  async keepMine(): Promise<void> {
-    if (!this.#is('conflict')) return;
+  /** Conflict → Keep Mine: save this window's data over the file. Returns a notice when the file was kept aside. */
+  async keepMine(): Promise<string | null> {
+    if (!this.#is('conflict')) return null;
     this.#fire('choose');
-    await this.#choosing(async () => {
+    const notice = await this.#choosing(async () => {
       const file = await this.store.load();
+      const kind = file.text === null ? null : classifyFile(file.text).kind;
       // A file from a newer Alarmony is never written (PRD §3.3); the conflict waits for another choice.
-      if (file.text !== null && classifyFile(file.text).kind === 'newer') throw new Error(NEWER_FILE_MESSAGE);
+      if (kind === 'newer') throw new Error(NEWER_FILE_MESSAGE);
+      // An unreadable one is never written over without a copy (PRD §3.3).
+      const kept = kind === 'corrupt' && file.text !== null ? await this.store.saveCopy(file.text) : null;
       this.#version = file.version;
       this.#fire('keepMine');
+      return kept && `clock.json couldn't be read. It was kept as ${kept}.`;
     });
     await this.flush();
+    return notice;
   }
 
   /** Runs a conflict choice; if it fails, the dialog comes back for another. */
