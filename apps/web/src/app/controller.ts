@@ -37,6 +37,7 @@ import {
   type SaveStatus,
   type Tab,
 } from '@alarmony/ui';
+import { freshAnnouncement } from './announce.ts';
 import { clockTime } from './time.ts';
 import { trayState } from './tray.ts';
 import { ItemMenu } from './itemMenu.ts';
@@ -303,7 +304,7 @@ export class AppController {
     if (notice.sticky) this.#underneath = null;
     else if (shown?.sticky && shown.tone === 'error') this.#underneath = shown;
     this.notice.value = notice;
-    this.announcement.value = text;
+    this.announcement.value = freshAnnouncement(text, this.announcement.peek());
     if (!notice.sticky)
       this.#dropNotice = this.#after(NOTICE_MS, () => {
         if (this.notice.peek() !== notice) return;
@@ -467,7 +468,8 @@ export class AppController {
     this.#sayMissed([...missed, ...timedOut]);
     if (ring.length || timedOut.length) this.#setRinging([...ring.reverse(), ...left]);
     if (ring.length) {
-      this.announcement.value = ring.map((r) => this.ringTitle(r)).join(', ');
+      const said = ring.map((r) => this.ringTitle(r)).join(', ');
+      this.announcement.value = freshAnnouncement(said, this.announcement.peek());
       if (this.settings.peek().notifications) for (const r of ring) this.#notify(this.ringTitle(r));
     }
   }

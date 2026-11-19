@@ -129,6 +129,17 @@ describe('timer commands', () => {
 });
 
 describe('notices', () => {
+  it('are spoken again when the same words come twice in a row', async () => {
+    const { app } = await makeApp();
+    app.say('Deleted timer.');
+    const first = app.announcement.value;
+    app.say('Deleted timer.');
+    expect(app.announcement.value).not.toBe(first);
+    expect(app.announcement.value.trim()).toBe('Deleted timer.');
+    app.say('Deleted timer.');
+    expect(app.announcement.value).toBe(first);
+  });
+
   it('keeps a failed-save notice under other notices until saving works', async () => {
     const { app, catalog, later } = await withTimer();
     app.saveStatusChanged('failed');
