@@ -295,9 +295,9 @@ export function classifyFile(text: string): FileRead {
   if (!isWhole(json.format, 1, Number.MAX_SAFE_INTEGER))
     return { kind: 'corrupt', reason: 'no format number' };
   if (json.format > FORMAT) return { kind: 'newer', format: json.format };
+  // A list that is gone means the file lost data, so it is kept aside rather than read as empty (PRD §3.3).
   for (const list of LISTS)
-    if (json[list] !== undefined && !Array.isArray(json[list]))
-      return { kind: 'corrupt', reason: `${list} is not a list` };
+    if (!Array.isArray(json[list])) return { kind: 'corrupt', reason: `${list} is not a list` };
   const clocks = readList('clocks', json.clocks);
   const alarms = readList('alarms', json.alarms);
   const presets = readList('presets', json.presets);

@@ -114,7 +114,9 @@ describe('classifyFile', () => {
     ['null', 'null'],
     ['a list', '[]'],
     ['no format', '{"clocks": []}'],
-    ['a list that is not a list', '{"format": 1, "timers": {}}'],
+    ['a list that is not a list', '{"format": 1, "clocks": [], "alarms": [], "presets": [], "timers": {}}'],
+    ['a missing list', '{"format": 1, "clocks": [], "alarms": [], "presets": []}'],
+    ['only a format', '{"format": 1}'],
   ])('calls %s corrupt', (_, text) => {
     expect(classifyFile(text).kind).toBe('corrupt');
   });
@@ -125,7 +127,7 @@ describe('classifyFile', () => {
   });
 
   it('reads a missing stopwatch or settings as the defaults', () => {
-    const data = ok('{"format": 1}');
+    const data = ok('{"format": 1, "clocks": [], "alarms": [], "presets": [], "timers": []}');
     expect(data.stopwatch.state).toBe('idle');
     expect(data.settings.snoozeMinutes).toBe(9);
     checkInvariants(data);

@@ -75,7 +75,9 @@ describe('ClockSession', () => {
   });
 
   it('says how many items it skipped', async () => {
-    const store = new MemoryStore(JSON.stringify({ format: 1, timers: [{ id: 'bad' }] }));
+    const store = new MemoryStore(
+      JSON.stringify({ format: 1, clocks: [], alarms: [], presets: [], timers: [{ id: 'bad' }] }),
+    );
     expect((await open(store)).notice).toBe("Skipped 1 item Alarmony couldn't read.");
   });
 

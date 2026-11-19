@@ -12,9 +12,11 @@ const DESKTOP = fileURLToPath(new URL('../apps/desktop', import.meta.url));
 
 const CLOCK = {
   format: 1,
-  stopwatch: { state: 'idle', startedAt: null, elapsedMs: 0, laps: [] },
-  timers: [{ id: 't-desk', label: 'Bread', ms: 600_000, state: 'idle', endsAt: null, leftMs: 600_000 }],
+  clocks: [],
+  alarms: [],
   presets: [],
+  timers: [{ id: 't-desk', label: 'Bread', ms: 600_000, state: 'idle', endsAt: null, leftMs: null }],
+  stopwatch: { state: 'idle', startedAt: null, elapsedMs: 0, laps: [] },
 };
 
 test.describe('Keeping your data', () => {
