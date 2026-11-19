@@ -265,15 +265,29 @@ const READERS: { readonly [L in ListName]: (r: Raw) => ListItems[L] | null } = {
 };
 
 function readList<L extends ListName>(list: L, v: unknown): { items: ListItems[L][]; unread: unknown[] } {
+  const raws: unknown[] = Array.isArray(v) ? v : [];
   const items: ListItems[L][] = [];
   const unread: unknown[] = [];
+  const taken = new Set(raws.map((r) => (isObject(r) ? r.id : undefined)).filter(isId));
   const seen = new Set<string>();
-  for (const raw of Array.isArray(v) ? v : []) {
-    const item = isObject(raw) ? READERS[list](raw) : null;
-    if (item && !seen.has(item.id)) {
-      seen.add(item.id);
-      items.push(item);
-    } else unread.push(raw);
+  for (const raw of raws) {
+    const read = isObject(raw) ? READERS[list](raw) : null;
+    if (!read) {
+      unread.push(raw);
+      continue;
+    }
+    // A copy with a taken id (two devices, a sync tool) shows as an item of its own. Kept unread, it would be
+    // written back and come back once the first one was deleted. Its new id is the same on every read.
+    let item = read;
+    if (seen.has(item.id)) {
+      const stem = read.id.slice(0, 34);
+      let n = 2;
+      while (taken.has(`${stem}-${n}`)) n++;
+      item = { ...read, id: `${stem}-${n}` };
+      taken.add(item.id);
+    }
+    seen.add(item.id);
+    items.push(item);
   }
   return { items, unread };
 }

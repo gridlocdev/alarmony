@@ -102,11 +102,19 @@ describe('classifyFile', () => {
     });
   });
 
-  it('keeps a second item with a taken id as unread', () => {
+  it('gives a second item with a taken id an id of its own, the same on every read', () => {
     const raw = JSON.parse(SAMPLE);
-    raw.presets.push({ id: 'p_x3', label: 'Again', ms: 1000 });
+    raw.presets.push({ id: 'p_x3', label: 'Again', ms: 1000 }, { id: 'p_x3-2', label: 'Third', ms: 2000 });
     const r = classifyFile(JSON.stringify(raw));
-    expect(r.kind === 'ok' && r.skipped).toBe(1);
+    if (r.kind !== 'ok') throw new Error(r.kind);
+    expect(r.skipped).toBe(0);
+    expect(r.data.presets.map((p) => [p.id, p.label])).toEqual([
+      ['p_x3', 'Tea'],
+      ['p_x3-3', 'Again'],
+      ['p_x3-2', 'Third'],
+    ]);
+    expect(serialize(ok(JSON.stringify(raw)))).toBe(serialize(r.data));
+    checkInvariants(r.data);
   });
 
   it.each([

@@ -54,7 +54,7 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 }
 ```
 
-- `id`: a short random id, unique in its list. `label`: free text, up to 100 characters, may be empty.
+- `id`: a short random id, unique in its list. A second item read with an id already taken is shown with `<id>-2` (the next free number), so both stay visible. `label`: free text, up to 100 characters, may be empty.
 - Clocks: `zone` is an IANA zone the system knows (`Intl.supportedValuesOf('timeZone')`, plus `UTC`). A zone the system doesn't know is kept and shown greyed with "Unknown time zone <zone>".
 - Alarms: `time` is `HH:MM` (24-hour) on the clock of the device that rings it (§9.1). `days` holds 1–7 (Monday = 1), sorted, no repeats; empty means once. `sound` is a name from §10; an unknown name plays the default and is kept. `once` is set only for a one-off alarm: the local date-time it rings at, `YYYY-MM-DDTHH:MM`, filled in when the alarm is turned on (§7.2).
 - Presets: `ms` is 1 s to 99 h 59 m 59 s, in whole seconds.
