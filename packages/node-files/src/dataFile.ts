@@ -101,7 +101,10 @@ export async function syncFolder(dir: string): Promise<void> {
   await handle.close();
 }
 
-/** A lock older than this was left by a process that died mid-save; a save takes milliseconds. */
+/**
+ * A lock older than this was left by a process that died mid-save; a save takes milliseconds. One stamped this far
+ * in the future came from a computer whose clock runs ahead, through a synced folder, and is just as dead.
+ */
 export const STALE_LOCK_MS = 10_000;
 
 /**
@@ -121,7 +124,7 @@ async function withFileLock<T>(file: string, task: () => Promise<T>): Promise<T>
     } catch (e) {
       if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e;
       const held = await stat(lock).catch(() => null);
-      if (held && Date.now() - held.mtimeMs > STALE_LOCK_MS) await rm(lock, { force: true });
+      if (held && Math.abs(Date.now() - held.mtimeMs) > STALE_LOCK_MS) await rm(lock, { force: true });
       else await sleep(15);
     }
   }

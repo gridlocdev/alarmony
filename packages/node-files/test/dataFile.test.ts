@@ -113,4 +113,13 @@ describe('saving alongside other programs', () => {
     expect(await writeDataFile(file, 'two', versionOf('one'))).toMatchObject({ ok: true });
     expect(await readdir(path.dirname(file))).toEqual(['clock.json']);
   });
+
+  it('takes over a lock stamped in the future by a computer whose clock runs ahead', async () => {
+    await writeDataFile(file, 'one', null);
+    const lock = path.join(path.dirname(file), '.clock.json.lock');
+    await writeFile(lock, '');
+    const ahead = new Date(Date.now() + 60 * 60_000);
+    await utimes(lock, ahead, ahead);
+    expect(await writeDataFile(file, 'two', versionOf('one'))).toMatchObject({ ok: true });
+  }, 5000);
 });
