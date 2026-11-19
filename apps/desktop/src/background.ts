@@ -106,3 +106,18 @@ export async function readJsonFile(file: string): Promise<unknown> {
 export async function writeJsonFile(file: string, value: unknown): Promise<void> {
   await writeAtomic(file, JSON.stringify(value) + '\n');
 }
+
+/** At most this many reloads after the page crashes, within `CRASH_WINDOW_MS`; past that it is left to the user. */
+export const CRASH_RELOADS = 3;
+export const CRASH_WINDOW_MS = 60_000;
+
+/**
+ * Whether to reload the page after it crashed at `now`, given when it crashed before (PRD §15): alarms and timers
+ * ring from the page, so a dead page in a hidden window would miss them without a word. A page that keeps
+ * crashing isn't reloaded forever.
+ */
+export function reloadAfterCrash(crashes: number[], now: number): boolean {
+  const recent = crashes.filter((t) => now - t < CRASH_WINDOW_MS);
+  crashes.splice(0, crashes.length, ...recent, now);
+  return recent.length < CRASH_RELOADS;
+}

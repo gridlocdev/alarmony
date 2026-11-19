@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { MenuItemConstructorOptions } from 'electron';
-import { EMPTY_TRAY, parsePrefs, parseTrayState, trayMenu } from '../src/background.ts';
+import { EMPTY_TRAY, parsePrefs, parseTrayState, reloadAfterCrash, trayMenu } from '../src/background.ts';
 import type { TrayState } from '../src/bridge.ts';
 
 function menu(state: TrayState) {
@@ -81,5 +81,13 @@ describe('what crosses from the page', () => {
       closeNote: false,
       askBeforeQuit: true,
     });
+  });
+});
+
+describe('after the page crashes', () => {
+  it('reloads it, but not more than three times a minute', () => {
+    const crashes: number[] = [];
+    expect([0, 1000, 2000, 3000].map((t) => reloadAfterCrash(crashes, t))).toEqual([true, true, true, false]);
+    expect(reloadAfterCrash(crashes, 70_000)).toBe(true);
   });
 });

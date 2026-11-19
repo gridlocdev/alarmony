@@ -29,6 +29,7 @@ import {
   parsePrefs,
   parseTrayState,
   readJsonFile,
+  reloadAfterCrash,
   trayMenu,
   writeJsonFile,
   type BackgroundPrefs,
@@ -294,8 +295,12 @@ function createWindow(visible: boolean): BrowserWindow {
   w.webContents.ipc.on(Channels.closeReady, (e) => {
     if (trusted(e)) closeNow();
   });
-  w.webContents.on('render-process-gone', () => {
-    if (closeTimer || quitting) closeNow();
+  const crashes: number[] = [];
+  w.webContents.on('render-process-gone', (_e, details) => {
+    if (closeTimer || quitting) return closeNow();
+    if (details.reason === 'clean-exit') return;
+    console.error(`The page stopped (${details.reason}).`);
+    if (reloadAfterCrash(crashes, Date.now())) w.webContents.reload();
   });
   w.on('closed', () => {
     if (placeTimer) clearTimeout(placeTimer);

@@ -111,4 +111,25 @@ test.describe('Desktop in the background', () => {
       await close();
     }
   });
+
+  test('a page that crashes comes back by itself, so its timers still ring', async () => {
+    const { app, close } = await launch();
+    try {
+      const window = await app.firstWindow();
+      await window.getByRole('tab', { name: 'Timers' }).waitFor();
+      await app.evaluate(({ BrowserWindow }) =>
+        BrowserWindow.getAllWindows()[0]?.webContents.forcefullyCrashRenderer(),
+      );
+      // Playwright's handle on the page died with it, so the new page is asked through Electron.
+      const drawn = () =>
+        app.evaluate(async ({ BrowserWindow }) => {
+          const page = BrowserWindow.getAllWindows()[0]?.webContents;
+          if (!page || page.isCrashed()) return false;
+          return page.executeJavaScript(`!!document.querySelector('[role="tablist"]')`).catch(() => false);
+        });
+      await expect.poll(drawn, { timeout: 5000 }).toBe(true);
+    } finally {
+      await close();
+    }
+  });
 });
