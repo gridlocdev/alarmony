@@ -87,19 +87,29 @@ export interface RungLog {
   keys(): ReadonlySet<string>;
 }
 
-export function rungLog(now: number, persist = true): RungLog {
-  const raw = persist ? readJson(RUNG_KEY) : null;
+/** The stored log's entries younger than 3 days at `now`. */
+function readRung(now: number): Map<string, number> {
+  const raw = readJson(RUNG_KEY);
   const entries = new Map<string, number>();
   if (typeof raw === 'object' && raw !== null)
     for (const [k, v] of Object.entries(raw))
       if (typeof v === 'number' && now - v < RUNG_KEEP_MS) entries.set(k, v);
+  return entries;
+}
+
+export function rungLog(now: number, persist = true): RungLog {
+  const entries = persist ? readRung(now) : new Map<string, number>();
   let keys: ReadonlySet<string> = new Set(entries.keys());
   return {
     has: (key) => entries.has(key),
     add(key, at) {
       entries.set(key, at);
+      if (persist) {
+        // Other tabs share the stored log: merge what they rang in, so no tab writes over another.
+        for (const [k, v] of readRung(at)) if (!entries.has(k)) entries.set(k, v);
+        writeJson(RUNG_KEY, Object.fromEntries(entries));
+      }
       keys = new Set(entries.keys());
-      if (persist) writeJson(RUNG_KEY, Object.fromEntries(entries));
     },
     keys: () => keys,
   };
