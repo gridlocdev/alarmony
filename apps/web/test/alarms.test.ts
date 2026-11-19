@@ -32,6 +32,21 @@ async function withAlarm(over: Partial<AlarmFields> = {}, opts: Parameters<typeo
 }
 
 describe('alarms ringing', () => {
+  it('rings alarms in a file from a newer Alarmony, which stays read-only (PRD §3.3)', async () => {
+    const daily = fields({ days: [1, 2, 3, 4, 5, 6, 7] });
+    const data = applyOps(emptyData(null), addAlarm(emptyData(null), 'a_1', daily, NOW, 'UTC'));
+    const text = serialize(data).replace('"format": 1', '"format": 9');
+    const { app, clock, catalog, store } = await makeApp(text);
+    expect(app.notice.value).toMatchObject({ text: expect.stringMatching(/newer Alarmony/), sticky: true });
+    clock.at = at(12, 30);
+    app.tick();
+    expect(app.ringing.value.map((r) => r.label)).toEqual(['Lunch']);
+    catalog.run('ringing.stop');
+    expect(app.edit(toggleAlarm(app.data.peek(), 'a_1', NOW, app.zone), 'Turn off')).toBe(false);
+    expect(app.data.value.alarms).toHaveLength(1);
+    expect(store.text).toBe(text);
+  });
+
   it('rings at its time with its own sound, says so, and notifies', async () => {
     const { app, clock, sound, notified } = await withAlarm();
     clock.at = at(12, 29);

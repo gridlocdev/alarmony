@@ -31,6 +31,7 @@ export class ClockDoc {
   #undo: Step[] = [];
   #redo: Step[] = [];
   #listeners = new Set<(change: Change) => void>();
+  #locked = false;
 
   constructor(data: ClockData) {
     this.#data = data;
@@ -40,12 +41,21 @@ export class ClockDoc {
     return this.#data;
   }
 
+  /** A file from a newer Alarmony (PRD §3.3): edits, settings, undo and redo change nothing. */
+  get locked(): boolean {
+    return this.#locked;
+  }
+
+  set locked(locked: boolean) {
+    this.#locked = locked;
+  }
+
   get canUndo(): boolean {
-    return this.#undo.length > 0;
+    return !this.#locked && this.#undo.length > 0;
   }
 
   get canRedo(): boolean {
-    return this.#redo.length > 0;
+    return !this.#locked && this.#redo.length > 0;
   }
 
   get undoLabel(): string | null {
@@ -67,6 +77,7 @@ export class ClockDoc {
 
   /** Applies an edit as one undo step. Returns false, and records nothing, when it changes nothing. */
   apply(ops: readonly Op[] | null, label: string): boolean {
+    if (this.#locked) return false;
     const real = (ops ?? []).filter((op) => !isNoop(op));
     if (!real.length) return false;
     this.#data = applyOps(this.#data, real);
@@ -79,6 +90,7 @@ export class ClockDoc {
 
   /** A change that is saved but isn't an undo step: settings in the file (PRD §3.4). */
   applySetting(ops: readonly Op[] | null, label: string): boolean {
+    if (this.#locked) return false;
     const real = (ops ?? []).filter((op) => !isNoop(op));
     if (!real.length) return false;
     this.#data = applyOps(this.#data, real);
@@ -87,6 +99,7 @@ export class ClockDoc {
   }
 
   undo(): Step | null {
+    if (this.#locked) return null;
     const step = this.#undo.pop();
     if (!step) return null;
     const ops = invertOps(step.ops);
@@ -97,6 +110,7 @@ export class ClockDoc {
   }
 
   redo(): Step | null {
+    if (this.#locked) return null;
     const step = this.#redo.pop();
     if (!step) return null;
     this.#data = applyOps(this.#data, step.ops);

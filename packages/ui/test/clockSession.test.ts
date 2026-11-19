@@ -88,8 +88,48 @@ describe('ClockSession', () => {
     expect((await open(store)).notice).toBe("Skipped 1 item Alarmony couldn't read.");
   });
 
-  it('refuses a file from a newer Alarmony', async () => {
-    await expect(open(new MemoryStore('{"format": 9}'))).rejects.toThrow(/newer Alarmony/);
+  it('shows a file from a newer Alarmony read-only, never writing it (PRD §3.3)', async () => {
+    const newer = (presets: unknown[]) =>
+      JSON.stringify({ format: 9, clocks: [], alarms: [], timers: [], presets, hologram: true });
+    const text = newer([{ id: 'p_1', label: 'Egg', ms: 360_000 }]);
+    const recovery = memoryRecovery('left by another window');
+    const { session, store, notice } = await open(new MemoryStore(text), recovery);
+    expect(notice).toBeNull();
+    expect(session.readOnly.value).toBe(true);
+    expect(session.doc.data.presets.map((p) => p.label)).toEqual(['Egg']);
+    expect(addOne(session)).toBe(false);
+    expect(session.doc.undo()).toBeNull();
+    await session.flush();
+    expect(store.text).toBe(text);
+    // What another window left waits for a version that can write the file.
+    expect(session.recoverable.value).toBeNull();
+    expect(recovery.left).toBe('left by another window');
+
+    // It follows the file while it stays newer...
+    store.text = newer([{ id: 'p_2', label: 'Tea', ms: 180_000 }]);
+    expect(await session.refresh()).toBeNull();
+    expect(session.doc.data.presets.map((p) => p.label)).toEqual(['Tea']);
+    expect(session.readOnly.value).toBe(true);
+    // ...and opens for editing once the file is one this version writes.
+    const notices = listen(session);
+    store.text = serialize(emptyData('UTC'));
+    await session.refresh();
+    expect(session.readOnly.value).toBe(false);
+    expect(notices).toEqual(['clock.json can be changed again.']);
+    expect(addOne(session)).toBe(true);
+    await session.flush();
+    expect(fileData(store).timers.map((x) => x.id)).toEqual(['t_1']);
+  });
+
+  it('keeps showing a read-only file when it goes missing or unreadable', async () => {
+    const text = JSON.stringify({ format: 9, clocks: [], alarms: [], timers: [], presets: [] });
+    const { session, store } = await open(new MemoryStore(text));
+    store.text = '{ broken';
+    await session.refresh();
+    store.text = null;
+    await session.refresh();
+    expect(session.readOnly.value).toBe(true);
+    expect(store.text).toBeNull();
   });
 
   it('takes a change made elsewhere as one undo step when nothing here is unsaved', async () => {

@@ -266,6 +266,7 @@ function SettingsDialog({ app, folder }: { readonly app: AppController; readonly
       <label class="al-field">
         <span>Snooze length</span>
         <select
+          disabled={app.session.readOnly.value}
           value={String(app.data.value.settings.snoozeMinutes)}
           onChange={(e) =>
             app.doc.applySetting(

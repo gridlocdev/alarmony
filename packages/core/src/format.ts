@@ -294,7 +294,8 @@ function readList<L extends ListName>(list: L, v: unknown): { items: ListItems[L
 
 export type FileRead =
   | { readonly kind: 'ok'; readonly data: ClockData; readonly skipped: number }
-  | { readonly kind: 'newer'; readonly format: number }
+  /** `data` is as much as this version can read of it, for showing read-only; null when its lists are gone. */
+  | { readonly kind: 'newer'; readonly format: number; readonly data: ClockData | null }
   | { readonly kind: 'corrupt'; readonly reason: string };
 
 /** The only way any code reads clock.json (PRD §3.3). */
@@ -308,7 +309,15 @@ export function classifyFile(text: string): FileRead {
   if (!isObject(json)) return { kind: 'corrupt', reason: 'not a clock file' };
   if (!isWhole(json.format, 1, Number.MAX_SAFE_INTEGER))
     return { kind: 'corrupt', reason: 'no format number' };
-  if (json.format > FORMAT) return { kind: 'newer', format: json.format };
+  if (json.format > FORMAT) {
+    const body = readBody(json);
+    return { kind: 'newer', format: json.format, data: body.kind === 'ok' ? body.data : null };
+  }
+  return readBody(json);
+}
+
+/** The lists, settings and stopwatch of a file whose format this version knows (or a newer one, as far as it can). */
+function readBody(json: Record<string, unknown>): FileRead & { kind: 'ok' | 'corrupt' } {
   // A list that is gone means the file lost data, so it is kept aside rather than read as empty (PRD §3.3).
   for (const list of LISTS)
     if (!Array.isArray(json[list])) return { kind: 'corrupt', reason: `${list} is not a list` };

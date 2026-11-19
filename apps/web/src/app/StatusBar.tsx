@@ -1,7 +1,18 @@
-import { Icon } from '@alarmony/ui';
+import { Icon, type ClockStore } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
 
 const STATUS_TEXT = { saved: '', saving: 'Saving…', failed: 'Not saved', conflict: 'Not saved' } as const;
+
+/** What the status bar says about where the file is: a folder by its name (the path is on hover), else as is (PRD §3.7). */
+export function placeLabel(kind: ClockStore['kind'], location: string): string {
+  if (kind !== 'native') return location;
+  return (
+    location
+      .replace(/[\\/]+$/, '')
+      .split(/[\\/]/)
+      .pop() || location
+  );
+}
 
 /** Whether the status bar has nothing to show: no notice, and everything saved. On a phone it then takes no room. */
 export function statusQuiet(app: AppController): boolean {
@@ -46,7 +57,7 @@ export function StatusBar({ app }: { readonly app: AppController }) {
       </div>
       <span class={`al-save al-save-${status}`}>{STATUS_TEXT[status]}</span>
       <span class="al-where" title={app.session.store.location()}>
-        {app.session.store.location()}
+        {placeLabel(app.session.store.kind, app.session.store.location())}
       </span>
       <div class="al-live" role="status" aria-live="polite" aria-atomic="true">
         {app.announcement.value}

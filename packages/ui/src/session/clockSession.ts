@@ -105,13 +105,21 @@ export function countChanged(a: ClockData, b: ClockData): number {
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
-/** Reads file text; a newer file stops here (PRD §3.3: slice 1 refuses it rather than showing it read-only). */
-function readText(text: string | null): { data: ClockData | null; skipped: number; corrupt: boolean } {
-  if (text === null) return { data: null, skipped: 0, corrupt: false };
+interface TextRead {
+  readonly data: ClockData | null;
+  readonly skipped: number;
+  readonly corrupt: boolean;
+  /** From a newer Alarmony: shown read-only and never written (PRD §3.3). */
+  readonly newer: boolean;
+}
+
+/** Reads file text at open. */
+function readText(text: string | null): TextRead {
+  if (text === null) return { data: null, skipped: 0, corrupt: false, newer: false };
   const r = classifyFile(text);
-  if (r.kind === 'newer') throw new Error(NEWER_FILE_MESSAGE);
-  if (r.kind === 'corrupt') return { data: null, skipped: 0, corrupt: true };
-  return { data: r.data, skipped: r.skipped, corrupt: false };
+  if (r.kind === 'newer') return { data: r.data, skipped: 0, corrupt: false, newer: true };
+  if (r.kind === 'corrupt') return { data: null, skipped: 0, corrupt: true, newer: false };
+  return { data: r.data, skipped: r.skipped, corrupt: false, newer: false };
 }
 
 /** What the crash snapshot keeps: the file it started from and the operations not saved on top of it. */
@@ -165,6 +173,8 @@ export class ClockSession {
   readonly choosing = signal(false);
   /** Unsaved changes another window left; the UI offers Restore or Discard (PRD §3.6). */
   readonly recoverable = signal<string | null>(null);
+  /** The file is from a newer Alarmony: it is shown and rings, but nothing here changes it (PRD §3.3). */
+  readonly readOnly = signal(false);
   /** False when the last change couldn't be kept in the recovery slot (PRD §3.6). */
   readonly backedUp = signal(true);
   /** Where the session's own notices go: a merge, a missing file written again. The app sets it. */
@@ -212,6 +222,12 @@ export class ClockSession {
   static async open(store: ClockStore, opts: SessionOptions = {}): Promise<OpenResult> {
     const file = await store.load();
     const read = readText(file.text);
+    if (read.newer) {
+      const session = new ClockSession(store, read.data ?? emptyData(opts.zone ?? null), file.version, opts);
+      session.#lock(true);
+      // What another window left unsaved waits until this version can write the file. The app says why it can't.
+      return { session, notice: null };
+    }
     let notice: string | null = null;
     if (read.corrupt && file.text !== null) {
       const name = await store.saveCopy(file.text);
@@ -423,6 +439,7 @@ export class ClockSession {
    * took nothing. With unsaved changes it leaves the file alone: the next save merges with it.
    */
   async refresh(): Promise<number | null> {
+    if (this.readOnly.peek()) return this.#refreshReadOnly();
     if (this.#state !== 'clean') return null;
     this.#fire('refresh');
     const reads = this.#reads;
@@ -439,6 +456,32 @@ export class ClockSession {
     this.#read = read;
     this.#fire('refreshRead');
     return this.#taken;
+  }
+
+  #lock(locked: boolean): void {
+    this.doc.locked = locked;
+    this.readOnly.value = locked;
+  }
+
+  /**
+   * A read-only file follows the file as it changes, and opens for editing once it is one this version can write
+   * (PRD §3.3). A missing or unreadable file leaves what is shown; nothing is written either way. It returns null:
+   * there is no history to undo the change with.
+   */
+  async #refreshReadOnly(): Promise<null> {
+    const file = await this.store.load().catch(() => null);
+    const r = file && file.text !== null ? classifyFile(file.text) : null;
+    if (!file || !this.readOnly.peek() || file.version === this.#version) return null;
+    const data = r?.kind === 'ok' ? r.data : r?.kind === 'newer' ? r.data : null;
+    if (!data) return null;
+    this.#base = data;
+    this.#version = file.version;
+    this.doc.replace(data);
+    if (r?.kind === 'ok') {
+      this.#lock(false);
+      this.onNotice('clock.json can be changed again.');
+    }
+    return null;
   }
 
   /** Conflict → Use Theirs: their side of every clash; this window's other changes stay. */

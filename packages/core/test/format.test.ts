@@ -129,8 +129,12 @@ describe('classifyFile', () => {
     expect(classifyFile(text).kind).toBe('corrupt');
   });
 
-  it('calls a higher format newer', () => {
-    expect(classifyFile('{"format": 2}')).toEqual({ kind: 'newer', format: 2 });
+  it('calls a higher format newer, reading what it can of it to show read-only', () => {
+    expect(classifyFile('{"format": 2}')).toEqual({ kind: 'newer', format: 2, data: null });
+    const raw = { ...JSON.parse(SAMPLE), format: 7, newThing: true };
+    const r = classifyFile(JSON.stringify(raw));
+    expect(r).toMatchObject({ kind: 'newer', format: 7 });
+    expect(r.kind === 'newer' && r.data?.alarms.length).toBe(JSON.parse(SAMPLE).alarms.length);
     expect(NEWER_FILE_MESSAGE).toMatch(/newer Alarmony/);
   });
 

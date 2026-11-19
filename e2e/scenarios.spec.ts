@@ -322,6 +322,20 @@ test.describe('Keeping your data', () => {
     expect((await readClock(page))?.timers).toEqual([]);
   });
 
+  test('a file from a newer Alarmony is shown read-only and left as it is', async ({ page }) => {
+    await openApp(page);
+    await newTimer(page, '10m', 'Laundry');
+    await expect(page.locator('.al-save')).toHaveClass(/al-save-saved/);
+    const newer = { ...(await readClock(page)), format: 99 };
+    await writeClock(page, newer);
+    await expect(page.locator('.al-notice')).toContainText('made by a newer Alarmony');
+    await expect(card(page, /^Laundry, /)).toBeVisible();
+    await runCommand(page, 'Pause All Timers');
+    await expect(card(page, /^Laundry, .*paused/i)).toBeHidden();
+    expect((await readClock(page))?.format).toBe(99);
+    await expect(page.locator('.al-where')).toHaveText('Stored in this browser');
+  });
+
   test('unsaved changes from last time come back, and only Discard throws them away', async ({ page }) => {
     await openApp(page);
     await newTimer(page, '10m', 'Laundry');

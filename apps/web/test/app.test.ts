@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { addTimer, resetTimer, serialize } from '@alarmony/core';
 import { startPreset } from '../src/app/commands.ts';
+import { placeLabel } from '../src/app/StatusBar.tsx';
 import { NOW, makeApp } from './helpers.ts';
 
 const MIN = 60_000;
@@ -268,6 +269,16 @@ describe('ringing', () => {
     app.unlockSound();
     expect(app.soundWaiting.value).toBe(false);
     expect(sound.calls).toEqual(['ring chimes', 'unlock', 'stop', 'ring chimes']);
+  });
+});
+
+describe('where the file is', () => {
+  it('names a folder by its last part, and says the rest as it is (PRD §3.7)', () => {
+    expect(placeLabel('native', '/Users/me/Documents/Alarmony')).toBe('Alarmony');
+    expect(placeLabel('native', '/Users/me/Dropbox/Clocks/')).toBe('Clocks');
+    expect(placeLabel('native', 'C:\\Users\\me\\Alarmony')).toBe('Alarmony');
+    expect(placeLabel('native', '/')).toBe('/');
+    expect(placeLabel('browser', 'Stored in this browser')).toBe('Stored in this browser');
   });
 });
 

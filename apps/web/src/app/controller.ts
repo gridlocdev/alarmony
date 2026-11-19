@@ -2,7 +2,7 @@
  * The app's state and actions: the open tab, dialogs, notices, the selected timer and what is ringing. Every edit
  * goes through `edit`, so it is one undo step (PRD §11). Time comes from the `now` passed in, so tests set it.
  */
-import { batch, computed, signal, type Signal } from '@preact/signals';
+import { batch, computed, effect, signal, type Signal } from '@preact/signals';
 import {
   DEFAULT_SOUND,
   MISSED_LOOKBACK_MS,
@@ -24,6 +24,7 @@ import {
   type Due,
   type Op,
   type Timer,
+  NEWER_FILE_MESSAGE,
 } from '@alarmony/core';
 import {
   deviceMemory,
@@ -205,6 +206,18 @@ export class AppController {
     this.settings = signal(deps.settings);
     this.tab = signal(shown(deps.settings.tab));
     session.onNotice = (text, tone) => this.say(text, tone ? { tone, sticky: true } : {});
+    // A file from a newer Alarmony says so for as long as it is shown read-only (PRD §3.3).
+    let locked: Notice | null = null;
+    effect(() => {
+      if (session.readOnly.value) {
+        this.say(NEWER_FILE_MESSAGE, { tone: 'error', sticky: true });
+        locked = this.notice.peek();
+      } else if (locked) {
+        if (this.notice.peek() === locked) this.notice.value = null;
+        if (this.#underneath === locked) this.#underneath = null;
+        locked = null;
+      }
+    });
     session.doc.onChange((change) => {
       batch(() => {
         this.data.value = session.doc.data;
@@ -241,17 +254,27 @@ export class AppController {
     // The edit is stamped with the time now, so the view shows it at that time too, not the last tick's: a new
     // 3-minute timer reads 3:00, not 3:01.
     this.clock.value = Math.max(this.clock.peek(), this.now());
+    if (this.#refuseLocked()) return false;
     const done = this.doc.apply(ops, label);
     if (done && said) this.sayUndoable(said);
     return done;
   }
 
+  /** True, after saying why, when the file is read-only (PRD §3.3). */
+  #refuseLocked(): boolean {
+    if (!this.doc.locked) return false;
+    this.say(NEWER_FILE_MESSAGE, { tone: 'error' });
+    return true;
+  }
+
   undo(): void {
+    if (this.#refuseLocked()) return;
     const step = this.doc.undo();
     if (step) this.say(`Undid ${step.label.toLowerCase()}.`);
   }
 
   redo(): void {
+    if (this.#refuseLocked()) return;
     const step = this.doc.redo();
     if (step) this.say(`Redid ${step.label.toLowerCase()}.`);
   }
