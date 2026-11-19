@@ -1,7 +1,8 @@
 /**
  * One open clock file: the ClockDoc, the store it came from, and the saving around it (PRD §3.3–§3.6).
- * Every change saves at once; saves never overlap; failures retry, then wait for "Try Again"; a conflict stops
- * saving until the user picks Keep Mine or Use Theirs. What happens when is decided by the table in
+ * Every change saves at once; saves never overlap; failures retry, then wait for "Try Again". A save that finds
+ * the file changed somewhere else replays this window's unsaved operations onto it, and asks (Keep Mine, Use
+ * Theirs) only when both sides changed the same thing. What happens when is decided by the table in
  * `saveChart.ts`; this class keeps the state and does the reading and writing.
  */
 import { signal } from '@preact/signals';
@@ -9,11 +10,18 @@ import {
   ClockDoc,
   LISTS,
   NEWER_FILE_MESSAGE,
+  applyOps,
   classifyFile,
+  diffOps,
   emptyData,
+  findClashes,
+  readOps,
+  replay,
   sameValue,
   serialize,
   type ClockData,
+  type Op,
+  type ReplayMode,
 } from '@alarmony/core';
 import { wait } from '../schedule.ts';
 import { ConflictError, type ClockStore } from '../store/clockStore.ts';
@@ -21,20 +29,31 @@ import { step, type Effect, type SaveEvent, type SaveState } from './saveChart.t
 
 export type SaveStatus = 'saved' | 'saving' | 'failed' | 'conflict';
 
-/** Keeps the data being saved until the save lands (PRD §3.6). */
+/** This window's crash snapshot (PRD §3.6): one slot per window, so another window's is never offered. */
 export interface RecoveryStorage {
-  get(): string | null;
-  /** False when it couldn't keep the text (the browser's storage is full or turned off). */
+  /** What a window that closed or crashed left unsaved, never one still open; null when there is none. */
+  leftover(): Promise<string | null>;
+  /** Forgets the leftover just offered (Restore or Discard). */
+  dropLeftover(): void;
+  /** Keeps this window's snapshot. False when it couldn't (the browser's storage is full or turned off). */
   set(text: string): boolean;
   /** False when it couldn't (storage turned off): the next start offers the snapshot again, which is safe. */
   clear(): boolean;
 }
 
-export function memoryRecovery(): RecoveryStorage & { text: string | null } {
+/** A recovery slot in memory: `text` is this window's, `left` what the last one left behind. */
+export function memoryRecovery(left: string | null = null): RecoveryStorage & {
+  text: string | null;
+  left: string | null;
+} {
   return {
     text: null,
-    get() {
-      return this.text;
+    left,
+    leftover() {
+      return Promise.resolve(this.left);
+    },
+    dropLeftover() {
+      this.left = null;
     },
     set(text) {
       this.text = text;
@@ -59,8 +78,8 @@ export interface SessionOptions {
 export const RETRY_DELAYS = [300, 600] as const;
 
 export interface Conflict {
-  /** How many items differ between this window and the file. */
-  readonly changed: number;
+  /** What both sides changed, by label or time: "Wake", "07:00", "Timer", "Stopwatch". */
+  readonly items: readonly string[];
 }
 
 export interface OpenResult {
@@ -68,6 +87,9 @@ export interface OpenResult {
   /** A message for the status bar: an unreadable file kept aside, or items skipped. */
   readonly notice: string | null;
 }
+
+/** The label of a change picked up from the file, for Undo (PRD §3.5). */
+export const OUTSIDE_LABEL = 'Changes made elsewhere';
 
 /** How many items, plus the stopwatch, differ between two files. */
 export function countChanged(a: ClockData, b: ClockData): number {
@@ -92,40 +114,97 @@ function readText(text: string | null): { data: ClockData | null; skipped: numbe
   return { data: r.data, skipped: r.skipped, corrupt: false };
 }
 
+/** What the crash snapshot keeps: the file it started from and the operations not saved on top of it. */
+export interface Snapshot {
+  readonly version: string | null;
+  readonly base: ClockData;
+  readonly ops: readonly Op[];
+}
+
+const SNAPSHOT_KIND = 'alarmony-unsaved';
+
+export function encodeSnapshot(snapshot: Snapshot, at: number): string {
+  return JSON.stringify({
+    kind: SNAPSHOT_KIND,
+    at,
+    version: snapshot.version,
+    base: serialize(snapshot.base),
+    ops: snapshot.ops,
+  });
+}
+
+/**
+ * A snapshot read back, or null when it can't be. An older Alarmony kept the whole file instead; that counts as
+ * this window's changes on top of the file as it is now.
+ */
+export function readSnapshot(text: string, file: ClockData, version: string | null): Snapshot | null {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    return null;
+  }
+  if (typeof raw === 'object' && raw !== null && (raw as { kind?: unknown }).kind === SNAPSHOT_KIND) {
+    const r = raw as { version?: unknown; base?: unknown; ops?: unknown };
+    const base = typeof r.base === 'string' ? classifyFile(r.base) : null;
+    const ops = readOps(r.ops);
+    if (base?.kind !== 'ok' || !ops) return null;
+    return { version: typeof r.version === 'string' ? r.version : null, base: base.data, ops };
+  }
+  const whole = classifyFile(text);
+  return whole.kind === 'ok' ? { version, base: file, ops: diffOps(file, whole.data) } : null;
+}
+
 export class ClockSession {
   readonly doc: ClockDoc;
   readonly store: ClockStore;
   readonly status = signal<SaveStatus>('saved');
+  /** Both sides changed the same things; the UI asks Keep Mine or Use Theirs (PRD §3.5). */
   readonly conflict = signal<Conflict | null>(null);
   /** A conflict choice is reading the file; the dialog's buttons wait for it. */
   readonly choosing = signal(false);
-  /** Unsaved data from last time that differs from the file; the UI offers Restore or Discard (PRD §3.6). */
+  /** Unsaved changes another window left; the UI offers Restore or Discard (PRD §3.6). */
   readonly recoverable = signal<string | null>(null);
-  /** False when the last save's data couldn't be kept in the recovery slot (PRD §3.6). */
+  /** False when the last change couldn't be kept in the recovery slot (PRD §3.6). */
   readonly backedUp = signal(true);
+  /** Where the session's own notices go: a merge, a missing file written again. The app sets it. */
+  onNotice: (text: string, tone?: 'error') => void = () => undefined;
 
   #state: SaveState = 'clean';
   #version: string | null;
+  /** The file as of `#version`; `#pending` turns it into the data here. */
+  #base: ClockData;
+  /** This window's operations the file doesn't have yet (PRD §3.5). */
+  #pending: Op[] = [];
   readonly #recovery: RecoveryStorage;
   readonly #wait: (ms: number) => Promise<void>;
-  /** The write in progress, then the conflict count if it found one; `flush` waits for both. */
+  /** The write in progress and the data it writes. */
   #writing: Promise<void> | null = null;
-  #counting: Promise<void> | null = null;
+  #sending: ClockData | null = null;
+  /** The read after a write found the file changed; `flush` waits for it too. */
+  #merging: Promise<void> | null = null;
   /** Bumped by `dropRead`, so a read that started before it is ignored when it finishes. */
   #reads = 0;
-  /** The file a refresh or Use Theirs read, for `takeFile` and `replaceWithFile`. */
+  /** The file a refresh, a merge or a conflict choice read. */
   #read: { version: string | null; data: ClockData | null } | null = null;
+  #mode: ReplayMode = 'mine';
+  #clashes: readonly string[] = [];
   /** Items the last `takeFile` changed, for `refresh` to return. */
   #taken: number | null = null;
+  #leftover: Snapshot | null = null;
 
   private constructor(store: ClockStore, data: ClockData, version: string | null, opts: SessionOptions) {
     this.store = store;
     this.doc = new ClockDoc(data);
     this.#version = version;
+    this.#base = data;
     this.#recovery = opts.recovery ?? memoryRecovery();
     this.#wait = opts.wait ?? wait;
     this.doc.onChange((change) => {
-      if (change.kind !== 'replace') this.#fire('edit');
+      // Changes from the file (picked up, merged, replaced) are already in it.
+      if (change.kind === 'outside' || change.kind === 'merge' || change.kind === 'replace') return;
+      this.#pending.push(...change.ops);
+      this.#fire('edit');
     });
   }
 
@@ -141,13 +220,16 @@ export class ClockSession {
       notice = `Skipped ${plural(read.skipped, 'item')} Alarmony couldn't read.`;
     }
     const data = read.data ?? emptyData(opts.zone ?? null);
-    // Read last time's unsaved data before anything here can save.
+    // Read what another window left unsaved before anything here can save.
     const recovery = opts.recovery ?? memoryRecovery();
-    const saved = recovery.get();
+    const left = await recovery.leftover();
     const session = new ClockSession(store, data, file.version, { ...opts, recovery });
-    if (saved !== null) {
-      if (saved !== serialize(data) && classifyFile(saved).kind === 'ok') session.recoverable.value = saved;
-      else recovery.clear();
+    if (left !== null) {
+      const snap = readSnapshot(left, data, file.version);
+      if (snap && serialize(applyOps(snap.base, snap.ops)) !== serialize(data)) {
+        session.#leftover = snap;
+        session.recoverable.value = left;
+      } else recovery.dropLeftover();
     }
     // A new file is written at once, and an unreadable one is replaced, so the next start finds it (PRD §3.1).
     if (read.data === null) session.#fire('edit');
@@ -166,7 +248,7 @@ export class ClockSession {
 
   /** Resolves once nothing is waiting to be saved (or saving has stopped on a failure or conflict). */
   async flush(): Promise<void> {
-    while (this.#writing || this.#counting) await (this.#writing ?? this.#counting);
+    while (this.#writing || this.#merging) await (this.#writing ?? this.#merging);
   }
 
   /** "Try Again" after a failed save. */
@@ -186,7 +268,7 @@ export class ClockSession {
     this.status.value =
       to === 'clean' || to === 'refreshing'
         ? 'saved'
-        : to === 'savingDirty'
+        : to === 'savingDirty' || to === 'merging'
           ? 'saving'
           : asking
             ? 'conflict'
@@ -199,19 +281,23 @@ export class ClockSession {
   #run(effect: Effect): void {
     switch (effect) {
       case 'snapshot': {
-        // While last time's unsaved data waits for Restore or Discard, it keeps the recovery slot.
-        if (this.recoverable.value !== null) return;
-        const kept = this.#recovery.set(serialize(this.doc.data));
-        // An older backup left in the slot would offer to restore stale data next time.
+        const text = encodeSnapshot(
+          { version: this.#version, base: this.#base, ops: this.#pending },
+          Date.now(),
+        );
+        const kept = this.#recovery.set(text);
+        // An older snapshot left in the slot would offer to restore stale data next time.
         if (!kept) this.#recovery.clear();
         this.backedUp.value = kept;
         return;
       }
       case 'clearSnapshot':
-        if (this.recoverable.value === null) this.#recovery.clear();
+        this.#recovery.clear();
         return;
       case 'writeFile': {
-        const writing: Promise<void> = this.#write(serialize(this.doc.data)).finally(() => {
+        const data = this.doc.data;
+        this.#sending = data;
+        const writing: Promise<void> = this.#write(serialize(data)).finally(() => {
           if (this.#writing === writing) this.#writing = null;
         });
         this.#writing = writing;
@@ -228,25 +314,33 @@ export class ClockSession {
         this.#taken = null;
         if (!read?.data || read.version === this.#version) return;
         this.#taken = countChanged(this.doc.data, read.data);
+        const ops = diffOps(this.doc.data, read.data);
         this.#version = read.version;
-        this.doc.replace(read.data);
+        this.#base = read.data;
+        this.#pending = [];
+        this.doc.takeOutside(read.data, ops, OUTSIDE_LABEL);
         return;
       }
-      case 'replaceWithFile': {
-        const read = this.#read;
-        if (!read) return;
-        this.#version = read.version;
-        this.doc.replace(read.data ?? emptyData());
-        return;
-      }
-      case 'showConflict': {
-        const counting: Promise<void> = this.#changedOnDisk().then((changed) => {
-          if (this.#state === 'conflict' || this.#state === 'choosing') this.conflict.value = { changed };
-          if (this.#counting === counting) this.#counting = null;
+      case 'readToMerge': {
+        const merging: Promise<void> = this.#readToMerge().finally(() => {
+          if (this.#merging === merging) this.#merging = null;
         });
-        this.#counting = counting;
+        this.#merging = merging;
         return;
       }
+      case 'mergeFile': {
+        const read = this.#read;
+        if (!read?.data) return;
+        const merged = replay(this.#base, read.data, this.#pending, this.#mode);
+        this.#version = read.version;
+        this.#base = read.data;
+        this.#pending = diffOps(read.data, merged.data);
+        this.doc.merge(merged.data, !merged.dropped);
+        return;
+      }
+      case 'showConflict':
+        this.conflict.value = { items: this.#clashes };
+        return;
     }
   }
 
@@ -262,6 +356,11 @@ export class ClockSession {
       }
       return;
     }
+    // The file now has what was sent; what changed here since stays pending.
+    const sent = this.#sending ?? this.doc.data;
+    this.#base = sent;
+    this.#pending = diffOps(sent, this.doc.data);
+    this.#sending = null;
     this.#fire('saved');
   }
 
@@ -277,20 +376,51 @@ export class ClockSession {
     }
   }
 
-  async #changedOnDisk(): Promise<number> {
+  /**
+   * After a write found the file changed (PRD §3.5): replays this window's operations onto it, or asks when both
+   * sides changed the same things. A missing or unreadable file has nothing to merge with, so this window's data
+   * is written again (an unreadable one is kept aside first).
+   */
+  async #readToMerge(): Promise<void> {
     try {
       const file = await this.store.load();
+      if (!this.#is('merging')) return;
       const r = file.text === null ? null : classifyFile(file.text);
-      return countChanged(this.doc.data, r?.kind === 'ok' ? r.data : emptyData());
-    } catch {
-      return 0;
+      if (r?.kind === 'newer') throw new Error(NEWER_FILE_MESSAGE);
+      if (r?.kind === 'ok') {
+        this.#read = { version: file.version, data: r.data };
+        const clashes = findClashes(this.#base, r.data, this.#pending);
+        if (clashes.length) {
+          this.#clashes = [...new Set(clashes.map((c) => c.name))];
+          this.#fire('clashed');
+          return;
+        }
+        this.#mode = 'mine';
+        this.#fire('merged');
+        this.onNotice('Merged with changes made elsewhere.');
+        return;
+      }
+      let notice = 'clock.json was missing, so it was saved again.';
+      if (r?.kind === 'corrupt' && file.text !== null) {
+        notice = `clock.json couldn't be read. It was kept as ${await this.store.saveCopy(file.text)}.`;
+        if (!this.#is('merging')) return;
+      }
+      this.#read = { version: file.version, data: this.#base };
+      this.#mode = 'mine';
+      this.#fire('merged');
+      this.onNotice(notice);
+    } catch (e) {
+      console.error(e);
+      if (!this.#is('merging')) return;
+      this.#fire('mergeFailed');
+      if (e instanceof Error && e.message === NEWER_FILE_MESSAGE) this.onNotice(e.message, 'error');
     }
   }
 
   /**
-   * Looks for a change made somewhere else (the CLI, another window, another device) and takes it when this
-   * window has nothing unsaved (PRD §3.5). Returns how many items it changed, or null when it took nothing.
-   * With unsaved changes it leaves the file alone: the next save finds the conflict and asks.
+   * Looks for a change made somewhere else (the CLI, another window, another device) and takes it as one undo
+   * step when this window has nothing unsaved (PRD §3.5). Returns how many items it changed, or null when it
+   * took nothing. With unsaved changes it leaves the file alone: the next save merges with it.
    */
   async refresh(): Promise<number | null> {
     if (this.#state !== 'clean') return null;
@@ -304,78 +434,64 @@ export class ClockSession {
       },
       () => ({ version: this.#version, data: null }),
     );
-    // A change made here while the file was being read wins: its save will see the conflict.
+    // A change made here while the file was being read wins: its save merges with the file.
     if (reads !== this.#reads || !this.#is('refreshing')) return null;
     this.#read = read;
     this.#fire('refreshRead');
     return this.#taken;
   }
 
-  /** Conflict → Use Theirs: take the file on disk; this window's unsaved changes are dropped. */
-  async useTheirs(): Promise<string | null> {
-    if (!this.#is('conflict')) return null;
-    this.#fire('choose');
-    return this.#choosing(() => this.#takeTheirs());
+  /** Conflict → Use Theirs: their side of every clash; this window's other changes stay. */
+  useTheirs(): Promise<string | null> {
+    return this.#choose('theirs');
   }
 
-  /** Conflict → Keep Mine: save this window's data over the file. Returns a notice when the file was kept aside. */
-  async keepMine(): Promise<string | null> {
-    if (!this.#is('conflict')) return null;
-    this.#fire('choose');
-    const notice = await this.#choosing(async () => {
-      const file = await this.store.load();
-      const kind = file.text === null ? null : classifyFile(file.text).kind;
-      // A file from a newer Alarmony is never written (PRD §3.3); the conflict waits for another choice.
-      if (kind === 'newer') throw new Error(NEWER_FILE_MESSAGE);
-      // An unreadable one is never written over without a copy (PRD §3.3).
-      const kept = kind === 'corrupt' && file.text !== null ? await this.store.saveCopy(file.text) : null;
-      this.#version = file.version;
-      this.#fire('keepMine');
-      return kept && `clock.json couldn't be read. It was kept as ${kept}.`;
-    });
-    await this.flush();
-    return notice;
+  /** Conflict → Keep Mine: every change here, over theirs. Returns a notice when the file was kept aside. */
+  keepMine(): Promise<string | null> {
+    return this.#choose('mine');
   }
 
-  /** Runs a conflict choice; if it fails, the dialog comes back for another. */
-  async #choosing<T>(choice: () => Promise<T>): Promise<T> {
+  async #choose(mode: ReplayMode): Promise<string | null> {
+    if (!this.#is('conflict')) return null;
+    this.#fire('choose');
+    let notice: string | null;
     try {
-      return await choice();
+      const file = await this.store.load();
+      const r = file.text === null ? null : classifyFile(file.text);
+      // A file from a newer Alarmony is never written (PRD §3.3); the conflict waits for another choice.
+      if (r?.kind === 'newer') throw new Error(NEWER_FILE_MESSAGE);
+      // An unreadable one is never written over without a copy (PRD §3.3).
+      const kept = r?.kind === 'corrupt' && file.text !== null ? await this.store.saveCopy(file.text) : null;
+      this.#read = { version: file.version, data: r?.kind === 'ok' ? r.data : this.#base };
+      this.#mode = mode;
+      notice = kept && `clock.json couldn't be read. It was kept as ${kept}.`;
     } catch (e) {
       this.#fire('chooseFailed');
       throw e;
     }
-  }
-
-  async #takeTheirs(): Promise<string | null> {
-    const file = await this.store.load();
-    const read = readText(file.text);
-    let notice: string | null = null;
-    if (read.corrupt && file.text !== null) {
-      const name = await this.store.saveCopy(file.text);
-      notice = `clock.json couldn't be read. It was kept as ${name}.`;
-    }
-    this.#read = { version: file.version, data: read.data ?? emptyData() };
-    this.#fire('takeTheirs');
-    // The unreadable or missing file is written again from the data here.
-    if (read.data === null) this.#fire('edit');
+    this.#fire('chosen');
+    await this.flush();
     return notice;
   }
 
-  /** Recovery → Restore: put last time's unsaved data back, and save it. */
+  /** Recovery → Restore: replay the other window's unsaved operations onto the file, through the merge (§3.5). */
   restoreRecovered(): void {
-    const text = this.recoverable.value;
+    const snap = this.#leftover;
+    this.#leftover = null;
     this.recoverable.value = null;
-    if (text === null) return;
-    const r = classifyFile(text);
-    if (r.kind !== 'ok') return;
-    this.doc.replace(r.data);
+    this.#recovery.dropLeftover();
+    if (!snap) return;
+    this.doc.replace(applyOps(snap.base, snap.ops));
+    this.#base = snap.base;
+    this.#pending = [...snap.ops];
+    this.#version = snap.version;
     this.#fire('edit');
   }
 
   /** Recovery → Discard. */
   discardRecovered(): void {
+    this.#leftover = null;
     this.recoverable.value = null;
-    this.#recovery.clear();
+    this.#recovery.dropLeftover();
   }
 }

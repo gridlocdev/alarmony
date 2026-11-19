@@ -355,47 +355,43 @@ function ShortcutsDialog({
   );
 }
 
-/** Saving found the file changed somewhere else (PRD §3.5; slice 1 always asks). */
+/** Both this window and another copy changed the same things (PRD §3.5). Edits go on behind it. */
 function ConflictDialog({ app }: { readonly app: AppController }) {
   const busy = app.session.choosing.value;
   const conflict = app.session.conflict.value!;
   const fail = (e: unknown) =>
     app.say(e instanceof Error ? e.message : String(e), { sticky: true, tone: 'error' });
+  const done = (notice: string | null) => notice && app.say(notice, { sticky: true });
   return (
     <Dialog
-      title="clock.json changed somewhere else"
+      title="Clock changed somewhere else"
       onClose={() => undefined}
+      onSubmit={() => void app.session.keepMine().then(done, fail)}
       actions={
         <>
           <button
             type="button"
             class="al-button"
             disabled={busy}
-            onClick={() =>
-              void app.session.useTheirs().then((notice) => notice && app.say(notice, { sticky: true }), fail)
-            }
+            onClick={() => void app.session.useTheirs().then(done, fail)}
           >
             Use Theirs
           </button>
-          <button
-            type="button"
-            class="al-button al-button-primary"
-            disabled={busy}
-            onClick={() =>
-              void app.session.keepMine().then((notice) => notice && app.say(notice, { sticky: true }), fail)
-            }
-          >
+          <button type="submit" class="al-button al-button-primary" disabled={busy} data-autofocus>
             Keep Mine
           </button>
         </>
       }
     >
-      <p>
-        Another window, device or the command line changed the file while this window had unsaved changes (
-        {conflict.changed === 1 ? '1 item differs' : `${conflict.changed} items differ`}).
-      </p>
+      <p>Another window, device or the command line changed these while this window was changing them too:</p>
+      <ul class="al-conflict-items">
+        {conflict.items.map((name) => (
+          <li key={name}>{name}</li>
+        ))}
+      </ul>
       <p class="al-muted">
-        Keep Mine saves this window’s timers and stopwatch over it. Use Theirs drops this window’s changes.
+        Keep Mine keeps this window’s changes to them. Use Theirs keeps the other changes to them. Everything
+        else both sides changed is kept either way.
       </p>
     </Dialog>
   );

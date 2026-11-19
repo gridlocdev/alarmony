@@ -86,7 +86,16 @@ export {
   type WorldClock,
 } from './format.ts';
 export { newId } from './ids.ts';
-export { applyOp, applyOps, invertOp, invertOps, isNoop, sameValue, type Op } from './ops.ts';
+export { applyOp, applyOps, changedFields, invertOp, invertOps, isNoop, sameValue, type Op } from './ops.ts';
+export {
+  diffOps,
+  findClashes,
+  readOps,
+  replay,
+  type Clash,
+  type Replayed,
+  type ReplayMode,
+} from './merge.ts';
 export {
   MISSED_LOOKBACK_MS,
   RING_LATE_MS,

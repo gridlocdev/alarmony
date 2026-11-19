@@ -13,9 +13,11 @@ export type SaveState =
   | 'saving'
   /** Writing the file; something changed since, so another write follows. */
   | 'savingDirty'
+  /** A write found the file changed somewhere else; reading it to replay this window's changes onto it. */
+  | 'merging'
   /** A write failed three times; waiting for an edit or "Try again". */
   | 'failed'
-  /** The file changed somewhere else; nothing is written until the user picks a conflict choice. */
+  /** Both sides changed the same things; nothing is written until the user picks a conflict choice. */
   | 'conflict'
   /** The user picked a conflict choice and it is reading the file; another choice waits for this one. */
   | 'choosing';
@@ -27,14 +29,16 @@ export type SaveEvent =
   | 'saved'
   | 'failed'
   | 'versionChanged'
+  | 'merged'
+  | 'clashed'
+  | 'mergeFailed'
   | 'retry'
   | 'choose'
   | 'chooseFailed'
-  | 'keepMine'
-  | 'takeTheirs';
+  | 'chosen';
 
 export type Effect =
-  /** Keep the current data in the recovery slot, so a crash can't lose it (PRD §3.6). */
+  /** Keep this window's unsaved operations in the recovery slot, so a crash can't lose them (PRD §3.6). */
   | 'snapshot'
   /** Write the current data to the file. */
   | 'writeFile'
@@ -46,10 +50,12 @@ export type Effect =
   | 'dropRead'
   /** Take the file just read, as one undo step. */
   | 'takeFile'
-  /** Count what differs and ask the user (Keep Mine, Use Theirs). */
-  | 'showConflict'
-  /** Replace the data here with the file's, with no undo. */
-  | 'replaceWithFile';
+  /** Read the file that changed, and find what both sides changed. */
+  | 'readToMerge'
+  /** Replay this window's unsaved operations onto the file read (PRD §3.5). */
+  | 'mergeFile'
+  /** List what both sides changed and ask the user (Keep Mine, Use Theirs). */
+  | 'showConflict';
 
 export interface Transition {
   readonly from: SaveState;
@@ -67,19 +73,22 @@ export const SAVE_TRANSITIONS: readonly Transition[] = [
   { from: 'saving', on: 'edit', to: 'savingDirty', effects: ['snapshot'] },
   { from: 'saving', on: 'saved', to: 'clean', effects: ['clearSnapshot'] },
   { from: 'saving', on: 'failed', to: 'failed', effects: [] },
-  { from: 'saving', on: 'versionChanged', to: 'conflict', effects: ['showConflict'] },
+  { from: 'saving', on: 'versionChanged', to: 'merging', effects: ['readToMerge'] },
   { from: 'savingDirty', on: 'edit', to: 'savingDirty', effects: ['snapshot'] },
   { from: 'savingDirty', on: 'saved', to: 'saving', effects: ['writeFile'] },
   { from: 'savingDirty', on: 'failed', to: 'failed', effects: [] },
-  { from: 'savingDirty', on: 'versionChanged', to: 'conflict', effects: ['showConflict'] },
+  { from: 'savingDirty', on: 'versionChanged', to: 'merging', effects: ['readToMerge'] },
+  { from: 'merging', on: 'edit', to: 'merging', effects: ['snapshot'] },
+  { from: 'merging', on: 'merged', to: 'saving', effects: ['mergeFile', 'snapshot', 'writeFile'] },
+  { from: 'merging', on: 'clashed', to: 'conflict', effects: ['showConflict'] },
+  { from: 'merging', on: 'mergeFailed', to: 'failed', effects: [] },
   { from: 'failed', on: 'edit', to: 'saving', effects: ['snapshot', 'writeFile'] },
   { from: 'failed', on: 'retry', to: 'saving', effects: ['writeFile'] },
   { from: 'conflict', on: 'edit', to: 'conflict', effects: ['snapshot'] },
   { from: 'conflict', on: 'choose', to: 'choosing', effects: [] },
   { from: 'choosing', on: 'edit', to: 'choosing', effects: ['snapshot'] },
   { from: 'choosing', on: 'chooseFailed', to: 'conflict', effects: [] },
-  { from: 'choosing', on: 'keepMine', to: 'saving', effects: ['writeFile'] },
-  { from: 'choosing', on: 'takeTheirs', to: 'clean', effects: ['replaceWithFile', 'clearSnapshot'] },
+  { from: 'choosing', on: 'chosen', to: 'saving', effects: ['mergeFile', 'snapshot', 'writeFile'] },
 ];
 
 const NONE: readonly Effect[] = [];

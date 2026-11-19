@@ -57,13 +57,20 @@ function fire(w: World, event: SaveEvent): void {
         );
         break;
       }
+      case 'readToMerge':
+        expect(w.writes, 'a merge reads only once the write that found the change is answered').toBe(0);
+        break;
+      case 'mergeFile':
+        expect(w.asking, 'nothing is merged while the conflict dialog waits for a choice').toBe(false);
+        // This window's changes are replayed onto the file read: they are still unsaved, and kept.
+        expect(w.unsaved || w.editedSinceWrite, 'a merge follows a write that left changes unsaved').toBe(
+          true,
+        );
+        w.unsaved = true;
+        w.unkept = true;
+        break;
       case 'showConflict':
         w.asking = true;
-        break;
-      case 'replaceWithFile':
-        // The user chose to drop this window's changes.
-        w.unsaved = false;
-        w.editedSinceWrite = false;
         break;
     }
   }
@@ -91,8 +98,20 @@ const ops: Op<World>[] = [
     name: 'choiceDone',
     when: (w) => w.state === 'choosing',
     run: (w, r) => {
-      const event = r.pick(['keepMine', 'takeTheirs', 'chooseFailed'] as const);
+      const event = r.pick(['chosen', 'chooseFailed'] as const);
       fire(w, event);
+      expect(w.unkept, 'merged data goes into the recovery slot').toBe(false);
+      return event;
+    },
+  },
+  {
+    // The merge's read finishes: replayed, both sides changed the same thing, or the read failed.
+    name: 'mergeDone',
+    when: (w) => w.state === 'merging',
+    run: (w, r) => {
+      const event = r.pick(['merged', 'clashed', 'mergeFailed'] as const);
+      fire(w, event);
+      expect(w.unkept, 'merged data goes into the recovery slot').toBe(false);
       return event;
     },
   },
@@ -120,6 +139,7 @@ const ops: Op<World>[] = [
     when: (w) => w.writes > 0,
     run: (w) => {
       w.writes--;
+      w.unsaved = true;
       fire(w, 'versionChanged');
     },
   },
@@ -139,7 +159,7 @@ const ops: Op<World>[] = [
 
 describe('the save chart', () => {
   it(
-    'random events never write twice at once or during a conflict, keep every edit, and refresh only when saved',
+    'random events never write twice at once or during a merge or conflict, keep every edit, and refresh only when saved',
     async () => {
       await runRandomOps<World>({
         steps: 200,
@@ -159,6 +179,8 @@ describe('the save chart', () => {
             expect(w.unsaved, 'saved means the file has every edit').toBe(false);
           if (w.state === 'saving' || w.state === 'savingDirty')
             expect(w.writes, 'a write is running').toBe(1);
+          if (w.state === 'merging' || w.state === 'conflict' || w.state === 'choosing')
+            expect(w.writes, 'no write while merging or asking').toBe(0);
         },
       });
     },

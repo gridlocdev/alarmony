@@ -147,6 +147,12 @@ describe('changes made elsewhere', () => {
     elsewhere('Rice');
     expect(await app.refreshFromFile(false)).toBe(1);
     expect(app.data.value.timers[0]!.label).toBe('Rice');
+    expect(app.notice.value?.text).toBe('Updated with changes made elsewhere.');
+    app.notice.value?.action?.run();
+    expect(app.data.value.timers[0]!.label).toBe('Pasta');
+    expect(app.notice.value?.text).toBe('Undid changes made elsewhere.');
+    await app.session.flush();
+    expect((JSON.parse(store.text!) as { timers: { label: string }[] }).timers[0]!.label).toBe('Pasta');
     elsewhere('Soup');
     clock.at += 15_000;
     expect(await app.refreshFromFile(true), 'hidden, too soon').toBeNull();

@@ -26,7 +26,45 @@ function itemsOf(data: ClockData, list: ListName): readonly Item[] {
   return data[list];
 }
 
-/** Applies one operation. An operation that no longer fits (its item is gone) changes nothing. */
+/**
+ * Fields that only make sense together: a change to one of them carries the rest (a timer's run state and its
+ * end time, an alarm's time and whether it is on).
+ */
+const FIELD_GROUPS: Readonly<Record<ListName | 'settings', readonly (readonly string[])[]>> = {
+  settings: [],
+  clocks: [],
+  alarms: [['time', 'days', 'enabled', 'once']],
+  presets: [],
+  timers: [['ms', 'state', 'endsAt', 'leftMs']],
+};
+
+/** The fields an update changes, with the fields grouped with them. */
+export function changedFields(list: ListName | 'settings', before: object, after: object): Set<string> {
+  const b = before as Record<string, unknown>;
+  const a = after as Record<string, unknown>;
+  const changed = new Set<string>();
+  for (const k of new Set([...Object.keys(b), ...Object.keys(a)])) if (!sameValue(b[k], a[k])) changed.add(k);
+  for (const group of FIELD_GROUPS[list])
+    if (group.some((k) => changed.has(k))) for (const k of group) changed.add(k);
+  return changed;
+}
+
+/** `current` with the fields `before` → `after` changes, and nothing else: another copy's changes to the rest stay. */
+function patch<T extends object>(list: ListName | 'settings', current: T, before: T, after: T): T {
+  const out: Record<string, unknown> = { ...(current as Record<string, unknown>) };
+  const a = after as Record<string, unknown>;
+  for (const k of changedFields(list, before, after)) {
+    if (k in a) out[k] = a[k];
+    else delete out[k];
+  }
+  return out as T;
+}
+
+/**
+ * Applies one operation. An update changes only the fields it changed, so replaying it onto a copy someone else
+ * changed keeps their other fields, and undoing it takes back only this window's. An operation that no longer fits
+ * (its item is gone) changes nothing.
+ */
 export function applyOp(data: ClockData, op: Op): ClockData {
   switch (op.kind) {
     case 'insert': {
@@ -45,7 +83,9 @@ export function applyOp(data: ClockData, op: Op): ClockData {
       return withList(
         data,
         op.list,
-        items.map((i) => (i.id === op.after.id ? op.after : i)) as ListItems[typeof op.list][],
+        items.map((i) =>
+          i.id === op.after.id ? patch(op.list, i, op.before, op.after) : i,
+        ) as ListItems[typeof op.list][],
       );
     }
     case 'move': {
@@ -59,7 +99,7 @@ export function applyOp(data: ClockData, op: Op): ClockData {
     case 'stopwatch':
       return { ...data, stopwatch: op.after };
     case 'settings':
-      return { ...data, settings: op.after };
+      return { ...data, settings: patch('settings', data.settings, op.before, op.after) };
   }
 }
 

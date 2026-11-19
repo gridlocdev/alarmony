@@ -276,6 +276,52 @@ test.describe('Keeping your data', () => {
     await expect(card(page, /^Dishes, /)).toBeVisible();
   });
 
+  test('a change made here while another window changed the file is merged with it', async ({ page }) => {
+    await openApp(page);
+    await newTimer(page, '10m', 'Laundry');
+    await expect(page.locator('.al-save')).toHaveClass(/al-save-saved/);
+    const data = await readClock(page);
+    const timers = (data?.timers ?? []) as { label: string }[];
+    await writeClock(
+      page,
+      { ...data, timers: timers.map((t) => ({ ...t, label: 'Dishes' })) },
+      { reload: false },
+    );
+    await runCommand(page, 'Pause All Timers');
+    await expect(page.locator('.al-notice')).toContainText('Merged with changes made elsewhere.');
+    await expect(card(page, /^Dishes, .*paused/i)).toBeVisible();
+    const saved = (await readClock(page))?.timers as { label: string; state: string }[];
+    expect(saved.map((t) => [t.label, t.state])).toEqual([['Dishes', 'paused']]);
+  });
+
+  test('when both sides changed the same timer, Keep Mine and Use Theirs choose', async ({ page }) => {
+    await openApp(page);
+    await newTimer(page, '10m', 'Laundry');
+    await expect(page.locator('.al-save')).toHaveClass(/al-save-saved/);
+    const data = await readClock(page);
+    await writeClock(page, { ...data, timers: [] }, { reload: false });
+    await runCommand(page, 'Pause All Timers');
+    const ask = page.getByRole('dialog', { name: 'Clock changed somewhere else' });
+    await expect(ask.getByRole('listitem')).toHaveText(['Laundry']);
+    await expect(ask.getByRole('button', { name: 'Keep Mine' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(ask).toBeVisible();
+    await ask.getByRole('button', { name: 'Keep Mine' }).click();
+    await expect(ask).toBeHidden();
+    await expect(page.locator('.al-save')).toHaveClass(/al-save-saved/);
+    expect(((await readClock(page))?.timers as unknown[]).length).toBe(1);
+
+    await writeClock(page, { ...(await readClock(page)), timers: [] }, { reload: false });
+    await card(page, /^Laundry, /)
+      .getByRole('button', { name: 'Resume' })
+      .click();
+    await ask.getByRole('button', { name: 'Use Theirs' }).click();
+    await expect(ask).toBeHidden();
+    await expect(card(page, /^Laundry, /)).toBeHidden();
+    await expect(page.locator('.al-save')).toHaveClass(/al-save-saved/);
+    expect((await readClock(page))?.timers).toEqual([]);
+  });
+
   test('unsaved changes from last time come back, and only Discard throws them away', async ({ page }) => {
     await openApp(page);
     await newTimer(page, '10m', 'Laundry');

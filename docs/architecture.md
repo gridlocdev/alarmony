@@ -36,15 +36,16 @@ Alarmony is one TypeScript code base with two hosts. The browser and the Electro
 ## Core (`packages/core`)
 
 - `format.ts`: the file format (PRD §3.2). `classifyFile` reads a file as ok, corrupt, empty or newer, keeping items it can't read so they are written back unchanged; `serialize` writes it pretty-printed.
-- `ops.ts` and `clockDoc.ts`: every change is a list of operations, applied as one undo step (PRD §11). An edit that changes nothing records nothing.
+- `ops.ts` and `clockDoc.ts`: every change is a list of operations, applied as one undo step (PRD §11). An edit that changes nothing records nothing. An update changes only the fields it changed (with the fields grouped with them: an alarm's time, days and on/off; a timer's run state), so it can be replayed onto a copy someone else changed.
+- `merge.ts`: changes made elsewhere (PRD §3.5). `findClashes` lists what both sides changed since the file was last read here; `replay` puts this window's net changes onto the other copy, with Keep Mine or Use Theirs deciding the clashes; `diffOps` turns a change picked up from the file into operations, so it is one undo step.
 - `edits.ts`: the edits the app makes (add, start, pause, edit and delete a timer; presets; the stopwatch).
 - `stopwatch.ts`, `timers.ts`, `duration.ts`: the arithmetic and the text for times. Running things store when they started or end, never a count that ticks.
 - `ringing.ts`: what is due at a given time, and which of those this device has already rung. `sounds.ts`: the sounds, as notes.
 
 ## UI (`packages/ui`)
 
-- `store/`: the `ClockStore` contract and its adapters. A version is the SHA-256 of the file's text; a save sends the version it last saw and fails with `ConflictError` if the file changed (PRD §3.4). `deviceSettings.ts` keeps what each device keeps for itself in page storage: settings, the ringing log and the crash snapshot.
-- `session/clockSession.ts`: one open file. It saves every change at once, never two saves at a time, retries a failed save, keeps unsaved text for recovery, and stops on a conflict until the user chooses. What happens when is the table in `session/saveChart.ts`, drawn below.
+- `store/`: the `ClockStore` contract and its adapters. A version is the SHA-256 of the file's text; a save sends the version it last saw and fails with `ConflictError` if the file changed (PRD §3.4). `deviceSettings.ts` keeps what each device keeps for itself in page storage: settings, the ringing log and the crash snapshots, one slot per window, each held by a Web Lock while its window is open so a start only offers what a closed or crashed window left.
+- `session/clockSession.ts`: one open file. It keeps the file as last read (`base`) and this window's operations not yet saved. It saves every change at once, never two saves at a time, and retries a failed save. A save that finds the file changed reads it and replays the unsaved operations onto it; only when both sides changed the same thing does it stop and ask. The crash snapshot holds the base, its version and the operations, so Restore replays them through the same merge. What happens when is the table in `session/saveChart.ts`, drawn below.
 - `commands/`: the `CommandCatalog`, and the page's one key listener (`keys.ts`).
 - `components/`: `Dialog` (modal, focus trap, Escape), `ListPopup` and the `Icon` set. `sound/player.ts` plays the sounds with Web Audio. `schedule.ts` holds every page timer.
 
@@ -62,29 +63,34 @@ stateDiagram-v2
   saving --> savingDirty : edit / snapshot
   saving --> clean : saved / clearSnapshot
   saving --> failed : failed
-  saving --> conflict : versionChanged / showConflict
+  saving --> merging : versionChanged / readToMerge
   savingDirty --> savingDirty : edit / snapshot
   savingDirty --> saving : saved / writeFile
   savingDirty --> failed : failed
-  savingDirty --> conflict : versionChanged / showConflict
+  savingDirty --> merging : versionChanged / readToMerge
+  merging --> merging : edit / snapshot
+  merging --> saving : merged / mergeFile, snapshot, writeFile
+  merging --> conflict : clashed / showConflict
+  merging --> failed : mergeFailed
   failed --> saving : edit / snapshot, writeFile
   failed --> saving : retry / writeFile
   conflict --> conflict : edit / snapshot
   conflict --> choosing : choose
   choosing --> choosing : edit / snapshot
   choosing --> conflict : chooseFailed
-  choosing --> saving : keepMine / writeFile
-  choosing --> clean : takeTheirs / replaceWithFile, clearSnapshot
+  choosing --> saving : chosen / mergeFile, snapshot, writeFile
 ```
 
-- `snapshot` keeps the data in the recovery slot at every edit, so a crash or a conflict never loses a change.
-- `dropRead`: an edit during a refresh wins; the file read is ignored and the save finds any conflict.
-- `takeFile` replaces the document with the file and clears undo; `replaceWithFile` (Use Theirs) drops this window's changes.
+- `snapshot` keeps the unsaved operations in the recovery slot at every edit and after every merge, so a crash or a conflict never loses a change.
+- `dropRead`: an edit during a refresh wins; the file read is ignored and the save merges with the file.
+- `takeFile` takes the file as one undo step ("Changes made elsewhere").
+- `merging`: a write found another version. `merged` replays this window's operations onto the file read and writes the result; a missing or unreadable file (kept aside first) is written again from this window's data. `clashed` shows the conflict. Edits made meanwhile join the operations being replayed.
+- `chosen`: Keep Mine replays everything, this window's fields winning; Use Theirs drops this window's operations on the clashing items and keeps the rest. When it drops any, the undo history goes, since it no longer fits.
 - `choosing`: a conflict choice is reading the file. The dialog's buttons wait, so a second click can't apply an old read to a later conflict; if the read fails, the dialog is back.
 
 ## Web (`apps/web`)
 
-- `main.tsx` picks a store (the native bridge in Electron, else the browser's storage, else memory), opens the session, and drives the controller: a tick every second, a frame loop while the stopwatch runs, and a refresh when the window comes back and every 15 seconds.
+- `main.tsx` picks a store (the native bridge in Electron, else the browser's storage, else memory), opens the session, and drives the controller: a tick every second, a frame loop while the stopwatch runs, and a refresh when the window comes back, every 15 seconds while it is in front and every minute while it is hidden.
 - `app/controller.ts`: the app's state as signals, and no timers of its own, so the tests drive it with a clock they move. `tick()` checks what is due and starts or stops ringing (PRD §9).
 - `app/commands.ts`: every command. ⌘K, the keys, the toolbar, the native menu bar (`nativeMenu.ts`) and the Keyboard Shortcuts window (`shortcuts.ts`) all read it.
 

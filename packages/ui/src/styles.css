@@ -132,6 +132,14 @@ kbd {
   width: 100%;
   height: 100%;
 }
+.al-conflict-items {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  max-height: 160px;
+  overflow-y: auto;
+  font-weight: 600;
+}
+
 .al-muted {
   color: var(--al-text-2);
 }

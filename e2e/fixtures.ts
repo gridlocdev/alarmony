@@ -33,8 +33,11 @@ export async function readClock(page: Page): Promise<Record<string, unknown> | n
   });
 }
 
-/** Writes clock.json into the page's storage, as another window would, then reloads so the app reads it. */
-export async function writeClock(page: Page, data: unknown): Promise<void> {
+/**
+ * Writes clock.json into the page's storage, as another window would, then reloads so the app reads it.
+ * With `reload: false` the page doesn't know yet, as when the change lands between two looks.
+ */
+export async function writeClock(page: Page, data: unknown, { reload = true } = {}): Promise<void> {
   await page.evaluate(
     async (text) => {
       const root = await navigator.storage.getDirectory();
@@ -44,6 +47,7 @@ export async function writeClock(page: Page, data: unknown): Promise<void> {
     },
     `${JSON.stringify(data, null, 2)}\n`,
   );
+  if (!reload) return;
   await page.reload();
   await page.getByRole('tablist', { name: 'Clock' }).waitFor();
 }

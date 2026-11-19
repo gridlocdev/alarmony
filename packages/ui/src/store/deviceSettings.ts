@@ -2,7 +2,7 @@
  * What each device keeps for itself, never in clock.json (PRD §9.3, §13): its settings, what it has rung, and
  * the crash snapshot. All of it lives in this page's own storage.
  */
-import { MISSED_LOOKBACK_MS, RUNG_KEEP_MS, type Snooze } from '@alarmony/core';
+import { MISSED_LOOKBACK_MS, RUNG_KEEP_MS, newId, type Snooze } from '@alarmony/core';
 import type { RecoveryStorage } from '../session/clockSession.ts';
 
 export type Theme = 'system' | 'light' | 'dark';
@@ -184,33 +184,95 @@ export function lookSince(seen: number | null, now: number, fallback: number): n
   return Math.max(now - MISSED_LOOKBACK_MS, Math.min(now, seen ?? fallback));
 }
 
-/** The crash snapshot in page storage (PRD §3.6). */
-export function localRecovery(key = RECOVERY_KEY): RecoveryStorage {
+/** The locks that tell which windows are still open: a seam for tests. */
+export interface SlotLocks {
+  /** Holds `name` until this page goes. */
+  hold(name: string): void;
+  /** The names held or waited for by any window now. */
+  held(): Promise<readonly string[]>;
+}
+
+/** Web Locks, where the browser has them. */
+export function webLocks(): SlotLocks | null {
+  const locks = typeof navigator === 'undefined' ? undefined : navigator.locks;
+  if (!locks) return null;
   return {
-    get: () => {
+    hold: (name) => {
+      locks.request(name, () => new Promise<never>(() => undefined)).catch((e: unknown) => console.error(e));
+    },
+    held: async () => {
+      const q = await locks.query();
+      return [...(q.held ?? []), ...(q.pending ?? [])].map((l) => l.name ?? '');
+    },
+  };
+}
+
+/**
+ * The crash snapshot in page storage (PRD §3.6): one slot per window, held by a lock while the window is open,
+ * so a start only offers what a closed or crashed window left. Without locks every other slot counts as left.
+ */
+export function localRecovery(
+  prefix = RECOVERY_KEY,
+  locks: SlotLocks | null = webLocks(),
+  slot = newId(prefix),
+): RecoveryStorage {
+  locks?.hold(slot);
+  let offered: string | null = null;
+  const remove = (key: string) => {
+    try {
+      storage()?.removeItem(key);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  return {
+    leftover: async () => {
+      const s = storage();
+      if (!s) return null;
+      const held = new Set(locks ? await locks.held() : []);
+      let best: { key: string; text: string; at: number } | null = null;
       try {
-        return storage()?.getItem(key) ?? null;
+        for (let i = 0; i < s.length; i++) {
+          const key = s.key(i);
+          // The bare prefix is the one slot an older Alarmony kept.
+          if (!key || key === slot || held.has(key) || (key !== prefix && !key.startsWith(`${prefix}_`)))
+            continue;
+          const text = s.getItem(key);
+          if (text === null) continue;
+          const at = snapshotTime(text);
+          if (!best || at > best.at) best = { key, text, at };
+        }
       } catch {
         return null;
       }
+      offered = best?.key ?? null;
+      return best?.text ?? null;
+    },
+    dropLeftover: () => {
+      if (offered !== null) remove(offered);
+      offered = null;
     },
     set: (text) => {
       try {
         const s = storage();
         if (!s) return false;
-        s.setItem(key, text);
+        s.setItem(slot, text);
         return true;
       } catch {
         return false;
       }
     },
-    clear: () => {
-      try {
-        storage()?.removeItem(key);
-        return true;
-      } catch {
-        return false;
-      }
-    },
+    clear: () => remove(slot),
   };
+}
+
+/** When a snapshot was written, or 0 when it doesn't say. */
+function snapshotTime(text: string): number {
+  try {
+    const at = (JSON.parse(text) as { at?: unknown }).at;
+    return typeof at === 'number' ? at : 0;
+  } catch {
+    return 0;
+  }
 }

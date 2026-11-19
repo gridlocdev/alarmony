@@ -204,6 +204,7 @@ export class AppController {
     this.frame = signal(now);
     this.settings = signal(deps.settings);
     this.tab = signal(shown(deps.settings.tab));
+    session.onNotice = (text, tone) => this.say(text, tone ? { tone, sticky: true } : {});
     session.doc.onChange((change) => {
       batch(() => {
         this.data.value = session.doc.data;
@@ -212,7 +213,9 @@ export class AppController {
         const n = this.notice.peek();
         if (n?.action?.label === 'Undo' && change.kind !== 'setting')
           this.notice.value = n.sticky ? { ...n, action: undefined } : null;
-        this.#noteAlarmChanges(change.kind === 'replace');
+        this.#noteAlarmChanges(
+          change.kind === 'replace' || change.kind === 'outside' || change.kind === 'merge',
+        );
         this.#forgetGoneRings();
         // An editor for an item that went (undo, Use Theirs, a change made elsewhere) has nothing to show.
         const d = this.dialog.peek();
@@ -309,7 +312,8 @@ export class AppController {
 
   /**
    * Looks for changes made elsewhere (PRD §3.5): the page calls this on focus, on showing and every 15 s; while
-   * hidden it reads at most once a minute. A failed save is tried again first. Returns how many items changed.
+   * hidden it reads at most once a minute. A failed save is tried again first. A change it takes is one undo
+   * step, said with Undo. Returns how many items changed.
    */
   async refreshFromFile(hidden: boolean): Promise<number | null> {
     this.tick();
@@ -318,7 +322,9 @@ export class AppController {
     if (this.dialog.peek()) return null;
     if (hidden && now - this.#lastRefresh < HIDDEN_REFRESH_MS) return null;
     this.#lastRefresh = now;
-    return this.session.refresh();
+    const changed = await this.session.refresh();
+    if (changed) this.sayUndoable('Updated with changes made elsewhere.');
+    return changed;
   }
 
   // ── Tabs, dialogs, settings ──────────────────────────────────────────────

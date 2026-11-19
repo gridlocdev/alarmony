@@ -28,7 +28,7 @@ Alarmony is a clock app for one person: world clock, alarms, stopwatch and timer
 2. **The file is the source of truth.** No database. A save writes exactly what the user has, and keeps items it couldn't read (PRD §3.2). What one device keeps for itself (settings, what it has rung) stays out of the file.
 3. **One command catalog.** The command menu, shortcuts, context menus, the Electron menu bar, the Keyboard Shortcuts window and `docs/controls.md` all read it. Don't wire a key or a menu item past it.
 4. **The UI reaches the file only through `ClockStore`.** It never knows whether data is in memory, in the browser or on disk.
-5. **Never lose data.** Saves are atomic everywhere. A conflict is shown and the user chooses; nothing merges or overwrites silently. Every change can be undone.
+5. **Never lose data.** Saves are atomic everywhere. Unsaved changes are replayed onto a file changed elsewhere, field by field; where both sides changed the same thing the user chooses, and nothing is overwritten silently. Every change, including one picked up from elsewhere, can be undone.
 6. **Time comes from the clock, never from counting.** Running timers and the stopwatch store when they end or started; the view and the ringing check compute from the time now, so a sleeping laptop or a throttled tab is right as soon as it looks.
 7. **Security.** The Electron renderer is sandboxed with context isolation; its only native access is the `alarmonyNative` bridge, which reaches only the data file.
 8. **Dependencies.** The runtime dependencies are Preact and `@preact/signals`. Don't add a package without the owner's approval. Pin versions exactly.

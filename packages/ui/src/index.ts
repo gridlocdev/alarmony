@@ -13,6 +13,8 @@ export {
   loadSettings,
   lookSince,
   localRecovery,
+  webLocks,
+  type SlotLocks,
   rungLog,
   saveSettings,
   type DeviceMemory,
@@ -25,14 +27,18 @@ export {
 } from './store/deviceSettings.ts';
 export {
   ClockSession,
+  OUTSIDE_LABEL,
   RETRY_DELAYS,
   countChanged,
+  encodeSnapshot,
   memoryRecovery,
+  readSnapshot,
   type Conflict,
   type OpenResult,
   type RecoveryStorage,
   type SaveStatus,
   type SessionOptions,
+  type Snapshot,
 } from './session/clockSession.ts';
 export {
   SAVE_TRANSITIONS,

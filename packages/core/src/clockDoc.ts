@@ -13,11 +13,15 @@ export interface Step {
   readonly ops: readonly Op[];
 }
 
-export type ChangeKind = 'edit' | 'undo' | 'redo' | 'setting' | 'replace';
+/**
+ * `edit`, `undo`, `redo` and `setting` are this window's and get saved. `outside` (a change picked up from the
+ * file), `merge` (this window's changes replayed onto the file's) and `replace` come from the file.
+ */
+export type ChangeKind = 'edit' | 'undo' | 'redo' | 'setting' | 'outside' | 'merge' | 'replace';
 
 export interface Change {
   readonly kind: ChangeKind;
-  /** The operations that made this change; empty for `replace`. */
+  /** The operations that made this change; empty for `merge` and `replace`. */
   readonly ops: readonly Op[];
   readonly label: string;
 }
@@ -99,6 +103,34 @@ export class ClockDoc {
     this.#undo.push(step);
     this.#emit({ kind: 'redo', ops: step.ops, label: step.label });
     return step;
+  }
+
+  /**
+   * Takes a change picked up from the file as one undo step (PRD §3.5). `ops` turn the data here into `data`;
+   * `data` also carries what the file keeps that no operation reaches (items this version can't read).
+   */
+  takeOutside(data: ClockData, ops: readonly Op[], label: string): void {
+    const real = ops.filter((op) => !isNoop(op));
+    this.#data = data;
+    if (real.length) {
+      this.#undo.push({ label, ops: real });
+      if (this.#undo.length > MAX_HISTORY) this.#undo.shift();
+      this.#redo = [];
+    }
+    this.#emit({ kind: 'outside', ops: real, label });
+  }
+
+  /**
+   * Takes this window's changes replayed onto the file's. Each step only changes its own fields, so undo still
+   * fits unless some of this window's operations were dropped (Use Theirs); then the history goes.
+   */
+  merge(data: ClockData, keepHistory: boolean): void {
+    this.#data = data;
+    if (!keepHistory) {
+      this.#undo = [];
+      this.#redo = [];
+    }
+    this.#emit({ kind: 'merge', ops: [], label: '' });
   }
 
   /** Takes data read from the file. The history no longer fits it, so it goes. */

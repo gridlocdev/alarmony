@@ -29,6 +29,12 @@ Each slice leaves `just check` green and the app working.
     - No right-click menu on a clock: its × deletes, a double-click renames.
     - A place at the same time as this device says "Today, same time".
     - The app now opens on World Clock the first time; after that, on the last tab.
-- [ ] **5. Changes made elsewhere** (§3.5, §3.6): replay and conflict dialog, refresh timers, crash snapshot and recovery.
+- [x] **5. Changes made elsewhere** (§3.5, §3.6): replay and conflict dialog, refresh timers, crash snapshot and recovery.
+  - Done as planned, with these notes:
+    - Replay puts this window's net change onto the other copy, not each operation in turn, so an edit made and undone here takes nothing back from the other side.
+    - Fields that only make sense together change together: an alarm's time, days, on/off and one-time date; a timer's length, run state, end time and time left. Changing any of them on both sides is a clash.
+    - A file from a newer Alarmony met while merging stops saving with "Couldn't save." and the newer-file message, until the user updates or Try Again finds it gone.
+    - The browser keeps one snapshot slot per tab, held by a Web Lock; a snapshot from an older build (one slot, the whole file) is still offered and restored as a change on top of the file.
+    - Checked by unit tests (random edits on both sides, the session and the save chart) and browser scenarios for a merge, Keep Mine and Use Theirs. The desktop app shares the page's code; it wasn't checked with two windows.
 - [ ] **6. CLI** (§12) with its agent skill file. Waits on 2 and 5.
 - [ ] **7. Release polish**: icon, docs, CHANGELOG, CI and release workflows, accessibility pass (§16).

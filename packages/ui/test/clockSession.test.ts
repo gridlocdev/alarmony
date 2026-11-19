@@ -2,12 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   addTimer,
   classifyFile,
+  editTimer,
   emptyData,
   serialize,
   toggleStopwatch,
   type ClockData,
 } from '@alarmony/core';
-import { ClockSession, MemoryStore, countChanged, memoryRecovery } from '../src/index.ts';
+import { ClockSession, MemoryStore, OUTSIDE_LABEL, countChanged, memoryRecovery } from '../src/index.ts';
 import { RANDOM_TIMEOUT, runRandomOps } from './support/randomOps.ts';
 
 const T0 = Date.parse('2026-11-19T18:00:00.000Z');
@@ -27,6 +28,12 @@ async function open(store = new MemoryStore(), recovery = memoryRecovery()) {
   });
   await session.flush();
   return { session, notice, store, recovery };
+}
+
+function listen(session: ClockSession): string[] {
+  const notices: string[] = [];
+  session.onNotice = (text) => notices.push(text);
+  return notices;
 }
 
 const addOne = (session: ClockSession, id = 't_1') =>
@@ -85,59 +92,156 @@ describe('ClockSession', () => {
     await expect(open(new MemoryStore('{"format": 9}'))).rejects.toThrow(/newer Alarmony/);
   });
 
-  it('takes a change made elsewhere when nothing here is unsaved', async () => {
+  it('takes a change made elsewhere as one undo step when nothing here is unsaved', async () => {
     const { session, store } = await open();
-    const other = emptyData('UTC');
-    store.text = serialize({ ...other, presets: [{ id: 'p_1', label: 'Egg', ms: 360_000, extra: {} }] });
-    expect(await session.refresh()).toBeGreaterThan(0);
+    store.text = serialize({
+      ...fileData(store),
+      presets: [{ id: 'p_1', label: 'Egg', ms: 360_000, extra: {} }],
+    });
+    expect(await session.refresh()).toBe(1);
     expect(session.doc.data.presets[0]?.label).toBe('Egg');
+    expect(session.doc.undoLabel).toBe(OUTSIDE_LABEL);
     expect(await session.refresh()).toBeNull();
+    session.doc.undo();
+    await session.flush();
+    expect(fileData(store).presets).toEqual([]);
   });
 
-  it('asks on a conflict; Keep Mine writes this window, Use Theirs takes the file', async () => {
+  it('merges unsaved changes with a change made elsewhere', async () => {
     const { session, store } = await open();
-    const theirs = serialize(emptyData('Asia/Tokyo'));
-    store.text = theirs;
+    const notices = listen(session);
+    store.text = serialize({
+      ...fileData(store),
+      presets: [{ id: 'p_1', label: 'Egg', ms: 360_000, extra: {} }],
+    });
     addOne(session);
     await session.flush();
-    expect(session.status.value).toBe('conflict');
-    expect(session.conflict.value?.changed).toBeGreaterThan(0);
-    await session.keepMine();
     expect(session.status.value).toBe('saved');
-    expect(fileData(store).timers).toHaveLength(1);
-
-    store.text = theirs;
-    addOne(session, 't_2');
+    expect(fileData(store).presets.map((p) => p.label)).toEqual(['Egg']);
+    expect(fileData(store).timers.map((t) => t.label)).toEqual(['Tea']);
+    expect(notices).toEqual(['Merged with changes made elsewhere.']);
+    // The edit made here is still one undo step.
+    session.doc.undo();
     await session.flush();
-    expect(session.status.value).toBe('conflict');
-    await session.useTheirs();
-    expect(session.status.value).toBe('saved');
-    expect(session.doc.data.clocks[0]?.zone).toBe('Asia/Tokyo');
-    expect(session.doc.data.timers).toEqual([]);
+    expect(fileData(store).timers).toEqual([]);
+    expect(fileData(store).presets).toHaveLength(1);
   });
 
-  it('keeps an unreadable file aside before Keep Mine writes over it', async () => {
+  it('writes a file deleted elsewhere again', async () => {
     const { session, store } = await open();
+    const notices = listen(session);
+    store.text = null;
+    addOne(session);
+    await session.flush();
+    expect(fileData(store).timers).toHaveLength(1);
+    expect(notices).toEqual(['clock.json was missing, so it was saved again.']);
+  });
+
+  it('keeps an unreadable file aside before writing over it', async () => {
+    const { session, store } = await open();
+    const notices = listen(session);
     store.text = '{ half a file';
     addOne(session);
     await session.flush();
-    expect(session.status.value).toBe('conflict');
-    const notice = await session.keepMine();
+    expect(session.status.value).toBe('saved');
     expect([...store.copies.values()]).toEqual(['{ half a file']);
-    expect(notice).toMatch(/^clock\.json couldn't be read\. It was kept as clock unreadable .*\.json\.$/);
+    expect(notices[0]).toMatch(/^clock\.json couldn't be read\. It was kept as clock unreadable .*\.json\.$/);
     expect(fileData(store).timers).toHaveLength(1);
   });
 
-  it('offers last time’s unsaved data, and restores it', async () => {
-    const { store } = await open();
-    const recovery = memoryRecovery();
-    const mine = emptyData('Europe/Paris');
-    recovery.text = serialize({ ...mine, presets: [{ id: 'p_9', label: 'Kept', ms: 1000, extra: {} }] });
+  /** A saved timer, renamed here to Rice and elsewhere to Pasta, plus a timer added while the dialog is up. */
+  async function clash() {
+    const opened = await open();
+    const { session, store } = opened;
+    addOne(session);
+    await session.flush();
+    const there = fileData(store);
+    store.text = serialize({ ...there, timers: there.timers.map((t) => ({ ...t, label: 'Pasta' })) });
+    session.doc.apply(editTimer(session.doc.data, 't_1', 'Rice', 60_000, T0), 'Renamed');
+    await session.flush();
+    expect(session.status.value).toBe('conflict');
+    expect(session.conflict.value?.items).toEqual(['Rice']);
+    addOne(session, 't_2');
+    await session.flush();
+    expect(session.status.value).toBe('conflict');
+    return opened;
+  }
+
+  it('asks when both sides changed the same thing; Keep Mine keeps this window’s', async () => {
+    const { session, store } = await clash();
+    await session.keepMine();
+    expect(session.status.value).toBe('saved');
+    expect(fileData(store).timers.map((t) => t.label)).toEqual(['Rice', 'Tea']);
+    expect(session.doc.canUndo).toBe(true);
+  });
+
+  it('Use Theirs takes theirs where both changed, and keeps this window’s other changes', async () => {
+    const { session, store } = await clash();
+    await session.useTheirs();
+    expect(session.status.value).toBe('saved');
+    expect(fileData(store).timers.map((t) => t.label)).toEqual(['Pasta', 'Tea']);
+    expect(session.doc.data).toEqual(fileData(store));
+    // The dropped rename no longer fits the history.
+    expect(session.doc.canUndo).toBe(false);
+  });
+
+  it('keeps an unreadable file aside before Keep Mine writes over it', async () => {
+    const { session, store } = await clash();
+    store.text = '{ half a file';
+    const notice = await session.keepMine();
+    expect([...store.copies.values()]).toEqual(['{ half a file']);
+    expect(notice).toMatch(/^clock\.json couldn't be read\. It was kept as clock unreadable .*\.json\.$/);
+    expect(fileData(store).timers.map((t) => t.label)).toEqual(['Rice', 'Tea']);
+  });
+
+  it('restores what a crashed window left, replayed onto changes made since', async () => {
+    const { session: crashed, store, recovery: slot } = await open();
+    store.failSaves = 3;
+    addOne(crashed);
+    await crashed.flush();
+    expect(crashed.status.value).toBe('failed');
+    store.text = serialize({
+      ...fileData(store),
+      presets: [{ id: 'p_1', label: 'Egg', ms: 360_000, extra: {} }],
+    });
+    const recovery = memoryRecovery(slot.text);
     const { session } = await open(store, recovery);
     expect(session.recoverable.value).not.toBeNull();
     session.restoreRecovered();
+    expect(recovery.left).toBeNull();
+    await session.flush();
+    expect(fileData(store).presets.map((p) => p.label)).toEqual(['Egg']);
+    expect(fileData(store).timers.map((t) => t.label)).toEqual(['Tea']);
+  });
+
+  it('restores a whole file kept by an older Alarmony, and offers nothing the file already has', async () => {
+    const { store } = await open();
+    const left = serialize({
+      ...fileData(store),
+      presets: [{ id: 'p_9', label: 'Kept', ms: 1000, extra: {} }],
+    });
+    const { session } = await open(store, memoryRecovery(left));
+    session.restoreRecovered();
     await session.flush();
     expect(fileData(store).presets[0]?.label).toBe('Kept');
+    const same = memoryRecovery(store.text);
+    const again = await open(store, same);
+    expect(again.session.recoverable.value).toBeNull();
+    expect(same.left).toBeNull();
+  });
+
+  it('Discard forgets what the other window left', async () => {
+    const { store } = await open();
+    const left = serialize({
+      ...fileData(store),
+      presets: [{ id: 'p_9', label: 'Kept', ms: 1000, extra: {} }],
+    });
+    const recovery = memoryRecovery(left);
+    const { session } = await open(store, recovery);
+    session.discardRecovered();
+    expect(recovery.left).toBeNull();
+    expect(session.recoverable.value).toBeNull();
+    expect(fileData(store).presets).toEqual([]);
   });
 
   it('counts changed items and the stopwatch', () => {
