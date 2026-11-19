@@ -17,6 +17,20 @@ afterEach(async () => {
 });
 
 describe('the data file on disk', () => {
+  it('reports a failed save only to its caller, with no unhandled rejection left over', async () => {
+    const unhandled: unknown[] = [];
+    const listen = (e: unknown) => unhandled.push(e);
+    process.on('unhandledRejection', listen);
+    try {
+      await writeFile(path.join(dir, 'blocker'), 'a file, not a folder');
+      await expect(writeDataFile(path.join(dir, 'blocker', 'clock.json'), 'x', null)).rejects.toThrow();
+      await new Promise((r) => setTimeout(r, 20));
+      expect(unhandled).toEqual([]);
+    } finally {
+      process.off('unhandledRejection', listen);
+    }
+  });
+
   it('reads nothing when there is no file', async () => {
     expect(await readDataFile(file)).toEqual({ text: null, version: null });
   });

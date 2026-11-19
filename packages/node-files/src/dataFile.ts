@@ -140,9 +140,11 @@ function serialized<T>(file: string, task: () => Promise<T>): Promise<T> {
   // The task runs after the one before it either way; that one's failure went to its own caller.
   const run = (queues.get(key) ?? Promise.resolve()).then(task, task);
   queues.set(key, run);
-  void run.finally(() => {
+  // Both outcomes clear the queue; the failure itself is the caller's, so this branch must not reject again.
+  const forget = () => {
     if (queues.get(key) === run) queues.delete(key);
-  });
+  };
+  void run.then(forget, forget);
   return run;
 }
 
