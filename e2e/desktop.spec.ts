@@ -49,8 +49,11 @@ test.describe('Keeping your data', () => {
       ).toBe(false);
       expect(errors).toEqual([]);
     } finally {
+      const electronProcess = app.process();
       await app.close();
       rmSync(userData, { recursive: true, force: true });
+      // No Electron process outlives the test: one left running could show itself later.
+      await expect.poll(() => electronProcess.exitCode ?? electronProcess.signalCode).not.toBeNull();
     }
   });
 });

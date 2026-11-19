@@ -9,7 +9,7 @@ Alarmony is a clock app for one person: world clock, alarms, stopwatch and timer
 - Never add to `test/architecture-baseline.json`. Fix the violation; lower or delete its entry when you do. A comment is never permission: a deliberate exception (`ignoreError(promise, 'why')`, an `eslint-disable`, a `@ts-expect-error`) goes in `test/architecture-exceptions.json` only after the owner agrees.
 - Page timers go through `packages/ui/src/schedule.ts` (`wait`, `after`, `every`, `debounce`), never `setTimeout` directly.
 - When you change behaviour, add or update a test in the package's `test/` folder, and update the PRD section the code cites (`PRD §n`).
-- Check UI changes headlessly (a browser driven in the background, or the desktop app with `ALARMONY_HEADLESS=1`). Never open a visible window to check your work.
+- Check UI changes headlessly (headless Playwright, `just drive`, or the desktop app with `ALARMONY_HEADLESS=1` / `--headless`: no window, Dock icon or sound). Never open a visible window, dialog or browser to check your work, never use `open` on the web build, and make sure every Electron process a check started has exited. A native dialog (Electron `dialog`, `alert`, `confirm`) in a headless run would land on the owner's screen; the architecture test rejects them.
 - Never point a check at the real data file. Use `ALARMONY_USER_DATA=<temp dir>` (and `ALARMONY_FOLDER`) for the desktop app; scenarios use a fresh browser's empty storage.
 
 ## Layout

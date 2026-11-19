@@ -21,8 +21,11 @@ const MIN_SIZE = { width: 640, height: 440 };
  * the centre of the lights lines up with the tabs (PRD §12).
  */
 const unified = process.platform === 'darwin';
-/** ALARMONY_HEADLESS=1: render offscreen and never show a window or Dock icon (automated checks). */
-const headless = process.env.ALARMONY_HEADLESS === '1';
+/**
+ * ALARMONY_HEADLESS=1 or --headless: render offscreen, muted, and never show a window, Dock icon or system dialog
+ * (automated checks).
+ */
+const headless = process.env.ALARMONY_HEADLESS === '1' || process.argv.includes('--headless');
 if (headless) app.dock?.hide();
 
 const paths = dataPaths(process.env, app.getPath('documents'));
@@ -148,6 +151,7 @@ function createWindow(): BrowserWindow {
   w.webContents.on('will-navigate', (e, url) => {
     if (!isAppUrl(url)) e.preventDefault();
   });
+  if (headless) w.webContents.setAudioMuted(true);
   void w.loadURL('app://alarmony/index.html');
   return w;
 }

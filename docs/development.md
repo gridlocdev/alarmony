@@ -16,7 +16,7 @@ just setup   # corepack enable, then pnpm install
 | --- | --- |
 | `just run-web` | The web client on http://localhost:5173 with hot reload. It keeps `clock.json` in the browser's storage |
 | `just run-desktop` | The desktop app in dev mode (builds the web client first) |
-| `just run-desktop-headless` | The desktop app with no window or Dock icon, on `./.headless-data`, with DevTools on port 9334 (for automated checks) |
+| `just run-desktop-headless` | The desktop app with no window or Dock icon, on a throwaway folder removed when it exits, with DevTools on port 9334 (for automated checks) |
 
 The desktop app in dev mode uses your real `Documents/Alarmony`. To try it on throwaway data, set `ALARMONY_USER_DATA` to another folder; the data folder then sits inside it:
 

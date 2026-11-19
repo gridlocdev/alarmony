@@ -21,9 +21,13 @@ run-desktop: build-web
 
 # Desktop app with no window or Dock icon, on throwaway data, for automated checks (DevTools port 9334).
 [group('run')]
-run-desktop-headless dir=(justfile_directory() / ".headless-data"): build-desktop
-    mkdir -p "{{ dir }}"
-    cd apps/desktop && ALARMONY_HEADLESS=1 ALARMONY_USER_DATA="{{ dir }}" pnpm exec electron . --remote-debugging-port=9334
+run-desktop-headless: build-desktop
+    #!/usr/bin/env bash
+    set -euo pipefail
+    dir=$(mktemp -d "${TMPDIR:-/tmp}/alarmony-headless.XXXXXX")
+    trap 'rm -rf "$dir"' EXIT
+    echo "Throwaway data in $dir (removed on exit)"
+    cd apps/desktop && ALARMONY_HEADLESS=1 ALARMONY_USER_DATA="$dir" pnpm exec electron . --headless --remote-debugging-port=9334
 
 # ── Build and package ─────────────────────────────────────────────────────
 

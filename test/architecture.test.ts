@@ -125,7 +125,7 @@ const FIX: Record<Rule, string> = {
   'dialog-role':
     'Use the shared Dialog: it has the focus trap, Escape, the command gate and one dialog at a time.',
   'native-dialog':
-    'Show a notice, or a Dialog for a real choice; alert and confirm block the page and the desktop app.',
+    'Show a notice, or a Dialog for a real choice; alert, confirm and Electron dialogs block the app, and a headless check would put them on the screen. If the desktop app truly needs one, add a helper that skips it when headless and exposes it to tests, and allow only that file.',
   'empty-catch': 'Handle the error or return a value the caller checks (such as null).',
   'swallowed-promise':
     "Handle the error, or write ignoreError(promise, 'why') so it is listed as an exception.",
@@ -363,6 +363,21 @@ function checkCode(file: string, source: ts.SourceFile, report: Report): void {
       if (name && TIMERS.has(name) && isGlobalCall(node, declared)) confined('timer', node, `calls ${name}`);
       if (renderer && !test && name && NATIVE_DIALOGS.has(name) && isGlobalCall(node, declared)) {
         report.add('native-dialog', name, `calls ${name}()`, report.line(node));
+      }
+      const callee = node.expression;
+      if (
+        part === 'apps/desktop' &&
+        !test &&
+        ts.isPropertyAccessExpression(callee) &&
+        ts.isIdentifier(callee.expression) &&
+        callee.expression.text === 'dialog'
+      ) {
+        report.add(
+          'native-dialog',
+          `dialog.${callee.name.text}`,
+          `calls dialog.${callee.name.text}()`,
+          report.line(node),
+        );
       }
       if (name === 'addEventListener' && /^key(down|up)$/.test(stringArg(first) ?? '')) {
         confined('key-listener', node, `adds a ${stringArg(first)} listener`);
