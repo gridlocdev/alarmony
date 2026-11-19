@@ -27,6 +27,7 @@ const LAYERS: Record<string, readonly string[]> = {
   'packages/ui': ['packages/core'],
   'apps/web': ['packages/ui', 'packages/core'],
   'apps/desktop': ['packages/core', 'packages/node-files'],
+  'apps/cli': ['packages/core', 'packages/node-files'],
 };
 
 /**

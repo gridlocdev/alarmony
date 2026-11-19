@@ -216,7 +216,11 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
   - `timers` lists timers with time left; `timer start <duration> [--label] [--wait]` adds a running timer the apps ring; with `--wait` it also counts down in the terminal and rings the terminal bell at the end (Ctrl-C leaves the timer running in the file). `timer pause|resume|cancel|delete <id or label>`. `presets`, `preset add <duration> --label`, `preset delete`.
   - `stopwatch [start|stop|lap|reset]`, without an argument shows the time and laps.
   - Times and durations parse as in §7.2 and §8.2. Deleting prints what was deleted, as JSON with `--json`.
-- Saves go through the same operations, lock file and replay (§3.5); a conflict on the same item after one retry exits 2. Exit codes: 0 ok, 1 error (message on stderr), 2 conflict.
+- Saves go through the same operations, lock file and replay (§3.5); a conflict on the same item after one retry exits 2. Exit codes: 0 ok, 1 error (message on stderr), 2 conflict. A wrong command line (an unknown command or option, a missing argument) is an error: exit 1, with a pointer to `--help`.
+- An item is named by its id, its exact name (label, city or time), a name containing the text, or an id prefix of 4 or more characters, in that order, among only the items the command can act on (`timer pause` looks at running timers). Several matches are listed with their ids and exit 1.
+- The CLI never creates the folder. An empty folder gets a new file, with one clock for this device's zone (§6.1), on the first change. A corrupt or newer file is left alone and exits 1.
+- Turning an alarm on that is already on, or resetting a stopwatch at zero, changes nothing and exits 0, saying so (`"changed": false`).
+- `man` prints every command and option; `schema` prints the shape of each `--json` reply. Under `--json` an error is `{"ok": false, "error", "exit"}` on stdout as well as the message on stderr.
 
 ## §13 Settings (⌘,)
 

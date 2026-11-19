@@ -1,6 +1,6 @@
 # Features
 
-Alarmony is a clock for the desktop and the browser: world clocks, alarms, a stopwatch and timers. The desktop app, the browser and (later) the command line all read and write the same `clock.json`. The exact behaviour of each feature is in the [product requirements](plans/prd.md).
+Alarmony is a clock for the desktop and the browser: world clocks, alarms, a stopwatch and timers. The desktop app, the browser and the command line all read and write the same `clock.json`. The exact behaviour of each feature is in the [product requirements](plans/prd.md).
 
 ## World Clock
 
@@ -39,6 +39,10 @@ Closing the desktop window doesn't quit Alarmony: it keeps running in the menu b
 ## Commands and shortcuts
 
 Every action is in the command menu (**⌘K**), which also starts presets by name, and in the Keyboard Shortcuts window (**⌘/**). See [controls](controls.md) for the full list.
+
+## Command line
+
+The `alarmony` command lists and changes the same clocks, alarms, timers, presets and stopwatch from a terminal or a script, and the apps pick up each change within a second: `alarmony alarm add 7:30 --days weekdays --label Wake`, `alarmony timer start 10m --label Pasta`, `alarmony clock add Tokyo`. `--json` prints one JSON document per reply, `alarmony man` prints every command, and `timer start --wait` counts down in the terminal and rings its bell. If an app changed the file at the same time, the command merges its edit in; if both changed the same thing it saves nothing and exits 2. See [the CLI's guide](../apps/cli/skill/SKILL.md).
 
 ## Look
 

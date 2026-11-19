@@ -43,13 +43,6 @@ export function startFolder(
   return { kind: 'ask', gone: remembered };
 }
 
-/** The folder folder.json names, or null when it is missing or doesn't name one. */
-export function parseFolderFile(raw: unknown): string | null {
-  if (!raw || typeof raw !== 'object') return null;
-  const folder = (raw as Record<string, unknown>).folder;
-  return typeof folder === 'string' && path.isAbsolute(folder) ? folder : null;
-}
-
 /** Only our own page may use the bridge or be navigated to. */
 export function isAppUrl(url: string | undefined | null): boolean {
   return typeof url === 'string' && url.startsWith('app://alarmony/');

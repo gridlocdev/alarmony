@@ -1,0 +1,18 @@
+{
+  "name": "@alarmony/cli",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "alarmony: the clocks, alarms, timers and stopwatch in clock.json, from the terminal.",
+  "bin": {
+    "alarmony": "./bin/alarmony.mjs"
+  },
+  "scripts": {
+    "start": "node src/main.ts"
+  },
+  "dependencies": {
+    "@alarmony/core": "workspace:*",
+    "@alarmony/node-files": "workspace:*"
+  }
+}

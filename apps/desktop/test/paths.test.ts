@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { appFile, dataPaths, isAppUrl, parseFolderFile, startFolder } from '../src/paths.ts';
+import { appFile, dataPaths, isAppUrl, startFolder } from '../src/paths.ts';
 
 describe('dataPaths', () => {
   const documents = '/Users/me/Documents';
@@ -57,13 +57,6 @@ describe('the folder at start', () => {
       folder: '/tmp/check/Alarmony',
     });
     expect(startFolder(plain, true, null, there([]))).toEqual({ kind: 'use', folder: plain.folder });
-  });
-
-  it('reads folder.json, ignoring anything but an absolute path', () => {
-    expect(parseFolderFile({ folder: '/Users/me/Clock' })).toBe('/Users/me/Clock');
-    expect(parseFolderFile({ folder: 'Clock' })).toBeNull();
-    expect(parseFolderFile({ folder: 3 })).toBeNull();
-    expect(parseFolderFile(null)).toBeNull();
   });
 });
 

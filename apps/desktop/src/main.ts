@@ -23,7 +23,7 @@ import { statSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { readDataFile, writeCopy, writeDataFile } from '@alarmony/node-files';
+import { FOLDER_FILE, parseFolderFile, readDataFile, writeCopy, writeDataFile } from '@alarmony/node-files';
 import {
   EMPTY_TRAY,
   parsePrefs,
@@ -36,7 +36,7 @@ import {
 import { Channels, type NativeMenuItem, type TrayState } from './bridge.ts';
 import { systemDialogs } from './dialogs.ts';
 import { editMenuTemplate, toTemplate, withStandardMenus } from './menu.ts';
-import { appFile, dataPaths, isAppUrl, parseFolderFile, startFolder } from './paths.ts';
+import { appFile, dataPaths, isAppUrl, startFolder } from './paths.ts';
 import { loadSavedWindow, placeWindow, saveWindow, type SavedWindow } from './windowState.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -65,7 +65,7 @@ const dataFile = () => path.join(folder, 'clock.json');
 // A timer rings without a click first: the window plays sound the moment a timer is due (PRD §9.4).
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 const windowFile = path.join(app.getPath('userData'), 'window-state.json');
-const folderFile = path.join(app.getPath('userData'), 'folder.json');
+const folderFile = path.join(app.getPath('userData'), FOLDER_FILE);
 const prefsFile = path.join(app.getPath('userData'), 'prefs.json');
 /** Started by the system at login: stay in the menu bar (PRD §15). */
 const openedAtLogin =

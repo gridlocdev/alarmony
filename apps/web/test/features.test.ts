@@ -14,7 +14,9 @@ const specs = readdirSync(new URL('e2e/', ROOT))
 const described = [...specs.matchAll(/test\.describe\(\s*(['"`])(.+?)\1/g)].map((match) => match[2] ?? '');
 
 /** Sections that aren't checked by a scenario, each with the reason (only by hand, not a feature). Keep it short. */
-const NOT_SCENARIOS = new Map<string, string>([]);
+const NOT_SCENARIOS = new Map<string, string>([
+  ['Command line', 'The CLI runs in Node, not the browser; apps/cli/test/cli.test.ts covers every command.'],
+]);
 
 describe('docs/features.md', () => {
   it('has a scenario for every feature', () => {

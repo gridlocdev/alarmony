@@ -1,6 +1,6 @@
 # Architecture
 
-Alarmony is one TypeScript code base with two hosts. The browser and the Electron app run the same UI from one static build; the only thing that differs between them is where `clock.json` comes from.
+Alarmony is one TypeScript code base with two hosts and a command line. The browser and the Electron app run the same UI from one static build; the only thing that differs between them is where `clock.json` comes from. The CLI runs the same engine in Node.
 
 ```
      ┌──────────────── apps/web (Preact + signals, one Vite build) ────────────────┐
@@ -22,7 +22,7 @@ Alarmony is one TypeScript code base with two hosts. The browser and the Electro
      │  stopwatch and timer arithmetic · durations · ringing · sounds │
      └────────────────────────────────────────────────────────────────┘
      ┌──────────── packages/node-files (Node) ────────────┐
-     │  readDataFile · writeDataFile (atomic, versioned)  │◄──── apps/desktop
+     │  readDataFile · writeDataFile (atomic, versioned)  │◄──── apps/desktop, apps/cli
      └────────────────────────────────────────────────────┘
 ```
 
@@ -99,6 +99,12 @@ stateDiagram-v2
 - `main.ts`: one window, loading the web build from `app://alarmony/`. The renderer is sandboxed with context isolation, IPC is accepted only from that origin, background throttling is off so a hidden window still rings on time, and sound plays without a click. Closing the window hides it; the page keeps running and the menu bar icon (tray) brings it back. While an alarm is on or a timer runs, it holds a power-save blocker against App Nap, and quitting asks first. A wake from sleep tells the page to check what is due.
 - `preload.cts` exposes `alarmonyNative`: load, save and save a copy of `clock.json`, set the menu bar and the tray (the page works out what it shows in `app/tray.ts`), open at login, Open Folder…, send menu commands, wake and full-screen changes to the page, and say whether the window uses the unified toolbar (`chrome`; macOS). The channels are listed in `bridge.ts`.
 - `paths.ts`: where the data lives, and whether the first start has to ask (`folder.json` remembers the answer). `background.ts`: the tray's menu and the questions you can turn off (`prefs.json`). `dialogs.ts`: every system dialog; a headless run skips them and lists them in `alarmonySkippedDialogs`, and the architecture test allows `dialog.*` nowhere else. `menu.ts`: the menu bar from the catalog plus the standard menus, and the edit menu for right-clicked text. `windowState.ts`: the window's size and place.
+
+## CLI (`apps/cli`)
+
+- `spec.ts`: one `CommandSpec` tree (`index.ts`) feeds the parser, `--help`, `man` and `runnable`, so a command can't exist without its help. `cli.ts` turns errors into exit codes and the `--json` error reply.
+- `store.ts`: finds the folder, loads `clock.json`, and saves a list of operations with the version check; a changed file is re-read and the operations replayed (`findClashes`, `replay` from `merge.ts`), and a clash exits 2. `find.ts` names one item from what the user typed. `view.ts` is every reply's shape and its text.
+- `commands/`: clocks, alarms, timers and presets, the stopwatch, `man` and `schema`. Each takes a `Context` whose `CliIo` holds the output, the environment, the clock and the wait, so the tests run every command in-process.
 
 ## Testing
 

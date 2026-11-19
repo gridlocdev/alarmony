@@ -29,6 +29,13 @@ run-desktop-headless: build-desktop
     echo "Throwaway data in $dir (removed on exit)"
     cd apps/desktop && ALARMONY_HEADLESS=1 ALARMONY_USER_DATA="$dir" pnpm exec electron . --headless --remote-debugging-port=9334
 
+# The command line on this checkout's code: just cli alarms --dir ~/Clock
+[group('run')]
+[no-cd]
+[positional-arguments]
+cli *args:
+    node "{{ justfile_directory() }}/apps/cli/src/main.ts" "$@"
+
 # ── Build and package ─────────────────────────────────────────────────────
 
 # Build everything: the web client and the desktop app.

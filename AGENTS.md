@@ -1,6 +1,6 @@
 # Alarmony — agent guide
 
-Alarmony is a clock app for one person: world clock, alarms, stopwatch and timers (stopwatch and timers so far). One UI runs in the browser and in the Electron app, on one `clock.json`. The spec is [docs/plans/prd.md](docs/plans/prd.md), the code layout is [docs/architecture.md](docs/architecture.md), and the commands are in [docs/development.md](docs/development.md).
+Alarmony is a clock app for one person: world clock, alarms, stopwatch and timers. One UI runs in the browser and in the Electron app, and a CLI runs in Node, all on one `clock.json`. The spec is [docs/plans/prd.md](docs/plans/prd.md), the code layout is [docs/architecture.md](docs/architecture.md), and the commands are in [docs/development.md](docs/development.md).
 
 ## Gates
 
@@ -17,10 +17,11 @@ Alarmony is a clock app for one person: world clock, alarms, stopwatch and timer
 | Path | What it is |
 | --- | --- |
 | `packages/core` | The pure engine: the `clock.json` format, operations and undo, stopwatch and timer arithmetic, durations, what is due to ring, the sounds. No DOM or Node (ESLint enforces it). |
-| `packages/node-files` | Atomic, versioned reads and writes of the data file, for the desktop app. |
+| `packages/node-files` | Atomic, versioned reads and writes of the data file, and where the desktop app keeps its data folder, for the desktop app and the CLI. |
 | `packages/ui` | Preact and signals: the command catalog, dialogs, ⌘K, icons, sound, the save session and the `ClockStore` adapters. |
 | `apps/web` | The app shell, the list of commands and the Vite entry point. One static build serves the browser and the desktop app. |
 | `apps/desktop` | The Electron shell: main process, sandboxed preload bridge, native menu. |
+| `apps/cli` | The `alarmony` command (Node, run from TypeScript source): one `CommandSpec` tree feeds the parser, help, `man` and `schema`. `skill/SKILL.md` is its guide for agents; a test checks it names every command. |
 
 ## Golden rules
 

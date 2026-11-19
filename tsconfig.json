@@ -8,6 +8,7 @@
     { "path": "packages/ui/test" },
     { "path": "apps/web" },
     { "path": "apps/desktop" },
+    { "path": "apps/cli" },
     { "path": "test" },
     { "path": "e2e" }
   ]

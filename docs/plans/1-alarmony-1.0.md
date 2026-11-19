@@ -36,5 +36,12 @@ Each slice leaves `just check` green and the app working.
     - A file from a newer Alarmony met while merging stops saving with "Couldn't save." and the newer-file message, until the user updates or Try Again finds it gone.
     - The browser keeps one snapshot slot per tab, held by a Web Lock; a snapshot from an older build (one slot, the whole file) is still offered and restored as a change on top of the file.
     - Checked by unit tests (random edits on both sides, the session and the save chart) and browser scenarios for a merge, Keep Mine and Use Theirs. The desktop app shares the page's code; it wasn't checked with two windows.
-- [ ] **6. CLI** (§12) with its agent skill file. Waits on 2 and 5.
+- [x] **6. CLI** (§12) with its agent skill file.
+  - Done as planned, with these notes:
+    - Exit codes follow §12: a wrong command line exits 1, not the 2 many tools use, so 2 always means a conflict.
+    - An edit is computed on the file as read, then saved with the lock file and version check; a file changed meanwhile is re-read and the edit replayed onto it (once), and a clash on the same item exits 2 with nothing saved. A file deleted meanwhile is written again.
+    - The CLI runs from TypeScript source on Node 22.18 or later (`just cli <args>`, or `apps/cli/bin/alarmony.mjs`); it isn't bundled or published.
+    - `folder.json` and the desktop app's data folder moved to `packages/node-files`, so the CLI finds the same folder as the app.
+    - `apps/cli/skill/SKILL.md` is the guide for agents; a test checks it names every command, and another that `man` and `schema` cover them.
+    - Checked by unit tests that run every command in-process on a temp folder with a fixed clock, including a merge, a conflict and `--wait`.
 - [ ] **7. Release polish**: icon, docs, CHANGELOG, CI and release workflows, accessibility pass (§16).
