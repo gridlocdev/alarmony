@@ -226,6 +226,10 @@ test.describe('Timers', () => {
     await page.keyboard.press('Delete');
     await expect(card(page, /^Pasta/)).toHaveCount(0);
     await expect(card(page, /^Tea/)).toHaveCount(1);
+    // Focus moves to the card beside it, so the next Delete goes on from there.
+    await expect(card(page, /^Tea/)).toBeFocused();
+    await page.keyboard.press('Delete');
+    await expect(card(page, /^Tea/)).toHaveCount(0);
   });
 
   test('a preset saved from New Timer starts from its chip', async ({ page }) => {

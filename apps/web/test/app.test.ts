@@ -93,6 +93,18 @@ describe('timer commands', () => {
     expect(app.selectedTimer.value).toMatchObject({ label: 'Focus', state: 'running' });
   });
 
+  it('selects the timer beside a deleted one, so Delete goes on from there', async () => {
+    const { app, catalog, id } = await withTimer();
+    const second = app.newId('t');
+    app.edit(addTimer(app.data.peek(), { id: second, ms: MIN, label: 'Tea' }, NOW), 'New timer');
+    app.selected.value = id;
+    catalog.run('timer.delete');
+    expect(app.selected.value).toBe(second);
+    catalog.run('timer.delete');
+    expect(app.data.value.timers).toEqual([]);
+    expect(app.selected.value).toBeNull();
+  });
+
   it('runs no single-key command behind a dialog', async () => {
     const { app, catalog } = await withTimer();
     app.open({ kind: 'settings' });

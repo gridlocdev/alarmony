@@ -27,6 +27,7 @@ import { CommandCatalog, type CommandSpec, type MenuEntry } from '@alarmony/ui';
 import { TABS, type AppController } from './controller.ts';
 import { openSelectedMenu } from './ContextMenu.tsx';
 import { targetOf } from './itemMenu.ts';
+import { deleteAndSelectBeside } from './afterDelete.ts';
 import { exportClock, importClock, inPickedFolder, leaveFolder } from './transfer.ts';
 
 /** The dialogs ⌘K may replace: none of them holds anything typed. */
@@ -291,7 +292,9 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       enabled: onWorld,
       run: withClock((id) => {
         const name = clockName(clock()!);
-        app.edit(deleteClock(app.data.peek(), id), 'Delete', `Deleted ${name}.`);
+        deleteAndSelectBeside(app, 'clocks', id, () =>
+          app.edit(deleteClock(app.data.peek(), id), 'Delete', `Deleted ${name}.`),
+        );
       }),
     },
     {
@@ -344,7 +347,9 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       enabled: onAlarms,
       run: withAlarm((id) => {
         const name = alarmName();
-        app.edit(deleteAlarm(app.data.peek(), id), 'Delete', `Deleted ${name}.`);
+        deleteAndSelectBeside(app, 'alarms', id, () =>
+          app.edit(deleteAlarm(app.data.peek(), id), 'Delete', `Deleted ${name}.`),
+        );
       }),
     },
     {
@@ -447,7 +452,9 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       enabled: onTimers,
       run: withTimer((id) => {
         const t = timer()!;
-        app.edit(deleteTimer(app.data.peek(), id), 'Delete', `Deleted ${app.describeTimer(t)}.`);
+        deleteAndSelectBeside(app, 'timers', id, () =>
+          app.edit(deleteTimer(app.data.peek(), id), 'Delete', `Deleted ${app.describeTimer(t)}.`),
+        );
       }),
     },
     {
