@@ -549,6 +549,29 @@ kbd {
   cursor: default;
   text-align: center;
 }
+/* Where a dragged clock will land: a bar on that side of the clock under the pointer. */
+.al-clock.al-drop-before::before,
+.al-clock.al-drop-after::before {
+  content: '';
+  position: absolute;
+  inset: -6px auto -6px -7px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--al-accent);
+}
+.al-clock.al-drop-after::before {
+  inset: -6px -7px -6px auto;
+}
+.al-clock-row.al-drop-before::before {
+  inset: -4px 0 auto 0;
+  width: auto;
+  height: 3px;
+}
+.al-clock-row.al-drop-after::before {
+  inset: auto 0 -4px 0;
+  width: auto;
+  height: 3px;
+}
 .al-clock.al-clock-row {
   flex-direction: row;
   padding: 10px 14px;

@@ -20,7 +20,7 @@ const place = (page: Page, name: RegExp) =>
   page.getByRole('list', { name: 'World clocks' }).getByRole('listitem', { name });
 
 test.describe('World Clock', () => {
-  test('starts with this place, adds two more by search, renames, moves and deletes with Undo', async ({
+  test('starts with this place, adds two more by search, renames, moves by key and by drag, and deletes with Undo', async ({
     page,
   }) => {
     const errors = watchErrors(page);
@@ -65,8 +65,20 @@ test.describe('World Clock', () => {
     await page.getByRole('button', { name: 'Undo' }).click();
     await expect(names).toHaveText(['Office', 'UTC', 'Sao Paulo']);
 
+    // Dragging a clock onto the right half of another puts it after that one.
+    const sao = place(page, /^Sao Paulo/);
+    const box = (await place(page, /^Office/).boundingBox())!;
+    await sao.dragTo(place(page, /^Office/), { targetPosition: { x: box.width - 10, y: box.height / 2 } });
+    await expect(names).toHaveText(['Office', 'Sao Paulo', 'UTC']);
+    await page.keyboard.press('ControlOrMeta+KeyZ');
+    await expect(names).toHaveText(['Office', 'UTC', 'Sao Paulo']);
+
     await page.keyboard.press('ControlOrMeta+KeyL');
     await expect(page.locator('.al-clock-row')).toHaveCount(3);
+    // In the list, the top half of a row is before it.
+    const utcRow = place(page, /^UTC/);
+    await place(page, /^Sao Paulo/).dragTo(utcRow, { targetPosition: { x: 20, y: 4 } });
+    await expect(names).toHaveText(['Office', 'Sao Paulo', 'UTC']);
     await expect(page.locator('.al-face')).toHaveCount(0);
     expect(errors).toEqual([]);
   });

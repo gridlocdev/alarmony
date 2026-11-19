@@ -236,6 +236,17 @@ export function moveClock(data: ClockData, id: string, by: -1 | 1): Op[] | null 
   return [{ kind: 'move', list: 'clocks', id, from, to }];
 }
 
+/** Moves a clock to just before (or after) another, as dragging one onto it does (PRD §6.1). */
+export function moveClockBeside(data: ClockData, id: string, besideId: string, after: boolean): Op[] | null {
+  const from = data.clocks.findIndex((c) => c.id === id);
+  const beside = data.clocks.findIndex((c) => c.id === besideId);
+  if (from < 0 || beside < 0) return null;
+  // Where it goes in the list as it is, then in the list without it.
+  const at = beside + (after ? 1 : 0);
+  const to = at > from ? at - 1 : at;
+  return to === from ? null : [{ kind: 'move', list: 'clocks', id, from, to }];
+}
+
 export function deleteClock(data: ClockData, id: string): Op[] | null {
   const index = data.clocks.findIndex((c) => c.id === id);
   const item = data.clocks[index];

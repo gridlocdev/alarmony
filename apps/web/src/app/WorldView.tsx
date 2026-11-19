@@ -1,9 +1,11 @@
+import { useState } from 'preact/hooks';
 import {
   clockName,
   compareToHere,
   handAngles,
   isDaytime,
   knownZone,
+  moveClockBeside,
   zoneCity,
   type WorldClock,
 } from '@alarmony/core';
@@ -50,16 +52,39 @@ function Face({ at, zone }: { readonly at: number; readonly zone: string }) {
   );
 }
 
+/** Where a dragged clock would land: beside which clock, and on which side. */
+interface Drop {
+  readonly id: string;
+  readonly after: boolean;
+}
+
+/** Dragging a clock onto another moves it there (PRD §6.1); ⌥↑ and ⌥↓ do the same from the keyboard. */
+interface Dragging {
+  readonly drop: Drop | null;
+  start(id: string): void;
+  over(id: string, after: boolean): void;
+  end(): void;
+  dropOn(id: string, after: boolean): void;
+}
+
+/** Whether a pointer at (x, y) is past the middle of the box, along the way the clocks run. */
+function pastMiddle(e: DragEvent, list: boolean): boolean {
+  const box = (e.currentTarget as HTMLElement).getBoundingClientRect();
+  return list ? e.clientY > box.top + box.height / 2 : e.clientX > box.left + box.width / 2;
+}
+
 function ClockItem({
   app,
   catalog,
   clock,
   list,
+  dragging,
 }: {
   readonly app: AppController;
   readonly catalog: CommandCatalog;
   readonly clock: WorldClock;
   readonly list: boolean;
+  readonly dragging: Dragging;
 }) {
   const at = app.clock.value;
   const s = app.settings.value;
@@ -70,11 +95,28 @@ function ClockItem({
   const select = () => {
     app.selected.value = clock.id;
   };
+  const drop = dragging.drop?.id === clock.id ? ` al-drop-${dragging.drop.after ? 'after' : 'before'}` : '';
   return (
     <li
-      class={`al-clock${list ? ' al-clock-row' : ''}${known ? '' : ' al-clock-unknown'}${app.selected.value === clock.id ? ' al-selected' : ''}`}
+      class={`al-clock${list ? ' al-clock-row' : ''}${known ? '' : ' al-clock-unknown'}${app.selected.value === clock.id ? ' al-selected' : ''}${drop}`}
       tabIndex={0}
       data-id={clock.id}
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer?.setData('text/plain', name);
+        if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+        select();
+        dragging.start(clock.id);
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        dragging.over(clock.id, pastMiddle(e, list));
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        dragging.dropOn(clock.id, pastMiddle(e, list));
+      }}
+      onDragEnd={() => dragging.end()}
       aria-label={known ? `${name}, ${time}, ${day}` : `${name}, ${day}`}
       onFocusIn={select}
       onClick={select}
@@ -121,6 +163,23 @@ export function WorldView({
 }) {
   const clocks = app.data.value.clocks;
   const list = app.settings.value.worldView === 'list';
+  const [moving, setMoving] = useState<string | null>(null);
+  const [drop, setDrop] = useState<Drop | null>(null);
+  const dragging: Dragging = {
+    drop,
+    start: (id) => setMoving(id),
+    over: (id, after) => {
+      if (moving && (drop?.id !== id || drop.after !== after)) setDrop({ id, after });
+    },
+    end: () => {
+      setMoving(null);
+      setDrop(null);
+    },
+    dropOn: (id, after) => {
+      if (moving) app.edit(moveClockBeside(app.data.peek(), moving, id, after), 'Move');
+      dragging.end();
+    },
+  };
   if (clocks.length === 0)
     return (
       <p class="al-empty">
@@ -142,7 +201,7 @@ export function WorldView({
   return (
     <ul class={list ? 'al-clock-list' : 'al-clock-grid'} aria-label="World clocks" onKeyDown={onKeyDown}>
       {clocks.map((c) => (
-        <ClockItem key={c.id} app={app} catalog={catalog} clock={c} list={list} />
+        <ClockItem key={c.id} app={app} catalog={catalog} clock={c} list={list} dragging={dragging} />
       ))}
     </ul>
   );

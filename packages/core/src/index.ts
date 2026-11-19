@@ -28,6 +28,7 @@ export {
   addClock,
   deleteClock,
   moveClock,
+  moveClockBeside,
   renameClock,
   addPreset,
   addTimer,

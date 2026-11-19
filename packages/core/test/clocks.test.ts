@@ -10,6 +10,7 @@ import {
   invertOps,
   isDaytime,
   moveClock,
+  moveClockBeside,
   offsetText,
   renameClock,
   searchZones,
@@ -103,6 +104,17 @@ describe('clock edits', () => {
     expect(applyOps(moved, invertOps(move)).clocks.map((c) => c.id)).toEqual(['c_local', 'c_2']);
 
     const del = deleteClock(moved, 'c_local')!;
+    // Dragging onto a clock puts it on that side of it; onto its own place, nothing.
+    const three = applyOps(moved, addClock(moved, 'c_3', 'Europe/Paris')!);
+    const order = (ops: ReturnType<typeof moveClockBeside>) =>
+      applyOps(three, ops ?? []).clocks.map((c) => c.id);
+    expect(order(moveClockBeside(three, 'c_2', 'c_3', true))).toEqual(['c_local', 'c_3', 'c_2']);
+    expect(order(moveClockBeside(three, 'c_2', 'c_3', false))).toEqual(['c_local', 'c_2', 'c_3']);
+    expect(order(moveClockBeside(three, 'c_3', 'c_2', false))).toEqual(['c_3', 'c_2', 'c_local']);
+    expect(order(moveClockBeside(three, 'c_3', 'c_local', true))).toEqual(['c_2', 'c_local', 'c_3']);
+    expect(moveClockBeside(three, 'c_2', 'c_local', false)).toBeNull();
+    expect(moveClockBeside(three, 'c_2', 'c_2', true)).toBeNull();
+    expect(moveClockBeside(three, 'c_2', 'gone', true)).toBeNull();
     const one = applyOps(moved, del);
     expect(one.clocks.map((c) => c.id)).toEqual(['c_2']);
     expect(applyOps(one, invertOps(del))).toEqual(moved);

@@ -33,7 +33,7 @@ In a browser tab, the browser keeps **⌘N** (**Ctrl+N**) for its own windows, s
 | Delete the selected clock                | **⌫** or **⌦**          | **Backspace** or **Delete**        |
 | Cards or list                            | **⌘L**                  | **Ctrl+L**                         |
 
-Add Clock stays open after each place, so you can add several; press **⎋** when done.
+Add Clock stays open after each place, so you can add several; press **⎋** when done. You can also drag a clock to move it: it lands on the side of the clock you drop it on.
 
 ## Alarms
 
