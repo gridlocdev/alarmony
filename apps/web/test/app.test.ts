@@ -100,6 +100,17 @@ describe('timer commands', () => {
     expect(catalog.run('view.commandMenu')).toBe(true);
   });
 
+  it('keeps a half-filled form when ⌘K is pressed over it, and opens ⌘K only where its commands can run', async () => {
+    const { app, catalog } = await withTimer();
+    app.open({ kind: 'newAlarm' });
+    expect(catalog.run('view.commandMenu')).toBe(false);
+    expect(app.dialog.value).toEqual({ kind: 'newAlarm' });
+    app.close();
+    app.open({ kind: 'shortcuts' });
+    expect(catalog.run('view.commandMenu')).toBe(true);
+    expect(app.dialog.value?.kind).toBe('menu');
+  });
+
   it('closes the edit dialog when its timer goes away, so keys work again', async () => {
     const { app, catalog, id } = await withTimer();
     catalog.run('timer.edit');

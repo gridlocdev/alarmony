@@ -29,6 +29,9 @@ import { openSelectedMenu } from './ContextMenu.tsx';
 import { targetOf } from './itemMenu.ts';
 import { exportClock, importClock, inPickedFolder, leaveFolder } from './transfer.ts';
 
+/** The dialogs ⌘K may replace: none of them holds anything typed. */
+const MENU_OVER: readonly string[] = ['menu', 'shortcuts', 'settings'];
+
 const TAB_KEYS: Record<string, string> = {
   world: 'mod+1',
   alarms: 'mod+2',
@@ -234,6 +237,17 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       shortcuts: ['mod+k'],
       global: true,
       hidden: true,
+      // Not over a form, which it would throw away, nor over the ringing sheet or a save question, where its
+      // commands couldn't run.
+      enabled: () => {
+        const open = app.dialog.value?.kind;
+        if (open && !MENU_OVER.includes(open)) return false;
+        return (
+          app.ringing.value.length === 0 &&
+          app.session.conflict.value === null &&
+          app.session.recoverable.value === null
+        );
+      },
       run: () => app.open({ kind: 'menu', initial: '' }),
     },
 
