@@ -12,7 +12,12 @@ Each slice leaves `just check` green and the app working.
     - The desktop folder is `ALARMONY_FOLDER` or Documents/Alarmony, with no first-start question. Closing the window closes it; it doesn't hide (slice 3).
     - No native notifications and no right-click menus: each timer card's buttons and × do what its menu would. Renaming a preset waits for its menu.
     - Stop on the ringing sheet stops the sound; the timer's card stays Done until Dismiss or Restart.
-- [ ] **2. Alarms** (§7, §9, §10): the list and editor, `nextDue` with DST, the scheduler, the ringing sheet, snooze, notifications, all eight sounds, missed alarms.
+- [x] **2. Alarms** (§7, §9, §10): the list and editor, `nextDue` with DST, the scheduler, the ringing sheet, snooze, notifications, all eight sounds, missed alarms.
+  - Done as planned, with these left for later slices (the PRD sections stay as written):
+    - The Alarms tab is ⌘2; a saved World Clock tab still opens Timers (slice 4).
+    - The menu-bar Stop and Snooze wait for the tray (slice 3). Clicking a notification shows the window.
+    - No right-click menu on alarm rows: the switch and × do what it would. Duplicate Alarm is in ⌘K and the menu bar.
+    - An alarm whose ring time changes counts from the moment of the change, so moving it to a time just gone doesn't ring it. A change that came from the file looks back 10 minutes.
 - [ ] **3. Desktop in the background** (§15): tray with countdown and menu, hide on close, quit warning, open at login, power-save blocker, wake handling, first-start folder question, window state. Waits on 2.
 - [ ] **4. World Clock** (§6): zone search, cards with analog faces, list view, reorder.
 - [ ] **5. Changes made elsewhere** (§3.5, §3.6): replay and conflict dialog, refresh timers, crash snapshot and recovery.

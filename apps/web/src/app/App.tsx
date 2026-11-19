@@ -5,6 +5,7 @@ import { CommandMenu } from './CommandMenu.tsx';
 import { AppDialogs } from './Dialogs.tsx';
 import { RingingSheet } from './RingingSheet.tsx';
 import { StatusBar } from './StatusBar.tsx';
+import { AlarmsView } from './AlarmsView.tsx';
 import { StopwatchView } from './StopwatchView.tsx';
 import { TimersView } from './TimersView.tsx';
 
@@ -23,7 +24,7 @@ export function App({ app, catalog }: { readonly app: AppController; readonly ca
   const tabsRef = useRef<HTMLDivElement>(null);
   const dialog = app.dialog.value;
   const tab = app.tab.value;
-  const plus = catalog.get('timer.new');
+  const plus = catalog.get('item.new');
   return (
     <div class="al-app" onPointerDown={() => app.unlockSound()}>
       <header class="al-toolbar">
@@ -58,20 +59,22 @@ export function App({ app, catalog }: { readonly app: AppController; readonly ca
             </button>
           ))}
         </div>
-        {tab === 'timers' && plus && (
+        {tab !== 'stopwatch' && plus && (
           <button
             type="button"
             class="al-icon-button al-plus"
-            aria-label="New Timer"
-            title={`New Timer (${catalog.keys(plus).join('')})`}
-            onClick={() => catalog.run('timer.new')}
+            aria-label={tab === 'alarms' ? 'New Alarm' : 'New Timer'}
+            title={`${tab === 'alarms' ? 'New Alarm' : 'New Timer'} (${catalog.keys(plus).join('')})`}
+            onClick={() => catalog.run('item.new')}
           >
             +
           </button>
         )}
       </header>
       <div id="al-panel" class="al-panel" role="tabpanel" aria-labelledby={`al-tab-${tab}`}>
-        {tab === 'stopwatch' ? (
+        {tab === 'alarms' ? (
+          <AlarmsView app={app} catalog={catalog} />
+        ) : tab === 'stopwatch' ? (
           <StopwatchView app={app} catalog={catalog} />
         ) : (
           <TimersView app={app} catalog={catalog} />

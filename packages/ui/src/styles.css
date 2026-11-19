@@ -505,6 +505,128 @@ kbd {
   opacity: 1;
 }
 
+/* Alarms */
+.al-alarm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 16px;
+  list-style: none;
+}
+.al-alarm {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--al-border);
+  border-radius: 12px;
+  background: var(--al-card);
+  cursor: default;
+}
+.al-alarm.al-selected {
+  border-color: var(--al-accent-soft);
+  background: var(--al-chosen);
+}
+.al-alarm-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.al-alarm-time {
+  font-size: 2rem;
+  font-weight: 300;
+  line-height: 1.1;
+}
+.al-alarm-under {
+  overflow: hidden;
+  color: var(--al-text-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.al-alarm-soon {
+  color: var(--al-accent);
+}
+.al-alarm-off .al-alarm-text {
+  opacity: 0.5;
+}
+.al-alarm-delete {
+  opacity: 0;
+}
+.al-alarm:hover .al-alarm-delete,
+.al-alarm:focus-within .al-alarm-delete {
+  opacity: 1;
+}
+.al-switch {
+  position: relative;
+  flex: none;
+  width: 42px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--al-border-strong);
+  border-radius: 12px;
+  background: var(--al-hover);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.al-switch[aria-checked='true'] {
+  border-color: var(--al-accent);
+  background: var(--al-accent);
+}
+.al-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--al-raised);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s;
+}
+.al-switch[aria-checked='true'] .al-switch-knob {
+  transform: translateX(18px);
+}
+.al-days {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.al-days legend {
+  margin-bottom: 4px;
+  padding: 0;
+}
+.al-day-buttons {
+  display: flex;
+  gap: 4px;
+}
+.al-day {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--al-border-strong);
+  border-radius: 50%;
+  background: var(--al-raised);
+  cursor: pointer;
+  font-weight: 600;
+}
+.al-day[aria-pressed='true'] {
+  border-color: var(--al-accent);
+  background: var(--al-accent);
+  color: var(--al-accent-text);
+}
+.al-day-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.al-button-danger {
+  border-color: var(--al-danger);
+  color: var(--al-danger);
+}
+
 /* Dialogs */
 .al-backdrop {
   position: fixed;

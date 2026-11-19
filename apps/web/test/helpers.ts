@@ -1,4 +1,13 @@
-import { DEFAULT_SETTINGS, MemoryStore, ClockSession, memoryRecovery, rungLog } from '@alarmony/ui';
+import {
+  DEFAULT_SETTINGS,
+  MemoryStore,
+  ClockSession,
+  deviceMemory,
+  memoryRecovery,
+  rungLog,
+  type DeviceMemory,
+  type RungLog,
+} from '@alarmony/ui';
 import { buildCommands } from '../src/app/commands.ts';
 import { AppController, type SoundOut } from '../src/app/controller.ts';
 
@@ -35,7 +44,10 @@ export function fakeSound(allowed = true) {
 }
 
 /** An app on a file in memory, with a clock the test moves (`clock.at`). */
-export async function makeApp(text: string | null = null, opts: { soundAllowed?: boolean } = {}) {
+export async function makeApp(
+  text: string | null = null,
+  opts: { soundAllowed?: boolean; memory?: DeviceMemory; rung?: RungLog } = {},
+) {
   const clock = { at: NOW };
   const store = new MemoryStore(text);
   const { session } = await ClockSession.open(store, {
@@ -52,11 +64,15 @@ export async function makeApp(text: string | null = null, opts: { soundAllowed?:
       for (const run of all) run();
     },
   };
+  const memory = opts.memory ?? deviceMemory(false);
+  const notified: string[] = [];
   const app = new AppController(session, {
+    memory,
+    notify: (title) => notified.push(title),
     now: () => clock.at,
     version: '9.9.9',
     settings: DEFAULT_SETTINGS,
-    rung: rungLog(NOW, false),
+    rung: opts.rung ?? rungLog(NOW, false),
     sound,
     saveSettings: () => undefined,
     after: (_ms, run) => {
@@ -65,5 +81,5 @@ export async function makeApp(text: string | null = null, opts: { soundAllowed?:
     },
   });
   const catalog = buildCommands(app);
-  return { app, catalog, store, session, clock, sound, later };
+  return { app, catalog, store, session, clock, sound, later, memory, notified };
 }

@@ -30,6 +30,15 @@ export function parseAlarmTime(text: string): string | null {
   return `${pad(hour)}:${pad(minute)}`;
 }
 
+/** `HH:MM` moved by `delta` hours or minutes, round the clock: the editor's arrow keys (PRD §7.2). */
+export function stepAlarmTime(time: string, part: 'hour' | 'minute', delta: number): string {
+  const { hour, minute } = alarmClock(time);
+  const total = hour * 60 + minute + delta * (part === 'hour' ? 60 : 1);
+  const day = 24 * 60;
+  const t = ((total % day) + day) % day;
+  return `${pad(Math.floor(t / 60))}:${pad(t % 60)}`;
+}
+
 /** `HH:MM` → hour and minute. */
 export function alarmClock(time: string): { readonly hour: number; readonly minute: number } {
   const [h, m] = time.split(':').map(Number);

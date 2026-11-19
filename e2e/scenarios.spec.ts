@@ -16,6 +16,87 @@ const card = (page: Page, name: RegExp) =>
   page.getByRole('list', { name: 'Timers' }).getByRole('listitem', { name });
 const tab = (page: Page, name: string) => page.getByRole('tab', { name });
 
+const alarm = (page: Page, name: RegExp) =>
+  page.getByRole('list', { name: 'Alarms' }).getByRole('listitem', { name });
+
+/** Adds an alarm through New Alarm on the Alarms tab, the way a person does. NOW is 9:00 AM UTC. */
+async function newAlarm(page: Page, time: string, label: string): Promise<void> {
+  await page.keyboard.press('ControlOrMeta+Digit2');
+  await page.keyboard.press('KeyN');
+  const dialog = page.getByRole('dialog', { name: 'New Alarm' });
+  const field = dialog.getByRole('textbox', { name: /^Time/ });
+  await expect(field).toBeFocused();
+  await expect(field).toHaveValue('10:00 AM');
+  await page.keyboard.press('ControlOrMeta+KeyA');
+  await page.keyboard.type(time);
+  await dialog.getByRole('textbox', { name: 'Label' }).fill(label);
+  await page.keyboard.press('Enter');
+  await expect(dialog).toBeHidden();
+}
+
+test.describe('Alarms', () => {
+  test('a new alarm rings at its time, snoozes, rings again and turns itself off after Stop', async ({
+    page,
+  }) => {
+    const errors = watchErrors(page);
+    await openApp(page);
+    await page.keyboard.press('ControlOrMeta+Digit2');
+    await expect(page.getByText('No alarms.')).toBeVisible();
+    await newAlarm(page, '905', 'Stand up');
+    await expect(alarm(page, /^Stand up, 9:05 AM, Today, on$/)).toBeVisible();
+    await expect(alarm(page, /^Stand up/)).toContainText('in 5 min');
+    await page.clock.runFor(5 * 60_000);
+    const sheet = page.getByRole('alertdialog', { name: 'Stand up · 9:05 AM' });
+    await expect(sheet).toBeVisible();
+    await page.keyboard.press('KeyS');
+    await expect(sheet).toBeHidden();
+    await expect(page.locator('.al-notice')).toContainText('Snoozed “Stand up” until 9:14');
+    await page.clock.runFor(9 * 60_000);
+    const again = page.getByRole('alertdialog', { name: 'Stand up · 9:14 AM' });
+    await expect(again).toBeVisible();
+    await page.keyboard.press('Enter');
+    await expect(again).toBeHidden();
+    await expect(alarm(page, /^Stand up, 9:05 AM, .*, off$/)).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
+  test('Space turns the selected alarm off, Enter edits it, Delete removes it and Undo brings it back, all in clock.json', async ({
+    page,
+  }) => {
+    const errors = watchErrors(page);
+    await openApp(page);
+    await newAlarm(page, '7:30 pm', 'Dinner');
+    const row = alarm(page, /^Dinner, 7:30 PM/);
+    await row.focus();
+    await page.keyboard.press('Space');
+    await expect(alarm(page, /^Dinner, 7:30 PM, .*, off$/)).toBeVisible();
+    await page.keyboard.press('Space');
+    await expect(alarm(page, /^Dinner, 7:30 PM, Today, on$/)).toBeVisible();
+    // Enter edits; Up on the hour moves it, and the change is saved without Save.
+    await page.keyboard.press('Enter');
+    const editor = page.getByRole('dialog', { name: 'Edit Alarm' });
+    await expect(editor.getByRole('textbox', { name: /^Time/ })).toBeFocused();
+    await page.keyboard.press('Home');
+    await page.keyboard.press('ArrowUp');
+    await expect(editor.getByRole('textbox', { name: /^Time/ })).toHaveValue('8:30 PM');
+    await page.keyboard.press('Escape');
+    await expect(editor).toBeHidden();
+    const moved = alarm(page, /^Dinner, 8:30 PM, Today, on$/);
+    await expect(moved).toBeVisible();
+    await moved.focus();
+    await page.keyboard.press('Delete');
+    await expect(moved).toHaveCount(0);
+    await page.getByRole('button', { name: 'Undo' }).click();
+    await expect(moved).toBeVisible();
+    await expect
+      .poll(
+        async () => ((await readClock(page))?.alarms as { time: string; label: string }[] | undefined)?.[0],
+      )
+      .toMatchObject({ time: '20:30', label: 'Dinner' });
+    expect(errors).toEqual([]);
+  });
+});
+
 test.describe('Stopwatch', () => {
   test('starts, laps and stops from the keyboard', async ({ page }) => {
     const errors = watchErrors(page);

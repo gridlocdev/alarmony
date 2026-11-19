@@ -6,7 +6,9 @@ import { batch, computed, signal, type Signal } from '@preact/signals';
 import {
   DEFAULT_SOUND,
   MISSED_LOOKBACK_MS,
+  RING_LATE_MS,
   RING_LIMIT_MS,
+  alarmIsOn,
   dueNow,
   isFinished,
   newId,
@@ -15,27 +17,37 @@ import {
   timerKey,
   timerLeft,
   formatCountdown,
+  type Alarm,
+  type AlarmWindow,
   type ClockData,
   type Due,
   type Op,
   type Timer,
 } from '@alarmony/core';
 import {
+  deviceMemory,
+  lookSince,
   saveSettings,
   type ClockSession,
+  type DeviceMemory,
   type DeviceSettings,
   type RungLog,
   type SaveStatus,
   type Tab,
 } from '@alarmony/ui';
+import { clockTime } from './time.ts';
 
 /** How long a notice stays (PRD §5.3). */
 export const NOTICE_MS = 5000;
 /** A hidden window looks for changes made elsewhere this often, so it rings what was added there (PRD §3.5). */
 export const HIDDEN_REFRESH_MS = 60_000;
 
-/** The tabs slice 1 has, in toolbar order (World Clock and Alarms come in later slices). */
+/** How often the device notes that it is running, so a later start knows what it missed (PRD §9.4). */
+const SEEN_EVERY_MS = 60_000;
+
+/** The tabs so far, in toolbar order (World Clock comes in a later slice). */
 export const TABS: readonly { readonly id: Tab; readonly title: string }[] = [
+  { id: 'alarms', title: 'Alarms' },
   { id: 'stopwatch', title: 'Stopwatch' },
   { id: 'timers', title: 'Timers' },
 ];
@@ -45,7 +57,9 @@ export type DialogState =
   | { readonly kind: 'shortcuts' }
   | { readonly kind: 'settings' }
   | { readonly kind: 'newTimer' }
-  | { readonly kind: 'editTimer'; readonly id: string };
+  | { readonly kind: 'editTimer'; readonly id: string }
+  | { readonly kind: 'newAlarm' }
+  | { readonly kind: 'editAlarm'; readonly id: string };
 
 export interface Notice {
   readonly text: string;
@@ -66,6 +80,14 @@ export interface AppDeps {
   readonly sound?: SoundOut;
   /** Keeps device settings; the page's storage by default. */
   readonly saveSettings?: (s: DeviceSettings) => void;
+  /** This device's time zone: alarms ring on its clock (PRD §9.1). The system's by default. */
+  readonly zone?: string;
+  /** Snoozes and the last time this device looked for due alarms; memory only by default. */
+  readonly memory?: DeviceMemory;
+  /** Shows a system notification (PRD §9.2). */
+  readonly notify?: (title: string) => void;
+  /** Asks the browser to allow notifications; called from a click. */
+  readonly askToNotify?: () => void;
 }
 
 /** The sound player as the controller uses it. */
@@ -89,10 +111,13 @@ const SILENT: SoundOut = {
 
 const shown = (tab: Tab): Tab => (TABS.some((t) => t.id === tab) ? tab : 'timers');
 const quoted = (label: string) => (label ? `“${label}”` : 'timer');
+/** What decides when an alarm rings: a change to any of it starts its due times afresh. */
+const ringSig = (a: Alarm) => `${a.enabled}|${a.time}|${a.days.join(',')}|${a.once ?? ''}`;
 
 export class AppController {
   readonly session: ClockSession;
   readonly version: string;
+  readonly zone: string;
   readonly now: () => number;
   /** The file's data; changes with every edit, undo and refresh. */
   readonly data: Signal<ClockData>;
@@ -120,11 +145,23 @@ export class AppController {
   readonly selectedTimer = computed<Timer | null>(
     () => this.data.value.timers.find((t) => t.id === this.selected.value) ?? null,
   );
+  readonly selectedAlarm = computed<Alarm | null>(
+    () => this.data.value.alarms.find((a) => a.id === this.selected.value) ?? null,
+  );
 
   readonly #rung: RungLog;
   readonly #after: (ms: number, run: () => void) => () => void;
   readonly #sound: SoundOut;
   readonly #saveSettings: (s: DeviceSettings) => void;
+  readonly #memory: DeviceMemory;
+  readonly #notify: (title: string) => void;
+  readonly #askToNotify: () => void;
+  /** Per alarm: what decides its ring times, and since when its due times count (PRD §9.4). */
+  readonly #alarmSince = new Map<string, { sig: string; since: number }>();
+  #seenSaved = -Infinity;
+  /** The sound ringing now, so a newer alarm with another sound takes over. */
+  #ringSound: string | null = null;
+  #missedTimersOnly = true;
   #dropNotice: (() => void) | null = null;
   #lastRefresh = -Infinity;
   /** A sticky error a passing notice covers for now. */
@@ -141,7 +178,14 @@ export class AppController {
     this.#after = deps.after ?? (() => () => undefined);
     this.#sound = deps.sound ?? SILENT;
     this.#saveSettings = deps.saveSettings ?? ((s) => void saveSettings(s));
+    this.zone = deps.zone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+    this.#memory = deps.memory ?? deviceMemory(false);
+    this.#notify = deps.notify ?? (() => undefined);
+    this.#askToNotify = deps.askToNotify ?? (() => undefined);
     const now = deps.now();
+    // On start, alarms count from the last time this device ran, so what came due meanwhile rings or is missed.
+    const since = lookSince(this.#memory.seen(), now, now - RING_LATE_MS);
+    for (const a of session.doc.data.alarms) this.#alarmSince.set(a.id, { sig: ringSig(a), since });
     this.data = signal(session.doc.data);
     this.clock = signal(now);
     this.frame = signal(now);
@@ -155,10 +199,15 @@ export class AppController {
         const n = this.notice.peek();
         if (n?.action?.label === 'Undo' && change.kind !== 'setting')
           this.notice.value = n.sticky ? { ...n, action: undefined } : null;
+        this.#noteAlarmChanges(change.kind === 'replace');
         this.#forgetGoneRings();
-        // An editor for a timer that went (undo, Use Theirs, a change made elsewhere) has nothing to show.
+        // An editor for an item that went (undo, Use Theirs, a change made elsewhere) has nothing to show.
         const d = this.dialog.peek();
-        if (d?.kind === 'editTimer' && !session.doc.data.timers.some((t) => t.id === d.id))
+        const data = session.doc.data;
+        if (
+          (d?.kind === 'editTimer' && !data.timers.some((t) => t.id === d.id)) ||
+          (d?.kind === 'editAlarm' && !data.alarms.some((a) => a.id === d.id))
+        )
           this.dialog.value = null;
       });
     });
@@ -192,7 +241,7 @@ export class AppController {
 
   newId(prefix: string): string {
     const d = this.data.peek();
-    return newId(prefix, new Set([...d.timers, ...d.presets].map((i) => i.id)));
+    return newId(prefix, new Set([...d.clocks, ...d.alarms, ...d.timers, ...d.presets].map((i) => i.id)));
   }
 
   describeTimer(t: Timer): string {
@@ -312,8 +361,38 @@ export class AppController {
     return t ? `${formatCountdown(timerLeft(t, now))} · Alarmony` : 'Alarmony';
   });
 
+  /**
+   * An alarm whose ring time changed counts its due times from the moment of the change (PRD §9.3), so moving it to
+   * a time just gone doesn't ring it. A change from the file may have come due while it was on its way, so it
+   * looks back as far as ringing late allows.
+   */
+  #noteAlarmChanges(fromFile: boolean): void {
+    const now = this.now();
+    for (const a of this.session.doc.data.alarms) {
+      const sig = ringSig(a);
+      const known = this.#alarmSince.get(a.id);
+      if (known?.sig === sig) continue;
+      const since = fromFile ? Math.min(known?.since ?? now, now - RING_LATE_MS) : now;
+      this.#alarmSince.set(a.id, { sig, since });
+    }
+  }
+
+  #sinceFor(a: Alarm, now: number): number {
+    const known = this.#alarmSince.get(a.id);
+    return known?.sig === ringSig(a) ? known.since : now;
+  }
+
   #checkDue(now: number): void {
-    const due = dueNow(this.data.peek(), now, this.#rung.keys());
+    const snoozes = this.#memory.snoozes();
+    const window: AlarmWindow = { zone: this.zone, since: (a) => this.#sinceFor(a, now), snoozes };
+    const due = dueNow(this.data.peek(), now, this.#rung.keys(), window);
+    // Due times before this check have been seen; later checks needn't look so far back.
+    for (const e of this.#alarmSince.values()) e.since = Math.max(e.since, now - RING_LATE_MS);
+    if (snoozes.some((s) => s.at <= now)) this.#memory.setSnoozes(snoozes.filter((s) => s.at > now));
+    if (now - this.#seenSaved >= SEEN_EVERY_MS) {
+      this.#seenSaved = now;
+      this.#memory.setSeen(now);
+    }
     const ring: Due[] = [];
     const missed: Due[] = [];
     for (const d of due) {
@@ -328,20 +407,37 @@ export class AppController {
     const timedOut = this.ringing.peek().filter((r) => !left.includes(r));
     this.#sayMissed([...missed, ...timedOut]);
     if (ring.length || timedOut.length) this.#setRinging([...ring.reverse(), ...left]);
-    if (ring.length) this.announcement.value = `${ring.map((r) => r.label || 'Timer').join(', ')} done.`;
+    if (ring.length) {
+      this.announcement.value = ring.map((r) => this.ringTitle(r)).join(', ');
+      if (this.settings.peek().notifications) for (const r of ring) this.#notify(this.ringTitle(r));
+    }
+  }
+
+  /** "Wake up · 7:00 AM" or "Pasta · Timer done" (PRD §9.2). */
+  ringTitle(d: Due): string {
+    return d.kind === 'alarm'
+      ? `${d.label || 'Alarm'} · ${clockTime(d.at, this.settings.peek().timeFormat)}`
+      : `${d.label || 'Timer'} · Timer done`;
   }
 
   /** One sticky notice names everything missed since it was last dismissed (PRD §9.4). */
   #sayMissed(list: readonly Due[]): void {
     if (!list.length) return;
     const shown = this.notice.peek();
-    const before = shown !== null && shown === this.#missedNotice ? this.#missed : [];
-    this.#missed = [...before, ...list.map((d) => d.label || 'Timer')];
+    const joining = shown !== null && shown === this.#missedNotice;
+    const format = this.settings.peek().timeFormat;
+    this.#missed = [
+      ...(joining ? this.#missed : []),
+      ...list.map((d) =>
+        d.kind === 'alarm' ? `${d.label || 'Alarm'} at ${clockTime(d.at, format)}` : d.label || 'Timer',
+      ),
+    ];
+    this.#missedTimersOnly = (!joining || this.#missedTimersOnly) && list.every((d) => d.kind === 'timer');
     const names =
       this.#missed.length === 1
         ? this.#missed[0]!
         : `${this.#missed.slice(0, -1).join(', ')} and ${this.#missed.at(-1)!}`;
-    this.say(`Missed: ${names} finished.`, { sticky: true });
+    this.say(this.#missedTimersOnly ? `Missed: ${names} finished.` : `Missed: ${names}.`, { sticky: true });
     this.#missedNotice = this.notice.peek();
   }
 
@@ -349,22 +445,35 @@ export class AppController {
     this.ringing.value = list;
     if (!list.length) {
       this.#sound.stop();
+      this.#ringSound = null;
       this.soundWaiting.value = false;
       return;
     }
-    if (!this.#sound.ringing) this.#sound.ring(DEFAULT_SOUND, this.settings.peek().volume);
+    // One sound plays: the newest's (PRD §9.2).
+    const sound = list[0]!.sound;
+    if (!this.#sound.ringing || sound !== this.#ringSound) {
+      if (this.#sound.ringing) this.#sound.stop();
+      this.#sound.ring(sound, this.settings.peek().volume);
+      this.#ringSound = sound;
+    }
     this.soundWaiting.value = !this.#sound.allowed;
   }
 
-  /** A ringing timer that was restarted, reset or deleted stops ringing. */
+  /** A ringing timer that was restarted, reset or deleted stops ringing; so does an alarm deleted or turned off. */
   #forgetGoneRings(): void {
-    const timers = new Map(this.data.peek().timers.map((t) => [t.id, t]));
+    const data = this.data.peek();
+    const timers = new Map(data.timers.map((t) => [t.id, t]));
+    const alarms = new Map(data.alarms.map((a) => [a.id, a]));
     const list = this.ringing.peek();
     const left = list.filter((r) => {
+      if (r.kind === 'alarm') return alarms.get(r.id)?.enabled === true;
       const t = timers.get(r.id);
       return t !== undefined && timerKey(t) === r.key;
     });
     if (left.length !== list.length) this.#setRinging(left);
+    const snoozes = this.#memory.snoozes();
+    const kept = snoozes.filter((s) => alarms.get(s.id)?.enabled === true);
+    if (kept.length !== snoozes.length) this.#memory.setSnoozes(kept);
   }
 
   /** Stop one ringing item (PRD §9.2): the sound stops; the timer stays finished until dismissed. */
@@ -376,6 +485,29 @@ export class AppController {
     this.#setRinging([]);
   }
 
+  /** Snooze one ringing alarm: it rings again after the file's snooze length, on this device (PRD §9.2). */
+  snooze(key: string): void {
+    const d = this.ringing.peek().find((r) => r.key === key);
+    if (!d?.snooze) return;
+    const at = this.now() + this.data.peek().settings.snoozeMinutes * 60_000;
+    const snoozes = this.#memory.snoozes().filter((s) => s.id !== d.id);
+    this.#memory.setSnoozes([...snoozes, { id: d.id, label: d.label, sound: d.sound, at }]);
+    this.stopRinging(key);
+    const name = d.label ? `“${d.label}”` : 'the alarm';
+    this.say(`Snoozed ${name} until ${clockTime(at, this.settings.peek().timeFormat)}.`);
+  }
+
+  /** Snooze the newest ringing alarm that can be (S on the ringing sheet). */
+  snoozeFirst(): void {
+    const d = this.ringing.peek().find((r) => r.snooze);
+    if (d) this.snooze(d.key);
+  }
+
+  /** The switch as it reads now: a passed one-off alarm reads off (PRD §7.3). */
+  alarmOn(a: Alarm): boolean {
+    return alarmIsOn(a, this.clock.value, this.zone);
+  }
+
   /** A click or key on the page: from now on the browser lets the page play sound (PRD §9.4). */
   unlockSound(): void {
     if (!this.soundWaiting.peek()) {
@@ -384,13 +516,19 @@ export class AppController {
     }
     this.#sound.unlock();
     this.#sound.stop();
-    this.#sound.ring(DEFAULT_SOUND, this.settings.peek().volume);
+    this.#sound.ring(this.#ringSound ?? DEFAULT_SOUND, this.settings.peek().volume);
     this.soundWaiting.value = false;
   }
 
-  previewSound(): void {
+  /** Asks for permission to notify, from a click: adding an alarm or turning notifications on (PRD §9.2). */
+  askToNotify(): void {
+    if (this.settings.peek().notifications) this.#askToNotify();
+  }
+
+  /** Plays one cycle of a sound, at the set volume (PRD §10). */
+  previewSound(id: string = DEFAULT_SOUND): void {
     this.#sound.unlock();
-    this.#sound.preview(DEFAULT_SOUND, this.settings.peek().volume);
+    this.#sound.preview(id, this.settings.peek().volume);
   }
 
   /** Timers that finished and still show Done. */

@@ -2,29 +2,49 @@ import { Dialog } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
 import { clockTime } from './time.ts';
 
-/** What rings now, newest first, each with Stop; Enter or Escape stops them all (PRD §9.2). */
+/**
+ * What rings now, newest first, each with Stop and, for alarms, Snooze. Enter or Escape stops them all; S snoozes
+ * the newest alarm that can be (PRD §9.2).
+ */
 export function RingingSheet({ app }: { readonly app: AppController }) {
   const list = app.ringing.value;
   const format = app.settings.value.timeFormat;
+  const first = list[0]!;
+  const many = list.length > 1;
+  const name = (r: (typeof list)[number]) => r.label || (r.kind === 'alarm' ? 'Alarm' : 'Timer');
   return (
     <Dialog
-      title={list.length === 1 ? `${list[0]!.label || 'Timer'} · Timer done` : `${list.length} timers done`}
+      title={many ? `${list.length} ringing` : app.ringTitle(first)}
       alert
       class="al-ringing"
       onClose={() => app.stopAll()}
       onSubmit={() => app.stopAll()}
       actions={
-        <button type="submit" class="al-button al-button-primary" data-autofocus>
-          {list.length === 1 ? 'Stop' : 'Stop All'}
-        </button>
+        <>
+          {!many && first.snooze && (
+            <button type="button" class="al-button" onClick={() => app.snooze(first.key)}>
+              Snooze
+            </button>
+          )}
+          <button type="submit" class="al-button al-button-primary" data-autofocus>
+            {many ? 'Stop All' : 'Stop'}
+          </button>
+        </>
       }
     >
       <ul class="al-ringing-list">
         {list.map((r) => (
           <li key={r.key}>
-            <span class="al-ringing-name">{r.label || 'Timer'}</span>
-            <span class="al-muted">Done at {clockTime(r.at, format)}</span>
-            {list.length > 1 && (
+            <span class="al-ringing-name">{name(r)}</span>
+            <span class="al-muted">
+              {r.kind === 'alarm' ? clockTime(r.at, format) : `Done at ${clockTime(r.at, format)}`}
+            </span>
+            {many && r.snooze && (
+              <button type="button" class="al-button al-button-small" onClick={() => app.snooze(r.key)}>
+                Snooze
+              </button>
+            )}
+            {many && (
               <button type="button" class="al-button al-button-small" onClick={() => app.stopRinging(r.key)}>
                 Stop
               </button>

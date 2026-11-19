@@ -1,6 +1,12 @@
 # Features
 
-Alarmony is a clock for the desktop and the browser: a stopwatch and timers now, with world clocks and alarms on the way. The desktop app, the browser and (later) the command line all read and write the same `clock.json`. The exact behaviour of each feature is in the [product requirements](plans/prd.md).
+Alarmony is a clock for the desktop and the browser: alarms, a stopwatch and timers now, with world clocks on the way. The desktop app, the browser and (later) the command line all read and write the same `clock.json`. The exact behaviour of each feature is in the [product requirements](plans/prd.md).
+
+## Alarms
+
+The Alarms tab (**⌘2**) lists your alarms by time of day, and the next one to ring says how long until it does. Press **N** (or **+**) for a new alarm. Type the time the way you'd say it: `7`, `7:30`, `730`, `7:30 pm` and `19:30` all work, or step the hour or minute with **↑** and **↓**. Pick the days it repeats (or **Weekdays**, **Weekends**, **Every Day**), a label and one of eight sounds, and whether it can snooze. An alarm with no days rings once, at the next time it comes round, then turns itself off.
+
+The switch on each row turns an alarm on or off, and so does **Space** on the selected one. **Enter** or a double-click opens it to edit, and each change saves as you make it. **Delete** removes it, and **⌘Z** brings it back. Alarms ring at the wall-clock time where you are, so they follow you across time zones and through daylight saving changes.
 
 ## Stopwatch
 
@@ -14,7 +20,7 @@ Press **N** (or the **+** button) for a new timer. Type how long: `5` is five mi
 
 ## Ringing
 
-When a timer finishes, Alarmony plays a chime that grows louder over 30 seconds and shows a sheet with **Stop** (Enter or Esc). The card then says Done, with **Restart** and **Dismiss**. Ringing stops by itself after 15 minutes and leaves a "Missed" notice. A timer that finished while Alarmony wasn't open rings if it finished in the last 10 minutes, and gives a "Missed" notice if it's older.
+When an alarm goes off or a timer finishes, Alarmony plays its sound, growing louder over 30 seconds, and shows a sheet with **Stop** (Enter or Esc). An alarm that can snooze also has **Snooze** (**S**), which rings it again after the snooze length in Settings. A finished timer's card then says Done, with **Restart** and **Dismiss**. Ringing stops by itself after 15 minutes and leaves a "Missed" notice. Anything that came due while Alarmony wasn't open rings if it was in the last 10 minutes, and gives a "Missed" notice if it's older. Alarmony also shows a system notification; turn off **Show notifications** in Settings if you'd rather not.
 
 Every copy of Alarmony with the file open rings, so turn off **Ring on this device** in Settings on a device that should stay quiet. In a browser, sound starts after your first click on the page, and a tab in the background can ring up to a minute late.
 

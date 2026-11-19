@@ -2,7 +2,7 @@
  * What each device keeps for itself, never in clock.json (PRD §9.3, §13): its settings, what it has rung, and
  * the crash snapshot. All of it lives in this page's own storage.
  */
-import { RUNG_KEEP_MS } from '@alarmony/core';
+import { MISSED_LOOKBACK_MS, RUNG_KEEP_MS, type Snooze } from '@alarmony/core';
 import type { RecoveryStorage } from '../session/clockSession.ts';
 
 export type Theme = 'system' | 'light' | 'dark';
@@ -31,6 +31,8 @@ export const DEFAULT_SETTINGS: DeviceSettings = {
 const SETTINGS_KEY = 'alarmony.settings';
 const RUNG_KEY = 'alarmony.rung';
 const RECOVERY_KEY = 'alarmony.unsaved';
+const SNOOZE_KEY = 'alarmony.snoozes';
+const SEEN_KEY = 'alarmony.seen';
 
 /** Page storage, or null where it is turned off. */
 function storage(): Storage | null {
@@ -113,6 +115,56 @@ export function rungLog(now: number, persist = true): RungLog {
     },
     keys: () => keys,
   };
+}
+
+/**
+ * What this device remembers between runs for ringing (PRD §9.2, §9.4): the alarms it snoozed, and when it last
+ * looked for due alarms, so on the next start it knows what it missed.
+ */
+export interface DeviceMemory {
+  snoozes(): Snooze[];
+  setSnoozes(list: readonly Snooze[]): void;
+  /** When this device last looked for due alarms, or null the first time. */
+  seen(): number | null;
+  setSeen(at: number): void;
+}
+
+function readSnoozes(): Snooze[] {
+  const raw = readJson(SNOOZE_KEY);
+  if (!Array.isArray(raw)) return [];
+  return raw.filter(
+    (s): s is Snooze =>
+      typeof s === 'object' &&
+      s !== null &&
+      typeof (s as Snooze).id === 'string' &&
+      typeof (s as Snooze).label === 'string' &&
+      typeof (s as Snooze).sound === 'string' &&
+      typeof (s as Snooze).at === 'number',
+  );
+}
+
+/** The device's ringing memory: page storage, or memory only (`persist` false, for tests). */
+export function deviceMemory(persist = true): DeviceMemory {
+  let snoozes: Snooze[] = persist ? readSnoozes() : [];
+  const seenRaw = persist ? readJson(SEEN_KEY) : null;
+  let seen = typeof seenRaw === 'number' && Number.isFinite(seenRaw) ? seenRaw : null;
+  return {
+    snoozes: () => snoozes,
+    setSnoozes(list) {
+      snoozes = [...list];
+      if (persist) writeJson(SNOOZE_KEY, snoozes);
+    },
+    seen: () => seen,
+    setSeen(at) {
+      seen = at;
+      if (persist) writeJson(SEEN_KEY, at);
+    },
+  };
+}
+
+/** Since when to look for due alarms on start: the last run, at most a day back (PRD §9.4). */
+export function lookSince(seen: number | null, now: number, fallback: number): number {
+  return Math.max(now - MISSED_LOOKBACK_MS, Math.min(now, seen ?? fallback));
 }
 
 /** The crash snapshot in page storage (PRD §3.6). */

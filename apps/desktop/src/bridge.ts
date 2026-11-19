@@ -11,6 +11,7 @@ export const Channels = {
   command: 'alarmony:command',
   closeRequested: 'alarmony:close-requested',
   fullScreen: 'alarmony:full-screen',
+  notify: 'alarmony:notify',
 } as const;
 
 /** One item of the menu bar the page sends, as `NativeMenuItem` in @alarmony/ui. */

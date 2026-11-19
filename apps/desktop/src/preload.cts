@@ -20,6 +20,7 @@ contextBridge.exposeInMainWorld('alarmonyNative', {
   onCommand: (fn: (id: string) => void) => ipcRenderer.on('alarmony:command', (_e, id: string) => fn(id)),
   onCloseRequested: (fn: () => void) => ipcRenderer.on('alarmony:close-requested', () => fn()),
   closeReady: () => ipcRenderer.send('alarmony:close-ready'),
+  notify: (title: string) => ipcRenderer.send('alarmony:notify', title),
   onFullScreen: (fn: (full: boolean) => void) =>
     ipcRenderer.on('alarmony:full-screen', (_e, full: boolean) => fn(full)),
 });

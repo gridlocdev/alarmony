@@ -12,6 +12,7 @@ export {
   onceAt,
   onceFor,
   parseAlarmTime,
+  stepAlarmTime,
   sortAlarms,
 } from './alarms.ts';
 export { ClockDoc, MAX_HISTORY, type Change, type ChangeKind, type Step } from './clockDoc.ts';

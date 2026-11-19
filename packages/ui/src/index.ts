@@ -9,10 +9,13 @@ export { NativeStore, type NativeData, type AlarmonyNative } from './store/nativ
 export { ConflictError, sha256Hex, type ClockStore, type StoredFile } from './store/clockStore.ts';
 export {
   DEFAULT_SETTINGS,
+  deviceMemory,
   loadSettings,
+  lookSince,
   localRecovery,
   rungLog,
   saveSettings,
+  type DeviceMemory,
   type DeviceSettings,
   type RungLog,
   type Tab,

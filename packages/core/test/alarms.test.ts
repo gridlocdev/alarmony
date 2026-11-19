@@ -1,6 +1,7 @@
 // Alarm times, next due moments across daylight-saving changes, and the alarm edits (PRD §7).
 import { describe, expect, it } from 'vitest';
 import {
+  stepAlarmTime,
   ClockDoc,
   SOUNDS,
   addAlarm,
@@ -46,6 +47,15 @@ const fields = (over: Partial<AlarmFields> = {}): AlarmFields => ({
   sound: 'chimes',
   snooze: true,
   ...over,
+});
+
+describe('stepAlarmTime', () => {
+  it('moves hours and minutes round the clock', () => {
+    expect(stepAlarmTime('07:30', 'hour', 1)).toBe('08:30');
+    expect(stepAlarmTime('23:30', 'hour', 1)).toBe('00:30');
+    expect(stepAlarmTime('00:00', 'minute', -1)).toBe('23:59');
+    expect(stepAlarmTime('07:59', 'minute', 1)).toBe('08:00');
+  });
 });
 
 describe('typed alarm times', () => {

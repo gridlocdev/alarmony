@@ -10,6 +10,7 @@ In a browser tab, the browser keeps **⌘N** (**Ctrl+N**) for its own windows, s
 
 |                                      | macOS         | Windows / Linux      |
 | ------------------------------------ | ------------- | -------------------- |
+| Alarms                               | **⌘2**        | **Ctrl+2**           |
 | Stopwatch                            | **⌘3**        | **Ctrl+3**           |
 | Timers                               | **⌘4**        | **Ctrl+4**           |
 | Next / previous tab (in the tab row) | **→** / **←** | **Right** / **Left** |
@@ -17,6 +18,21 @@ In a browser tab, the browser keeps **⌘N** (**Ctrl+N**) for its own windows, s
 | Keyboard Shortcuts                   | **⌘/**        | **Ctrl+/**           |
 | Settings                             | **⌘,**        | **Ctrl+,**           |
 | Close a window or the command menu   | **⎋**         | **Esc**              |
+
+## Alarms
+
+|                                               | macOS           | Windows / Linux             |
+| --------------------------------------------- | --------------- | --------------------------- |
+| New alarm (on the Alarms tab)                 | **⌘N** or **N** | **Ctrl+N** or **N**         |
+| Save the new alarm                            | **↩**           | **Enter**                   |
+| Hour or minute up or down (in the time field) | **↑** / **↓**   | **Up** / **Down**           |
+| Move between alarms                           | **↓** / **↑**   | **Down** / **Up**           |
+| Turn the selected alarm on or off             | **␣**           | **Space**                   |
+| Edit the selected alarm                       | **↩**           | **Enter**                   |
+| Delete the selected alarm                     | **⌫** or **⌦**  | **Backspace** or **Delete** |
+| Snooze (on the ringing sheet)                 | **S**           | **S**                       |
+
+An existing alarm's editor saves each change as you make it. Duplicate Alarm is in the command menu and the menu bar. Snooze rings the alarm again after the snooze length in Settings, on this device only.
 
 ## Stopwatch
 
@@ -30,7 +46,7 @@ In a browser tab, the browser keeps **⌘N** (**Ctrl+N**) for its own windows, s
 
 |                                     | macOS           | Windows / Linux             |
 | ----------------------------------- | --------------- | --------------------------- |
-| New timer                           | **⌘N** or **N** | **Ctrl+N** or **N**         |
+| New timer (on the other tabs)       | **⌘N** or **N** | **Ctrl+N** or **N**         |
 | Start the new timer                 | **↩** or **⌘↩** | **Enter** or **Ctrl+Enter** |
 | Pause or resume the selected timer  | **␣**           | **Space**                   |
 | Edit the selected timer             | **↩**           | **Enter**                   |

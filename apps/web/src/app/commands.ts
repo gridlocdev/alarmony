@@ -1,5 +1,8 @@
 /** Every command in the app (PRD §14). The keyboard, ⌘K, the menu bar and the Shortcuts window all read this list. */
 import {
+  deleteAlarm,
+  duplicateAlarm,
+  toggleAlarm,
   addTimer,
   canLap,
   describeDuration,
@@ -18,7 +21,7 @@ import {
 import { CommandCatalog, type CommandSpec, type MenuEntry } from '@alarmony/ui';
 import { TABS, type AppController } from './controller.ts';
 
-const TAB_KEYS: Record<string, string> = { stopwatch: 'mod+3', timers: 'mod+4' };
+const TAB_KEYS: Record<string, string> = { alarms: 'mod+2', stopwatch: 'mod+3', timers: 'mod+4' };
 
 export function commandSpecs(app: AppController): CommandSpec[] {
   const now = () => app.now();
@@ -29,15 +32,44 @@ export function commandSpecs(app: AppController): CommandSpec[] {
     const t = timer();
     if (t) run(t.id);
   };
+  const alarm = () => app.selectedAlarm.value;
+  const onAlarms = () => app.tab.value === 'alarms' && alarm() !== null;
+  const withAlarm = (run: (id: string) => void) => () => {
+    const a = alarm();
+    if (a) run(a.id);
+  };
+  const alarmName = () => {
+    const a = alarm();
+    return a?.label ? `“${a.label}”` : 'the alarm';
+  };
 
   return [
     // File
+    {
+      id: 'item.new',
+      title: 'New Alarm or Timer',
+      description: 'Add an alarm on the Alarms tab, or start a timer on the others.',
+      group: 'File',
+      shortcuts: ['mod+n', 'n'],
+      hidden: true,
+      run: () => app.open({ kind: app.tab.value === 'alarms' ? 'newAlarm' : 'newTimer' }),
+    },
+    {
+      id: 'alarm.new',
+      title: 'New Alarm…',
+      description: 'Add an alarm: its time, the days it repeats, a label and a sound.',
+      group: 'File',
+      keywords: 'add wake',
+      run: () => {
+        app.showTab('alarms');
+        app.open({ kind: 'newAlarm' });
+      },
+    },
     {
       id: 'timer.new',
       title: 'New Timer…',
       description: 'Start a new timer: type how long, and a label if you like.',
       group: 'File',
-      shortcuts: ['mod+n', 'n'],
       keywords: 'add countdown',
       run: () => {
         app.showTab('timers');
@@ -96,6 +128,63 @@ export function commandSpecs(app: AppController): CommandSpec[] {
     },
 
     // Clock
+    {
+      id: 'alarm.toggle',
+      title: 'Turn Alarm On or Off',
+      description: 'Switch the selected alarm on or off.',
+      group: 'Clock',
+      shortcuts: ['space'],
+      keysOnly: true,
+      context: true,
+      enabled: onAlarms,
+      run: withAlarm((id) => {
+        const on = app.alarmOn(alarm()!);
+        app.edit(
+          toggleAlarm(app.data.peek(), id, now(), app.zone),
+          on ? 'Turn off' : 'Turn on',
+          `Turned ${alarmName()} ${on ? 'off' : 'on'}.`,
+        );
+      }),
+    },
+    {
+      id: 'alarm.edit',
+      title: 'Edit Alarm…',
+      description: 'Change the selected alarm’s time, days, label or sound.',
+      group: 'Clock',
+      shortcuts: ['enter'],
+      keysOnly: true,
+      context: true,
+      enabled: onAlarms,
+      run: withAlarm((id) => app.open({ kind: 'editAlarm', id })),
+    },
+    {
+      id: 'alarm.duplicate',
+      title: 'Duplicate Alarm',
+      description: 'Add a copy of the selected alarm.',
+      group: 'Clock',
+      context: true,
+      enabled: onAlarms,
+      run: withAlarm((id) => {
+        const copy = app.newId('a');
+        if (app.edit(duplicateAlarm(app.data.peek(), id, copy), 'Duplicate', `Duplicated ${alarmName()}.`))
+          app.selected.value = copy;
+      }),
+    },
+    {
+      id: 'alarm.delete',
+      title: 'Delete Alarm',
+      description: 'Remove the selected alarm.',
+      group: 'Clock',
+      shortcuts: ['delete', 'backspace'],
+      keysOnly: true,
+      context: true,
+      danger: true,
+      enabled: onAlarms,
+      run: withAlarm((id) => {
+        const name = alarmName();
+        app.edit(deleteAlarm(app.data.peek(), id), 'Delete', `Deleted ${name}.`);
+      }),
+    },
     {
       id: 'stopwatch.toggle',
       title: 'Start or Stop Stopwatch',
@@ -213,6 +302,16 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       enabled: () =>
         app.data.value.timers.some((t) => t.state === 'running' && !isFinished(t, app.clock.value)),
       run: () => void app.edit(pauseAllTimers(app.data.peek(), now()), 'Pause all', 'Paused all timers.'),
+    },
+    {
+      id: 'ringing.snooze',
+      title: 'Snooze',
+      description: 'Ring the alarm again in a few minutes (Settings has how many).',
+      group: 'Clock',
+      shortcuts: ['s'],
+      global: true,
+      enabled: () => app.ringing.value.some((r) => r.snooze),
+      run: () => app.snoozeFirst(),
     },
     {
       id: 'ringing.stop',

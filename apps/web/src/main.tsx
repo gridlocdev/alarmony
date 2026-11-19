@@ -8,6 +8,7 @@ import {
   NativeStore,
   SoundPlayer,
   after,
+  deviceMemory,
   every,
   frames,
   listenKeys,
@@ -30,6 +31,30 @@ const TICK_MS = 1000;
 const root = document.getElementById('app')!;
 const native = nativeBridge();
 
+/** System notifications: the desktop app's own, else the browser's once allowed (PRD §9.2). */
+function notifier(): { notify: (title: string) => void; ask: () => void } {
+  if (native) return { notify: (title) => native.notify(title), ask: () => undefined };
+  const N = typeof Notification === 'undefined' ? null : Notification;
+  if (!N) return { notify: () => undefined, ask: () => undefined };
+  return {
+    notify(title) {
+      if (N.permission !== 'granted') return;
+      const n = new N(title);
+      n.onclick = () => {
+        focus();
+        n.close();
+      };
+    },
+    ask() {
+      if (N.permission === 'default')
+        void N.requestPermission().then(
+          () => undefined,
+          (e: unknown) => console.warn('Notifications not allowed:', e),
+        );
+    },
+  };
+}
+
 /** The desktop app's folder, else this browser's own storage, else memory only (PRD §3.7). */
 function chooseStore(): { store: ClockStore; notice: string | null } {
   if (native) return { store: new NativeStore(native), notice: null };
@@ -44,8 +69,13 @@ async function start(): Promise<void> {
   const choice = chooseStore();
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const { session, notice } = await ClockSession.open(choice.store, { recovery: localRecovery(), zone });
+  const notifications = notifier();
   const app = new AppController(session, {
     now: () => Date.now(),
+    zone,
+    memory: deviceMemory(),
+    notify: notifications.notify,
+    askToNotify: notifications.ask,
     version: native?.version ?? pkg.version,
     settings: loadSettings(),
     rung: rungLog(Date.now()),

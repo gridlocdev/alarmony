@@ -7,11 +7,13 @@ import {
   editTimer,
   formatCountdown,
   parseDuration,
+  setSnoozeMinutes,
 } from '@alarmony/core';
 import { Dialog, isMac, type CommandCatalog, type Theme, type TimeFormat } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
 import { startPreset } from './commands.ts';
 import { shortcutGroups } from './shortcuts.ts';
+import { AlarmDialog } from './AlarmDialogs.tsx';
 
 const BAD_DURATION = 'Type a length from 1 second to 99:59:59, like 5, 5m, 1h30m, 90s or 25:00.';
 
@@ -220,6 +222,38 @@ function SettingsDialog({ app, folder }: { readonly app: AppController; readonly
         />
         Ring on this device
       </label>
+      <label class="al-check">
+        <input
+          type="checkbox"
+          checked={s.notifications}
+          onChange={(e) => {
+            const on = e.currentTarget.checked;
+            app.setSettings({ notifications: on });
+            if (on) app.askToNotify();
+          }}
+        />
+        Show notifications
+      </label>
+      <label class="al-field">
+        <span>Snooze length</span>
+        <select
+          value={String(app.data.value.settings.snoozeMinutes)}
+          onChange={(e) =>
+            app.doc.applySetting(
+              setSnoozeMinutes(app.data.peek(), Number(e.currentTarget.value)),
+              'Snooze length',
+            )
+          }
+        >
+          {[...new Set([1, 2, 3, 5, 9, 10, 15, 20, 30, 45, 60, app.data.value.settings.snoozeMinutes])]
+            .sort((a, b) => a - b)
+            .map((m) => (
+              <option key={m} value={m}>
+                {m} min
+              </option>
+            ))}
+        </select>
+      </label>
       <label class="al-field">
         <span>Volume</span>
         <input
@@ -382,6 +416,9 @@ export function AppDialogs({
       return <SettingsDialog app={app} folder={app.session.store.location()} />;
     case 'shortcuts':
       return <ShortcutsDialog app={app} catalog={catalog} />;
+    case 'newAlarm':
+    case 'editAlarm':
+      return <AlarmDialog app={app} />;
     case 'menu':
     case undefined:
       return null;

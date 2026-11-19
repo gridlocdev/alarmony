@@ -2,7 +2,18 @@
  * Alarmony desktop (PRD §12): one window running the web build from app://alarmony/, with clock.json in
  * Documents/Alarmony or the folder ALARMONY_FOLDER names. The page reaches the disk only through the preload's `alarmonyNative`.
  */
-import { app, BrowserWindow, ipcMain, Menu, nativeTheme, net, protocol, screen, shell } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  nativeTheme,
+  net,
+  Notification,
+  protocol,
+  screen,
+  shell,
+} from 'electron';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readDataFile, writeCopy, writeDataFile } from '@alarmony/node-files';
@@ -170,6 +181,18 @@ function registerIpc(): void {
   ipcMain.handle(Channels.saveCopy, async (e, text: unknown) => {
     if (!trusted(e) || typeof text !== 'string') throw new Error('Forbidden');
     return path.basename(await writeCopy(dataFile, text));
+  });
+  ipcMain.on(Channels.notify, (e, title: unknown) => {
+    // A headless check never puts a notification on the screen.
+    if (!trusted(e) || typeof title !== 'string' || headless || !Notification.isSupported()) return;
+    const n = new Notification({ title: title.slice(0, 200), silent: true });
+    n.on('click', () => {
+      if (!win) win = createWindow();
+      if (win.isMinimized()) win.restore();
+      win.show();
+      win.focus();
+    });
+    n.show();
   });
   ipcMain.on(Channels.setMenu, (e, items: readonly NativeMenuItem[]) => {
     if (!trusted(e) || !Array.isArray(items)) return;

@@ -28,6 +28,8 @@ export interface AlarmonyNative extends NativeData {
   /** The window wants to close: finish saving, then call `closeReady`. */
   onCloseRequested(fn: () => void): void;
   closeReady(): void;
+  /** Shows a system notification; clicking it brings the window forward (PRD §9.2). */
+  notify(title: string): void;
   /** The window entered or left full screen. */
   onFullScreen(fn: (full: boolean) => void): void;
 }
