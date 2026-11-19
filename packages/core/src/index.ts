@@ -48,6 +48,7 @@ export {
   type Extra,
   type FileRead,
   type FileSettings,
+  type Held,
   type Item,
   type ListItems,
   type ListName,

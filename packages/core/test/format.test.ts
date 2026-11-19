@@ -3,7 +3,9 @@ import {
   NEWER_FILE_MESSAGE,
   classifyFile,
   emptyData,
+  applyOps,
   serialize,
+  toggleStopwatch,
   unreadableName,
   type ClockData,
 } from '../src/index.ts';
@@ -76,6 +78,28 @@ describe('classifyFile', () => {
     const back = JSON.parse(serialize(r.data));
     expect(back.alarms[1]).toEqual({ id: 'a_bad', time: '25:00' });
     expect(back.timers[1]).toEqual({ id: 't_bad', state: 'running', ms: 1000 });
+  });
+
+  it.each([
+    ['a bad start time', { state: 'running', startedAt: 'soon', elapsedMs: 5000, laps: [1000] }],
+    ['a lap that is not whole', { state: 'paused', startedAt: null, elapsedMs: 5000, laps: [1000, 2.5] }],
+    ['a state from a newer version', { state: 'frozen', startedAt: null, elapsedMs: 5000, laps: [] }],
+    ['too many laps', { state: 'paused', startedAt: null, elapsedMs: 5000, laps: Array(1000).fill(5) }],
+  ])('keeps a stopwatch with %s as it was until it is used', (_, stopwatch) => {
+    const raw = { ...JSON.parse(SAMPLE), stopwatch, settings: { snoozeMinutes: 90 } };
+    const r = classifyFile(JSON.stringify(raw));
+    if (r.kind !== 'ok') throw new Error(r.kind);
+    expect(r.skipped).toBe(2);
+    expect(r.data.stopwatch.state).toBe('idle');
+    const back = JSON.parse(serialize(r.data));
+    expect(back.stopwatch).toEqual(stopwatch);
+    expect(back.settings).toEqual({ snoozeMinutes: 90 });
+    const started = applyOps(r.data, toggleStopwatch(r.data, Date.parse('2026-11-19T18:00:00Z')));
+    expect(JSON.parse(serialize(started)).stopwatch).toMatchObject({
+      state: 'running',
+      elapsedMs: 0,
+      laps: [],
+    });
   });
 
   it('keeps a second item with a taken id as unread', () => {

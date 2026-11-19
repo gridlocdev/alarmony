@@ -100,7 +100,18 @@ export interface ClockData {
   readonly stopwatch: Stopwatch;
   /** Items Alarmony couldn't read, written back as they were. */
   readonly unread: Readonly<Record<ListName, readonly unknown[]>>;
+  /** A stopwatch or settings block Alarmony couldn't read, written back while what shows for it is unchanged. */
+  readonly held?: {
+    readonly stopwatch?: Held<Stopwatch>;
+    readonly settings?: Held<FileSettings>;
+  };
   readonly extra: Extra;
+}
+
+/** What the file had (`raw`), and the stand-in shown for it until an edit replaces `shown`. */
+export interface Held<T> {
+  readonly shown: T;
+  readonly raw: unknown;
 }
 
 const NO_EXTRA: Extra = Object.freeze({});
@@ -214,25 +225,36 @@ function readTimer(r: Raw): Timer | null {
   }
 }
 
-function readStopwatch(v: unknown): Stopwatch {
-  if (!isObject(v)) return IDLE_STOPWATCH;
-  const laps =
-    Array.isArray(v.laps) && v.laps.every((l) => isWhole(l, 0, Number.MAX_SAFE_INTEGER)) ? v.laps : [];
-  const elapsedMs = isWhole(v.elapsedMs, 0, Number.MAX_SAFE_INTEGER) ? v.elapsedMs : 0;
-  const extra = extraOf(v, STOPWATCH_KEYS);
-  const base = { elapsedMs, laps: (laps as number[]).slice(0, MAX_LAPS), extra };
-  if (v.state === 'running' && isInstant(v.startedAt))
-    return { ...base, state: 'running', startedAt: v.startedAt };
-  if (v.state === 'paused') return { ...base, state: 'paused', startedAt: null };
-  return { ...IDLE_STOPWATCH, extra };
+/** The stopwatch, or null when any part of it can't be read (PRD §3.3: kept, not reset). */
+function readStopwatch(v: unknown): Stopwatch | null {
+  if (v === undefined) return IDLE_STOPWATCH;
+  if (!isObject(v)) return null;
+  const laps = v.laps ?? [];
+  if (!Array.isArray(laps) || laps.length > MAX_LAPS) return null;
+  if (!laps.every((l) => isWhole(l, 0, Number.MAX_SAFE_INTEGER))) return null;
+  const elapsedMs = v.elapsedMs ?? 0;
+  if (!isWhole(elapsedMs, 0, Number.MAX_SAFE_INTEGER)) return null;
+  const base = { elapsedMs, laps: laps as number[], extra: extraOf(v, STOPWATCH_KEYS) };
+  switch (v.state) {
+    case 'running':
+      return isInstant(v.startedAt) ? { ...base, state: 'running', startedAt: v.startedAt } : null;
+    case 'paused':
+      return { ...base, state: 'paused', startedAt: null };
+    case 'idle':
+    case undefined:
+      return { ...IDLE_STOPWATCH, extra: base.extra };
+    default:
+      return null;
+  }
 }
 
-function readSettings(v: unknown): FileSettings {
-  if (!isObject(v)) return { snoozeMinutes: DEFAULT_SNOOZE_MINUTES, extra: NO_EXTRA };
-  return {
-    snoozeMinutes: isWhole(v.snoozeMinutes, 1, 60) ? v.snoozeMinutes : DEFAULT_SNOOZE_MINUTES,
-    extra: extraOf(v, SETTINGS_KEYS),
-  };
+/** The file's settings, or null when they can't be read. */
+function readSettings(v: unknown): FileSettings | null {
+  if (v === undefined) return { snoozeMinutes: DEFAULT_SNOOZE_MINUTES, extra: NO_EXTRA };
+  if (!isObject(v)) return null;
+  const snoozeMinutes = v.snoozeMinutes ?? DEFAULT_SNOOZE_MINUTES;
+  if (!isWhole(snoozeMinutes, 1, 60)) return null;
+  return { snoozeMinutes, extra: extraOf(v, SETTINGS_KEYS) };
 }
 
 const READERS: { readonly [L in ListName]: (r: Raw) => ListItems[L] | null } = {
@@ -280,18 +302,26 @@ export function classifyFile(text: string): FileRead {
   const alarms = readList('alarms', json.alarms);
   const presets = readList('presets', json.presets);
   const timers = readList('timers', json.timers);
+  const settings = readSettings(json.settings);
+  const stopwatch = readStopwatch(json.stopwatch);
+  // Fresh stand-ins, so an edit (a new object) is told apart from the untouched one.
+  const held = {
+    ...(settings ? {} : { settings: { shown: { ...emptyData().settings }, raw: json.settings } }),
+    ...(stopwatch ? {} : { stopwatch: { shown: { ...IDLE_STOPWATCH }, raw: json.stopwatch } }),
+  };
   const data: ClockData = {
     format: FORMAT,
-    settings: readSettings(json.settings),
+    settings: settings ?? held.settings!.shown,
     clocks: clocks.items,
     alarms: alarms.items,
     presets: presets.items,
     timers: timers.items,
-    stopwatch: readStopwatch(json.stopwatch),
+    stopwatch: stopwatch ?? held.stopwatch!.shown,
     unread: { clocks: clocks.unread, alarms: alarms.unread, presets: presets.unread, timers: timers.unread },
+    ...(settings && stopwatch ? {} : { held }),
     extra: extraOf(json, TOP_KEYS),
   };
-  const skipped = LISTS.reduce((n, l) => n + data.unread[l].length, 0);
+  const skipped = LISTS.reduce((n, l) => n + data.unread[l].length, Object.keys(held).length);
   return { kind: 'ok', data, skipped };
 }
 
@@ -304,10 +334,14 @@ function withExtra<T extends object>(known: T, extra: Extra): T & Extra {
 /** The file text: two-space JSON, keys in a fixed order, a trailing newline (PRD §3.1). */
 export function serialize(data: ClockData): string {
   const s = data.stopwatch;
+  const held = data.held;
   const out = withExtra(
     {
       format: data.format,
-      settings: withExtra({ snoozeMinutes: data.settings.snoozeMinutes }, data.settings.extra),
+      settings:
+        held?.settings?.shown === data.settings
+          ? held.settings.raw
+          : withExtra({ snoozeMinutes: data.settings.snoozeMinutes }, data.settings.extra),
       clocks: [
         ...data.clocks.map((c) => withExtra({ id: c.id, zone: c.zone, label: c.label }, c.extra)),
         ...data.unread.clocks,
@@ -343,10 +377,13 @@ export function serialize(data: ClockData): string {
         ),
         ...data.unread.timers,
       ],
-      stopwatch: withExtra(
-        { state: s.state, startedAt: s.startedAt, elapsedMs: s.elapsedMs, laps: s.laps },
-        s.extra,
-      ),
+      stopwatch:
+        held?.stopwatch?.shown === s
+          ? held.stopwatch.raw
+          : withExtra(
+              { state: s.state, startedAt: s.startedAt, elapsedMs: s.elapsedMs, laps: s.laps },
+              s.extra,
+            ),
     },
     data.extra,
   );
