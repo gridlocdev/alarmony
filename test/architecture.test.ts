@@ -64,6 +64,9 @@ const CONFINED: { rule: Rule; allowed: readonly string[] }[] = [
   { rule: 'timer', allowed: ['packages/ui/src/schedule.ts'] },
   { rule: 'effect', allowed: [...SHARED_DIALOGS, 'packages/ui/src/components/focusTrap.ts'] },
   { rule: 'dialog-role', allowed: SHARED_DIALOGS },
+  // The desktop app's system dialogs (the folder picker, the quit question) go through one helper that skips
+  // them in a headless run.
+  { rule: 'native-dialog', allowed: ['apps/desktop/src/dialogs.ts'] },
 ];
 
 /**
@@ -370,7 +373,8 @@ function checkCode(file: string, source: ts.SourceFile, report: Report): void {
         !test &&
         ts.isPropertyAccessExpression(callee) &&
         ts.isIdentifier(callee.expression) &&
-        callee.expression.text === 'dialog'
+        callee.expression.text === 'dialog' &&
+        !CONFINED.find((c) => c.rule === 'native-dialog')?.allowed.includes(file)
       ) {
         report.add(
           'native-dialog',

@@ -10,6 +10,7 @@
 #   icon.icns  macOS bundle icon (full canvas, keeps Apple's margin), 16-1024 px
 #   icon.ico   Windows icon (tile only), 16-256 px, PNG-compressed entries
 #   icon.png   window/Linux icon (tile only), 256 px
+#   trayTemplate.png, trayTemplate@2x.png  the menu bar icon (assets/tray.svg), 16 and 32 px
 set -euo pipefail
 
 DESKTOP="$(cd "$(dirname "$0")/.." && pwd)"
@@ -66,5 +67,12 @@ for size, png in zip(sizes, images):
     offset += len(png)
 open(out, "wb").write(data + b"".join(images))
 PY
+
+echo "==> trayTemplate.png"
+TRAY="$(dirname "$SRC")/tray.svg"
+if [[ -f "$TRAY" ]]; then
+  render "$TRAY" "$OUT/trayTemplate.png" 16
+  render "$TRAY" "$OUT/trayTemplate@2x.png" 32
+fi
 
 ls -la "$OUT"

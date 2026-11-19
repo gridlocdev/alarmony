@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The menu bar icon: an alarm clock in black on transparent. macOS uses it as a template image (any colour
+     but the alpha is ignored), so it follows a light or dark menu bar. scripts/make-icons.sh renders it. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <g fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="8" cy="9" r="5.25" stroke-width="1.5" />
+    <path d="M 8 6.25 L 8 9 L 10 10.25" stroke-width="1.4" />
+    <path d="M 2 4.25 L 4.25 2.25" stroke-width="1.6" />
+    <path d="M 14 4.25 L 11.75 2.25" stroke-width="1.6" />
+    <path d="M 4.75 13.25 L 3.75 14.75" stroke-width="1.4" />
+    <path d="M 11.25 13.25 L 12.25 14.75" stroke-width="1.4" />
+  </g>
+</svg>

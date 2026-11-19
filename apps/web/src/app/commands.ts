@@ -106,6 +106,17 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       },
     },
     {
+      id: 'file.openFolder',
+      title: 'Open Folder…',
+      description: 'Keep clock.json in another folder, or open the one already there.',
+      group: 'File',
+      shortcuts: ['mod+o'],
+      keywords: 'location directory change',
+      enabled: () => app.openFolder !== null,
+      hidden: app.openFolder === null,
+      run: () => void app.openFolder?.(),
+    },
+    {
       id: 'app.settings',
       title: 'Settings…',
       description: 'Theme, ringing on this device, and the volume.',

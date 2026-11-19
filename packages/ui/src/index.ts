@@ -5,7 +5,7 @@ export {
   type LockManagerLike,
 } from './store/browserStore.ts';
 export { MemoryStore } from './store/memoryStore.ts';
-export { NativeStore, type NativeData, type AlarmonyNative } from './store/nativeStore.ts';
+export { NativeStore, type NativeData, type AlarmonyNative, type TrayState } from './store/nativeStore.ts';
 export { ConflictError, sha256Hex, type ClockStore, type StoredFile } from './store/clockStore.ts';
 export {
   DEFAULT_SETTINGS,

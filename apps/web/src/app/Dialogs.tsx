@@ -243,6 +243,26 @@ function SettingsDialog({ app, folder }: { readonly app: AppController; readonly
         />
         Show notifications
       </label>
+      {app.openFolder && (
+        <>
+          <label class="al-check">
+            <input
+              type="checkbox"
+              checked={s.openAtLogin}
+              onChange={(e) => app.setSettings({ openAtLogin: e.currentTarget.checked })}
+            />
+            Open at login
+          </label>
+          <label class="al-check">
+            <input
+              type="checkbox"
+              checked={s.menuBarCountdown}
+              onChange={(e) => app.setSettings({ menuBarCountdown: e.currentTarget.checked })}
+            />
+            Show countdown in the menu bar
+          </label>
+        </>
+      )}
       <label class="al-field">
         <span>Snooze length</span>
         <select

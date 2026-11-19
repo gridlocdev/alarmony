@@ -22,6 +22,10 @@ export interface DeviceSettings {
   readonly worldView: WorldView;
   /** World clocks show seconds in their digital time. */
   readonly showSeconds: boolean;
+  /** Desktop: the menu bar icon shows the soonest timer's time left (PRD §15). */
+  readonly menuBarCountdown: boolean;
+  /** Desktop: open hidden in the menu bar when you log in (PRD §15). */
+  readonly openAtLogin: boolean;
 }
 
 export const DEFAULT_SETTINGS: DeviceSettings = {
@@ -33,6 +37,8 @@ export const DEFAULT_SETTINGS: DeviceSettings = {
   tab: 'world',
   worldView: 'cards',
   showSeconds: false,
+  menuBarCountdown: true,
+  openAtLogin: false,
 };
 
 const SETTINGS_KEY = 'alarmony.settings';
@@ -84,6 +90,8 @@ export function loadSettings(): DeviceSettings {
     tab: oneOf(r.tab, ['world', 'alarms', 'stopwatch', 'timers'], d.tab),
     worldView: oneOf(r.worldView, ['cards', 'list'], d.worldView),
     showSeconds: typeof r.showSeconds === 'boolean' ? r.showSeconds : d.showSeconds,
+    menuBarCountdown: typeof r.menuBarCountdown === 'boolean' ? r.menuBarCountdown : d.menuBarCountdown,
+    openAtLogin: typeof r.openAtLogin === 'boolean' ? r.openAtLogin : d.openAtLogin,
   };
 }
 

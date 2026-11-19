@@ -90,9 +90,9 @@ stateDiagram-v2
 
 ## Desktop (`apps/desktop`)
 
-- `main.ts`: one window, loading the web build from `app://alarmony/`. The renderer is sandboxed with context isolation, IPC is accepted only from that origin, background throttling is off so a hidden window still rings on time, and sound plays without a click.
-- `preload.cts` exposes `alarmonyNative`: load, save and save a copy of `clock.json`, set the menu bar, send menu commands and full-screen changes to the page, and say whether the window uses the unified toolbar (`chrome`; macOS). The channels are listed in `bridge.ts`.
-- `paths.ts`: where the data lives. `menu.ts`: the menu bar from the catalog plus the standard menus, and the edit menu for right-clicked text. `windowState.ts`: the window's size and place.
+- `main.ts`: one window, loading the web build from `app://alarmony/`. The renderer is sandboxed with context isolation, IPC is accepted only from that origin, background throttling is off so a hidden window still rings on time, and sound plays without a click. Closing the window hides it; the page keeps running and the menu bar icon (tray) brings it back. While an alarm is on or a timer runs, it holds a power-save blocker against App Nap, and quitting asks first. A wake from sleep tells the page to check what is due.
+- `preload.cts` exposes `alarmonyNative`: load, save and save a copy of `clock.json`, set the menu bar and the tray (the page works out what it shows in `app/tray.ts`), open at login, Open Folder…, send menu commands, wake and full-screen changes to the page, and say whether the window uses the unified toolbar (`chrome`; macOS). The channels are listed in `bridge.ts`.
+- `paths.ts`: where the data lives, and whether the first start has to ask (`folder.json` remembers the answer). `background.ts`: the tray's menu and the questions you can turn off (`prefs.json`). `dialogs.ts`: every system dialog; a headless run skips them and lists them in `alarmonySkippedDialogs`, and the architecture test allows `dialog.*` nowhere else. `menu.ts`: the menu bar from the catalog plus the standard menus, and the edit menu for right-clicked text. `windowState.ts`: the window's size and place.
 
 ## Testing
 

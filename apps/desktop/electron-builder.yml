@@ -8,6 +8,9 @@ files:
   - package.json
   # The window icon on Linux and Windows (macOS takes the bundle's icon.icns).
   - build/icon.png
+  # The menu bar icon, on every platform.
+  - build/trayTemplate.png
+  - build/trayTemplate@2x.png
 asar: true
 # One naming scheme on every system: Alarmony-1.0.0-mac-arm64.dmg, Alarmony-1.0.0-win-x64.exe, …
 artifactName: ${productName}-${version}-${os}-${arch}.${ext}

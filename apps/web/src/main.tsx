@@ -81,6 +81,12 @@ async function start(): Promise<void> {
     rung: rungLog(Date.now()),
     after,
     sound: new SoundPlayer(),
+    ...(native
+      ? {
+          // Saves still waiting go to the old folder before the window reloads from the new one.
+          openFolder: () => session.flush().then(() => native.openFolder()),
+        }
+      : {}),
   });
   const catalog = buildCommands(app);
   render(<App app={app} catalog={catalog} />, root);
@@ -133,6 +139,24 @@ async function start(): Promise<void> {
       }
       catalog.run(id);
     });
+    // The menu bar icon follows the page; Electron rebuilds its menu each time, so only changes are sent (PRD §15).
+    let lastTray = '';
+    effect(() => {
+      const state = app.tray.value;
+      const key = JSON.stringify(state);
+      if (key === lastTray) return;
+      lastTray = key;
+      native.setTray(state);
+    });
+    // Only a change made in Settings reaches the system's login items, not every start.
+    let loginSetting: boolean | null = null;
+    effect(() => {
+      const on = app.settings.value.openAtLogin;
+      if (loginSetting !== null && on !== loginSetting) native.setOpenAtLogin(on);
+      loginSetting = on;
+    });
+    // After sleep, due alarms and timers ring (or are missed) at once, not at the next tick (PRD §9.4).
+    native.onWake(refresh);
     native.onCloseRequested(() => {
       void session.flush().finally(() => native.closeReady());
     });

@@ -92,7 +92,7 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 
 ### §3.7 Where the folder lives
 
-- Desktop: **Open Folder…** (⌘O); the last one reopens, remembered in `folder.json` in the app's data folder. First start asks before showing anything: **Use Documents/Alarmony** (created when chosen) or **Choose Folder…**. When the remembered folder is gone, the same question names it and nothing is created in its place. The status bar shows the folder's name, with its path on hover.
+- Desktop: **Open Folder…** (⌘O); the last one reopens, remembered in `folder.json` in the app's data folder. First start asks before showing anything: **Use Documents/Alarmony** (created when chosen) or **Choose Folder…**, or Quit. When the remembered folder is gone, the same question names it and nothing is created in its place. The status bar shows the folder's name, with its path on hover.
 - Browser: a folder through the File System Access API where the browser has it; otherwise the file lives in the browser's storage and the status bar says "Stored in this browser". **Export clock.json…** and **Import clock.json…** are the way out and in there.
 - Paths outside the folder, `..` and symlinks that lead out are refused.
 

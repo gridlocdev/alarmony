@@ -1,6 +1,6 @@
 // Sandboxed preload: CommonJS, and it may only require('electron'), so the channel names from
 // bridge.ts are repeated here. Keep them in step. It exposes exactly one object, `alarmonyNative`.
-import type { NativeMenuItem } from './bridge.ts';
+import type { NativeMenuItem, TrayState } from './bridge.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/consistent-type-imports
 const { contextBridge, ipcRenderer } = require('electron') as typeof import('electron');
@@ -23,4 +23,8 @@ contextBridge.exposeInMainWorld('alarmonyNative', {
   notify: (title: string) => ipcRenderer.send('alarmony:notify', title),
   onFullScreen: (fn: (full: boolean) => void) =>
     ipcRenderer.on('alarmony:full-screen', (_e, full: boolean) => fn(full)),
+  setTray: (state: TrayState) => ipcRenderer.send('alarmony:set-tray', state),
+  setOpenAtLogin: (on: boolean) => ipcRenderer.send('alarmony:set-open-at-login', on),
+  openFolder: () => ipcRenderer.invoke('alarmony:open-folder'),
+  onWake: (fn: () => void) => ipcRenderer.on('alarmony:wake', () => fn()),
 });

@@ -4,8 +4,10 @@ import path from 'node:path';
 export interface DataPaths {
   /** Overrides Electron's user-data folder (window place), or null for the default. */
   readonly userData: string | null;
-  /** The folder clock.json is in. */
+  /** The folder clock.json is in, unless the first-start question picks another. */
   readonly folder: string;
+  /** The folder came from ALARMONY_FOLDER or ALARMONY_USER_DATA (a check), so nobody is asked. */
+  readonly fixed: boolean;
 }
 
 /**
@@ -18,7 +20,34 @@ export function dataPaths(env: NodeJS.ProcessEnv, documents: string): DataPaths 
   const folder = env.ALARMONY_FOLDER
     ? path.resolve(env.ALARMONY_FOLDER)
     : path.join(userData ?? documents, 'Alarmony');
-  return { userData, folder };
+  return { userData, folder, fixed: !!(env.ALARMONY_FOLDER || env.ALARMONY_USER_DATA) };
+}
+
+/** Where clock.json is at start: a folder to use, or the question to ask first (PRD §3.7). */
+export type StartFolder =
+  { readonly kind: 'use'; readonly folder: string } | { readonly kind: 'ask'; readonly gone: string | null };
+
+/**
+ * A folder set for a check, or a headless run, is used as it is. Otherwise the folder remembered in folder.json,
+ * while it is still there. A first start asks; so does a remembered folder that is gone, naming it, and nothing is
+ * made in its place.
+ */
+export function startFolder(
+  paths: DataPaths,
+  headless: boolean,
+  remembered: string | null,
+  exists: (folder: string) => boolean,
+): StartFolder {
+  if (paths.fixed || headless) return { kind: 'use', folder: paths.folder };
+  if (remembered && exists(remembered)) return { kind: 'use', folder: remembered };
+  return { kind: 'ask', gone: remembered };
+}
+
+/** The folder folder.json names, or null when it is missing or doesn't name one. */
+export function parseFolderFile(raw: unknown): string | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const folder = (raw as Record<string, unknown>).folder;
+  return typeof folder === 'string' && path.isAbsolute(folder) ? folder : null;
 }
 
 /** Only our own page may use the bridge or be navigated to. */

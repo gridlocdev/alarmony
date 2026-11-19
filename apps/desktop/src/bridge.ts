@@ -12,7 +12,21 @@ export const Channels = {
   closeRequested: 'alarmony:close-requested',
   fullScreen: 'alarmony:full-screen',
   notify: 'alarmony:notify',
+  setTray: 'alarmony:set-tray',
+  setOpenAtLogin: 'alarmony:set-open-at-login',
+  openFolder: 'alarmony:open-folder',
+  wake: 'alarmony:wake',
 } as const;
+
+/** What the menu bar icon shows, as `TrayState` in @alarmony/ui. */
+export interface TrayState {
+  readonly title: string;
+  readonly ringing: boolean;
+  readonly canSnooze: boolean;
+  readonly next: string | null;
+  readonly timers: readonly string[];
+  readonly armed: boolean;
+}
 
 /** One item of the menu bar the page sends, as `NativeMenuItem` in @alarmony/ui. */
 export interface NativeMenuItem {

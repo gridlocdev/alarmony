@@ -30,7 +30,11 @@ Every copy of Alarmony with the file open rings, so turn off **Ring on this devi
 
 ## Keeping your data
 
-Every change saves at once to `clock.json`. On the desktop the file is in `Documents/Alarmony`; in a browser it is in the browser's own storage. Every change can be undone with **⌘Z**. If another window or device changed the file while you had unsaved changes, Alarmony asks whether to keep yours or theirs. A file it can't read is kept aside, never overwritten.
+Every change saves at once to `clock.json`. On the desktop, the first start asks where to keep it: **Use Documents/Alarmony** or **Choose Folder…** (a synced folder shares your clock with other computers); **Open Folder…** (**⌘O**) moves to another later. In a browser it is in the browser's own storage. Every change can be undone with **⌘Z**. If another window or device changed the file while you had unsaved changes, Alarmony asks whether to keep yours or theirs. A file it can't read is kept aside, never overwritten.
+
+## Desktop in the background
+
+Closing the desktop window doesn't quit Alarmony: it keeps running in the menu bar so alarms ring, and says so the first time. The menu bar icon shows the soonest timer's time left (turn off **Show countdown in the menu bar** in Settings to hide it), and its menu has Stop and Snooze while something rings, the next alarm, running timers, Show Alarmony, Pause All Timers, Settings… and Quit Alarmony. Quitting while an alarm is on or a timer runs asks first. **Open at login** in Settings starts Alarmony in the menu bar when you log in. After the computer wakes from sleep, anything that came due rings at once.
 
 ## Commands and shortcuts
 

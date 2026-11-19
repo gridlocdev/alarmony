@@ -37,6 +37,7 @@ import {
   type Tab,
 } from '@alarmony/ui';
 import { clockTime } from './time.ts';
+import { trayState } from './tray.ts';
 
 /** How long a notice stays (PRD §5.3). */
 export const NOTICE_MS = 5000;
@@ -92,6 +93,8 @@ export interface AppDeps {
   readonly notify?: (title: string) => void;
   /** Asks the browser to allow notifications; called from a click. */
   readonly askToNotify?: () => void;
+  /** Desktop only: asks for another folder and reloads from it (PRD §3.7). */
+  readonly openFolder?: () => Promise<void>;
 }
 
 /** The sound player as the controller uses it. */
@@ -122,6 +125,8 @@ export class AppController {
   readonly session: ClockSession;
   readonly version: string;
   readonly zone: string;
+  /** Desktop only: Open Folder…; null in the browser. */
+  readonly openFolder: (() => Promise<void>) | null;
   readonly now: () => number;
   /** The file's data; changes with every edit, undo and refresh. */
   readonly data: Signal<ClockData>;
@@ -180,6 +185,7 @@ export class AppController {
   constructor(session: ClockSession, deps: AppDeps) {
     this.session = session;
     this.version = deps.version;
+    this.openFolder = deps.openFolder ?? null;
     this.now = deps.now;
     this.#rung = deps.rung;
     this.#after = deps.after ?? (() => () => undefined);
@@ -368,6 +374,18 @@ export class AppController {
     const t = soonestTimer(this.data.value.timers, now);
     return t ? `${formatCountdown(timerLeft(t, now))} · Alarmony` : 'Alarmony';
   });
+
+  /** What the desktop app's menu bar icon shows (PRD §15). */
+  readonly tray = computed(() =>
+    trayState({
+      data: this.data.value,
+      now: this.clock.value,
+      zone: this.zone,
+      format: this.settings.value.timeFormat,
+      ringing: this.ringing.value,
+      countdown: this.settings.value.menuBarCountdown,
+    }),
+  );
 
   /**
    * An alarm whose ring time changed counts its due times from the moment of the change (PRD §9.3), so moving it to
