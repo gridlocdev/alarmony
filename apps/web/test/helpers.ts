@@ -43,6 +43,15 @@ export async function makeApp(text: string | null = null, opts: { soundAllowed?:
     wait: async () => undefined,
   });
   const sound = fakeSound(opts.soundAllowed ?? true);
+  /** Notices waiting to time out; `later.run()` times them all out at once. */
+  const waiting = new Set<() => void>();
+  const later = {
+    run() {
+      const all = [...waiting];
+      waiting.clear();
+      for (const run of all) run();
+    },
+  };
   const app = new AppController(session, {
     now: () => clock.at,
     version: '9.9.9',
@@ -50,7 +59,11 @@ export async function makeApp(text: string | null = null, opts: { soundAllowed?:
     rung: rungLog(NOW, false),
     sound,
     saveSettings: () => undefined,
+    after: (_ms, run) => {
+      waiting.add(run);
+      return () => waiting.delete(run);
+    },
   });
   const catalog = buildCommands(app);
-  return { app, catalog, store, session, clock, sound };
+  return { app, catalog, store, session, clock, sound, later };
 }

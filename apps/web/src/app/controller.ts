@@ -124,6 +124,8 @@ export class AppController {
   readonly #sound: SoundOut;
   readonly #saveSettings: (s: DeviceSettings) => void;
   #dropNotice: (() => void) | null = null;
+  /** A sticky error a passing notice covers for now. */
+  #underneath: Notice | null = null;
   /** The names in the Missed notice now showing, so the next miss joins it. */
   #missed: string[] = [];
   #missedNotice: Notice | null = null;
@@ -148,7 +150,7 @@ export class AppController {
         this.rev.value++;
         // An Undo button belongs to the edit before; another edit takes it away (PRD §5.3).
         const n = this.notice.peek();
-        if (n?.action && change.kind !== 'setting')
+        if (n?.action?.label === 'Undo' && change.kind !== 'setting')
           this.notice.value = n.sticky ? { ...n, action: undefined } : null;
         this.#forgetGoneRings();
         // An editor for a timer that went (undo, Use Theirs, a change made elsewhere) has nothing to show.
@@ -200,11 +202,17 @@ export class AppController {
     this.#dropNotice?.();
     this.#dropNotice = null;
     const notice: Notice = { text, ...opts };
+    // A passing notice covers a sticky error for a while; the error comes back when it goes (PRD §3.4).
+    const shown = this.notice.peek();
+    if (notice.sticky) this.#underneath = null;
+    else if (shown?.sticky && shown.tone === 'error') this.#underneath = shown;
     this.notice.value = notice;
     this.announcement.value = text;
     if (!notice.sticky)
       this.#dropNotice = this.#after(NOTICE_MS, () => {
-        if (this.notice.peek() === notice) this.notice.value = null;
+        if (this.notice.peek() !== notice) return;
+        this.notice.value = this.#underneath;
+        this.#underneath = null;
       });
   }
 
@@ -213,7 +221,9 @@ export class AppController {
   }
 
   dismissNotice(): void {
-    this.notice.value = null;
+    const covered = this.notice.peek() !== this.#underneath;
+    this.notice.value = covered ? this.#underneath : null;
+    this.#underneath = null;
   }
 
   /** The save state moved: a failed save stays in the status bar until it works (PRD §3.4). */
@@ -224,12 +234,11 @@ export class AppController {
         tone: 'error',
         action: { label: 'Try Again', run: () => this.session.retry() },
       });
-    else if (
-      status === 'saved' &&
-      this.notice.peek()?.tone === 'error' &&
-      this.notice.peek()?.action?.label === 'Try Again'
-    )
-      this.notice.value = null;
+    else if (status === 'saved') {
+      const tryAgain = (n: Notice | null) => n?.tone === 'error' && n.action?.label === 'Try Again';
+      if (tryAgain(this.#underneath)) this.#underneath = null;
+      if (tryAgain(this.notice.peek())) this.notice.value = null;
+    }
   }
 
   // ── Tabs, dialogs, settings ──────────────────────────────────────────────

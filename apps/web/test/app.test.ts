@@ -116,6 +116,25 @@ describe('timer commands', () => {
   });
 });
 
+describe('notices', () => {
+  it('keeps a failed-save notice under other notices until saving works', async () => {
+    const { app, catalog, later } = await withTimer();
+    app.saveStatusChanged('failed');
+    const failed = app.notice.value;
+    expect(failed?.action?.label).toBe('Try Again');
+    catalog.run('timer.toggle');
+    expect(app.notice.value?.action?.label, 'an edit leaves Try Again alone').toBe('Try Again');
+    app.sayUndoable('Deleted “Pasta”.');
+    expect(app.notice.value?.text).toBe('Deleted “Pasta”.');
+    later.run();
+    expect(app.notice.value).toBe(failed);
+    app.say('Undid delete.');
+    app.saveStatusChanged('saved');
+    later.run();
+    expect(app.notice.value).toBeNull();
+  });
+});
+
 describe('ringing', () => {
   it('rings a finished timer once, and Stop leaves it showing Done', async () => {
     const { app, clock, sound, id } = await withTimer(1);
