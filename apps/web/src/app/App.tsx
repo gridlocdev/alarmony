@@ -78,9 +78,10 @@ export function App({ app, catalog }: { readonly app: AppController; readonly ca
         )}
       </div>
       <StatusBar app={app} />
-      {app.ringing.value.length > 0 && <RingingSheet app={app} />}
       {dialog?.kind === 'menu' && <CommandMenu app={app} catalog={catalog} initial={dialog.initial} />}
       <AppDialogs app={app} catalog={catalog} />
+      {/* Last, so it covers any open dialog: what rings is what the keys act on (PRD §9.2). */}
+      {app.ringing.value.length > 0 && <RingingSheet app={app} />}
     </div>
   );
 }

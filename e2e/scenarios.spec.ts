@@ -92,6 +92,22 @@ test.describe('Ringing', () => {
     await expect(sheet, 'it rings once').toBeHidden();
     expect(errors).toEqual([]);
   });
+
+  test('the ringing sheet comes in front of an open dialog, which is still there after Stop', async ({
+    page,
+  }) => {
+    await openApp(page);
+    await newTimer(page, '1m', 'Tea');
+    await page.keyboard.press('KeyN');
+    const dialog = page.getByRole('dialog', { name: 'New Timer' });
+    await expect(dialog.getByRole('textbox', { name: 'Length' })).toBeFocused();
+    await page.keyboard.type('25');
+    await page.clock.runFor(61_000);
+    const sheet = page.getByRole('alertdialog', { name: 'Tea · Timer done' });
+    await sheet.getByRole('button', { name: 'Stop' }).click({ timeout: 2000 });
+    await expect(sheet).toBeHidden();
+    await expect(dialog.getByRole('textbox', { name: 'Length' })).toHaveValue('25');
+  });
 });
 
 test.describe('Keeping your data', () => {
