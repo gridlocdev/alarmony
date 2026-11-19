@@ -24,8 +24,16 @@ export interface Sound {
   readonly cycle: number;
 }
 
-const chime = (at: number, freq: number): Note => ({ at, freq, length: 1.6, gain: 0.5, wave: 'sine' });
+const note = (at: number, freq: number, length: number, gain: number, wave: Wave): Note => ({
+  at,
+  freq,
+  length,
+  gain,
+  wave,
+});
+const chime = (at: number, freq: number): Note => note(at, freq, 1.6, 0.5, 'sine');
 
+/** The eight sounds, the default first (PRD §10). */
 export const SOUNDS: readonly Sound[] = [
   {
     id: 'chimes',
@@ -33,6 +41,55 @@ export const SOUNDS: readonly Sound[] = [
     // E6, C6, D6, G5: a soft four-note phrase.
     notes: [chime(0, 1318.5), chime(0.35, 1046.5), chime(0.7, 1174.7), chime(1.05, 784)],
     cycle: 2.6,
+  },
+  {
+    id: 'bells',
+    name: 'Bells',
+    // A struck bell: a fundamental with a bright, quieter overtone, twice.
+    notes: [0, 0.9].flatMap((at) => [note(at, 880, 2.2, 0.45, 'sine'), note(at, 2093, 1.2, 0.18, 'sine')]),
+    cycle: 2.4,
+  },
+  {
+    id: 'marimba',
+    name: 'Marimba',
+    // C5 E5 G5 E5, short and woody.
+    notes: [523.3, 659.3, 784, 659.3].map((f, i) => note(i * 0.18, f, 0.35, 0.55, 'triangle')),
+    cycle: 1.4,
+  },
+  {
+    id: 'digital',
+    name: 'Digital',
+    // Four quick beeps.
+    notes: [0, 0.14, 0.28, 0.42].map((at) => note(at, 2000, 0.08, 0.22, 'square')),
+    cycle: 1.2,
+  },
+  {
+    id: 'rising',
+    name: 'Rising',
+    // A soft swell up a major triad.
+    notes: [392, 493.9, 587.3, 784].map((f, i) => note(i * 0.4, f, 1.2, 0.35 + i * 0.05, 'sine')),
+    cycle: 2.8,
+  },
+  {
+    id: 'harp',
+    name: 'Harp',
+    // A quick upward arpeggio.
+    notes: [523.3, 659.3, 784, 1046.5, 1318.5].map((f, i) => note(i * 0.09, f, 1.4, 0.4, 'triangle')),
+    cycle: 2.2,
+  },
+  {
+    id: 'radar',
+    name: 'Radar',
+    // A bright pulse, three times.
+    notes: [0, 0.22, 0.44].map((at) => note(at, 1568, 0.16, 0.3, 'sine')),
+    cycle: 1.3,
+  },
+  {
+    id: 'gentle',
+    name: 'Gentle',
+    // One long, quiet sine note.
+    notes: [note(0, 659.3, 2.4, 0.4, 'sine')],
+    cycle: 3.2,
   },
 ];
 

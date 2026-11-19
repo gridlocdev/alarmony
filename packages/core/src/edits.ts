@@ -2,7 +2,16 @@
  * Every edit to the stopwatch, timers and presets, as pure functions from the data and "now" to operations
  * (PRD §8, §11). Null means the edit doesn't apply in the current state.
  */
-import { MAX_LABEL, MAX_LAPS, type ClockData, type Preset, type Stopwatch, type Timer } from './format.ts';
+import { alarmIsOn, onceFor } from './alarms.ts';
+import {
+  MAX_LABEL,
+  MAX_LAPS,
+  type Alarm,
+  type ClockData,
+  type Preset,
+  type Stopwatch,
+  type Timer,
+} from './format.ts';
 import type { Op } from './ops.ts';
 import { stopwatchElapsed } from './stopwatch.ts';
 import { isFinished, timerLeft } from './timers.ts';
@@ -103,6 +112,104 @@ export function editTimer(data: ClockData, id: string, label: string, ms: number
 /** Pause every running timer that hasn't finished (the menu bar's Pause All Timers, PRD §15). */
 export function pauseAllTimers(data: ClockData, now: number): Op[] {
   return data.timers.flatMap((t) => pauseTimer(data, t.id, now) ?? []);
+}
+
+// ── Alarms ─────────────────────────────────────────────────────────────────
+
+/** What the alarm editor sets (PRD §7.2). */
+export interface AlarmFields {
+  readonly time: string;
+  readonly days: readonly number[];
+  readonly label: string;
+  readonly sound: string;
+  readonly snooze: boolean;
+}
+
+const cleanDays = (days: readonly number[]) =>
+  [...new Set(days)].filter((d) => Number.isInteger(d) && d >= 1 && d <= 7).sort((a, b) => a - b);
+
+/**
+ * The alarm with `once` right for its state (PRD §7.2): a one-off alarm that is on rings at the next time its
+ * `time` comes, set again when it is turned on or its time changes; any other alarm has none.
+ */
+function withOnce(before: Alarm | null, after: Alarm, now: number, zone: string): Alarm {
+  if (!after.enabled || after.days.length > 0) return { ...after, once: null };
+  const keep =
+    before !== null &&
+    before.time === after.time &&
+    before.days.length === 0 &&
+    after.once !== null &&
+    alarmIsOn(before, now, zone);
+  return keep ? after : { ...after, once: onceFor(after.time, now, zone) };
+}
+
+function findAlarm(data: ClockData, id: string): Alarm | null {
+  return data.alarms.find((a) => a.id === id) ?? null;
+}
+
+function updateAlarm(before: Alarm, after: Alarm): Op[] {
+  return [{ kind: 'update', list: 'alarms', before, after }];
+}
+
+/** A new alarm, turned on (Save in the New Alarm editor). */
+export function addAlarm(data: ClockData, id: string, fields: AlarmFields, now: number, zone: string): Op[] {
+  const item = withOnce(
+    null,
+    {
+      id,
+      time: fields.time,
+      days: cleanDays(fields.days),
+      label: clean(fields.label),
+      sound: fields.sound,
+      snooze: fields.snooze,
+      enabled: true,
+      once: null,
+      extra: NO_EXTRA,
+    },
+    now,
+    zone,
+  );
+  return [{ kind: 'insert', list: 'alarms', index: data.alarms.length, item }];
+}
+
+/** Change some of an alarm's fields; the editor of an existing alarm saves each change as it goes. */
+export function editAlarm(
+  data: ClockData,
+  id: string,
+  patch: Partial<AlarmFields>,
+  now: number,
+  zone: string,
+): Op[] | null {
+  const a = findAlarm(data, id);
+  if (!a) return null;
+  const next: Alarm = {
+    ...a,
+    ...patch,
+    days: patch.days ? cleanDays(patch.days) : a.days,
+    label: patch.label === undefined ? a.label : clean(patch.label),
+  };
+  return updateAlarm(a, withOnce(a, next, now, zone));
+}
+
+/** The switch: on as it reads becomes off, off becomes on (a passed one-off reads off, so it turns on again). */
+export function toggleAlarm(data: ClockData, id: string, now: number, zone: string): Op[] | null {
+  const a = findAlarm(data, id);
+  if (!a) return null;
+  const on = !alarmIsOn(a, now, zone);
+  return updateAlarm(a, withOnce(on ? { ...a, enabled: false } : a, { ...a, enabled: on }, now, zone));
+}
+
+export function deleteAlarm(data: ClockData, id: string): Op[] | null {
+  const index = data.alarms.findIndex((a) => a.id === id);
+  const item = data.alarms[index];
+  return item ? [{ kind: 'remove', list: 'alarms', index, item }] : null;
+}
+
+/** A copy with a new id, right after the original. */
+export function duplicateAlarm(data: ClockData, id: string, newId: string): Op[] | null {
+  const index = data.alarms.findIndex((a) => a.id === id);
+  const item = data.alarms[index];
+  return item ? [{ kind: 'insert', list: 'alarms', index: index + 1, item: { ...item, id: newId } }] : null;
 }
 
 // ── Presets ────────────────────────────────────────────────────────────────

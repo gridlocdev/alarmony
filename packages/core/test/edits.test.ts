@@ -167,7 +167,15 @@ describe('ringing', () => {
   });
 
   it('rings what is under 10 minutes late, and only notes older', () => {
-    const due = { key: 'k', kind: 'timer' as const, id: 't', label: '', at: T0 };
+    const due = {
+      key: 'k',
+      kind: 'timer' as const,
+      id: 't',
+      label: '',
+      at: T0,
+      sound: 'chimes',
+      snooze: false,
+    };
     expect(shouldRing(due, T0 + 10 * M)).toBe(true);
     expect(shouldRing(due, T0 + 10 * M + 1)).toBe(false);
   });

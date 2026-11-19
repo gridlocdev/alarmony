@@ -1,3 +1,19 @@
+export {
+  EVERY_DAY,
+  WEEKDAYS,
+  WEEKENDS,
+  alarmClock,
+  alarmIsOn,
+  describeIn,
+  describeRepeat,
+  dueBetween,
+  nextAlarm,
+  nextDue,
+  onceAt,
+  onceFor,
+  parseAlarmTime,
+  sortAlarms,
+} from './alarms.ts';
 export { ClockDoc, MAX_HISTORY, type Change, type ChangeKind, type Step } from './clockDoc.ts';
 export {
   describeDuration,
@@ -7,8 +23,14 @@ export {
   parseDuration,
 } from './duration.ts';
 export {
+  addAlarm,
   addPreset,
   addTimer,
+  deleteAlarm,
+  duplicateAlarm,
+  editAlarm,
+  toggleAlarm,
+  type AlarmFields,
   canLap,
   canReset,
   deletePreset,
@@ -65,13 +87,18 @@ export {
   RING_LATE_MS,
   RING_LIMIT_MS,
   RUNG_KEEP_MS,
+  alarmKey,
   dueNow,
   nextDueAt,
   rampVolume,
   shouldRing,
+  snoozeKey,
   timerKey,
+  type AlarmWindow,
   type Due,
+  type Snooze,
 } from './ringing.ts';
 export { DEFAULT_SOUND, SOUNDS, soundFor, type Note, type Sound, type Wave } from './sounds.ts';
 export { MIN_LAPS_TO_MARK, currentLap, lapMarks, stopwatchElapsed, type LapMarks } from './stopwatch.ts';
 export { isFinished, soonestTimer, timerLeft, timerProgress } from './timers.ts';
+export { addDays, instantOf, knownZone, offsetAt, wallAt, weekday, type Wall } from './zoneTime.ts';
