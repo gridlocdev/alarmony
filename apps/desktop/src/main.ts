@@ -3,6 +3,8 @@
  * chosen at first start (or the one ALARMONY_FOLDER names). The page reaches the disk only through the preload's
  * `alarmonyNative`. Closing the window hides it, so the page keeps ringing; the menu bar icon brings it back.
  */
+// First, so a headless run never shows Electron's error dialog, even for an error while the rest loads.
+import { isHeadless } from './headlessErrors.ts';
 import {
   app,
   BrowserWindow,
@@ -54,7 +56,7 @@ const unified = process.platform === 'darwin';
  * ALARMONY_HEADLESS=1 or --headless: render offscreen, muted, and never show a window, Dock icon or system dialog
  * (automated checks).
  */
-const headless = process.env.ALARMONY_HEADLESS === '1' || process.argv.includes('--headless');
+const headless = isHeadless(process.env, process.argv);
 if (headless) app.dock?.hide();
 
 const dialogs = systemDialogs(headless);

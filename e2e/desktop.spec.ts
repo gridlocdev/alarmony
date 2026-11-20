@@ -133,3 +133,28 @@ test.describe('Desktop in the background', () => {
     }
   });
 });
+
+test.describe('Desktop in the background', () => {
+  // Electron's own handler shows a "JavaScript error occurred in the main process" dialog on the screen. A headless
+  // run instead writes the error to stderr and exits with 1, which is how this test sees it never got that far.
+  for (const [kind, crash] of [
+    ['uncaught exception', 'setTimeout(() => { throw new Error("boom in main"); }, 0)'],
+    ['unhandled rejection', 'void Promise.reject(new Error("boom in main"))'],
+  ] as const) {
+    test(`an ${kind} in the main process exits with no dialog`, async () => {
+      const { app, userData } = await launch();
+      const electronProcess = app.process();
+      let stderr = '';
+      electronProcess.stderr?.on('data', (chunk: Buffer) => (stderr += chunk.toString()));
+      try {
+        await app.firstWindow();
+        await app.evaluate((_electron, code) => (0, eval)(code), crash).catch(() => undefined);
+        await expect.poll(() => electronProcess.exitCode).toBe(1);
+        expect(stderr).toContain(`Alarmony (headless): ${kind}: Error: boom in main`);
+      } finally {
+        if (electronProcess.exitCode === null) electronProcess.kill();
+        rmSync(userData, { recursive: true, force: true });
+      }
+    });
+  }
+});
