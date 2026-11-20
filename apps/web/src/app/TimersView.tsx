@@ -59,6 +59,7 @@ function TimerCard({
       class={`al-timer al-timer-${done ? 'done' : timer.state}${app.selected.value === timer.id ? ' al-selected' : ''}`}
       tabIndex={0}
       data-id={timer.id}
+      data-nav
       onContextMenu={onMenu(app, 'timer', timer.id)}
       aria-label={label}
       onFocusIn={select}
@@ -147,6 +148,7 @@ export function TimersView({
               <button
                 type="button"
                 class="al-chip-start"
+                data-nav
                 title={`Start ${describeDuration(p.ms)}`}
                 onClick={() => startPreset(app, p.id)}
               >

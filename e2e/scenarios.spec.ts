@@ -194,6 +194,30 @@ test.describe('Stopwatch', () => {
 });
 
 test.describe('Timers', () => {
+  test('the arrow keys move between the presets and timers, and wrap', async ({ page }) => {
+    const errors = watchErrors(page);
+    await openApp(page);
+    await newTimer(page, '3m', 'Pasta');
+    await newTimer(page, '5m', 'Tea');
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    await page.keyboard.press('ArrowDown');
+    const focused = () => page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? '');
+    const first = await focused();
+    expect(first).toMatch(/^(Pasta|Tea), /);
+    await page.keyboard.press('ArrowRight');
+    const second = await focused();
+    expect(second).toMatch(/^(Pasta|Tea), /);
+    expect(second.split(',')[0]).not.toBe(first.split(',')[0]);
+    await page.keyboard.press('ArrowRight');
+    expect((await focused()).split(',')[0]).toBe(first.split(',')[0]);
+    // ↓ from the tab row goes into the tab.
+    await tab(page, 'Timers').focus();
+    await page.keyboard.press('ArrowDown');
+    await expect(card(page, /^(Pasta|Tea), /).first()).toBeVisible();
+    expect(await focused()).toMatch(/^(Pasta|Tea), /);
+    expect(errors).toEqual([]);
+  });
+
   test('a new timer counts down, pauses, and comes back after Delete and Undo', async ({ page }) => {
     const errors = watchErrors(page);
     await openApp(page);

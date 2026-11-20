@@ -102,6 +102,7 @@ function ClockItem({
       class={`al-clock${list ? ' al-clock-row' : ''}${known ? '' : ' al-clock-unknown'}${app.selected.value === clock.id ? ' al-selected' : ''}${drop}`}
       tabIndex={0}
       data-id={clock.id}
+      data-nav
       draggable
       onContextMenu={onMenu(app, 'clock', clock.id)}
       onDragStart={(e) => {
@@ -188,20 +189,8 @@ export function WorldView({
         No clocks. Add one with <kbd>N</kbd>.
       </p>
     );
-  /** Arrow keys move the selection along the clocks; ⌥ with them moves the clock itself (a command). */
-  const onKeyDown = (e: KeyboardEvent) => {
-    if (e.altKey || e.metaKey || e.ctrlKey) return;
-    const back = e.key === 'ArrowUp' || e.key === 'ArrowLeft';
-    if (!back && e.key !== 'ArrowDown' && e.key !== 'ArrowRight') return;
-    const items = [...(e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('.al-clock')];
-    const at = items.findIndex((r) => r.contains(document.activeElement));
-    const to = items[Math.max(0, Math.min(items.length - 1, at + (back ? -1 : 1)))];
-    if (!to) return;
-    e.preventDefault();
-    to.focus();
-  };
   return (
-    <ul class={list ? 'al-clock-list' : 'al-clock-grid'} aria-label="World clocks" onKeyDown={onKeyDown}>
+    <ul class={list ? 'al-clock-list' : 'al-clock-grid'} aria-label="World clocks">
       {clocks.map((c) => (
         <ClockItem key={c.id} app={app} catalog={catalog} clock={c} list={list} dragging={dragging} />
       ))}

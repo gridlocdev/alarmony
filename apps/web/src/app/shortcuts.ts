@@ -26,7 +26,10 @@ function extras(mod: string): Partial<Record<CommandGroup, ShortcutLine[]>> {
     File: [
       { title: 'Start the timer (in New Timer)', keys: [['Enter'], [mod === '⌘' ? '⌘Enter' : 'Ctrl+Enter']] },
     ],
-    View: [{ title: 'Next / previous tab (in the tab row)', keys: [['Right'], ['Left']] }],
+    View: [
+      { title: 'Next / previous tab (in the tab row)', keys: [['Right'], ['Left']] },
+      { title: 'Move between the items on a tab', keys: [['Up'], ['Down'], ['Left'], ['Right']] },
+    ],
     Clock: [{ title: 'Stop ringing (on the ringing sheet)', keys: [['Enter'], ['Esc']] }],
     Help: [
       {

@@ -39,6 +39,7 @@ function AlarmRow({
       class={`al-alarm${on ? '' : ' al-alarm-off'}${app.selected.value === alarm.id ? ' al-selected' : ''}`}
       tabIndex={0}
       data-id={alarm.id}
+      data-nav
       onContextMenu={onMenu(app, 'alarm', alarm.id)}
       aria-label={`${alarm.label || 'Alarm'}, ${time}, ${repeat}, ${on ? 'on' : 'off'}`}
       onFocusIn={select}
@@ -98,18 +99,8 @@ export function AlarmsView({
         No alarms. Add one with <kbd>N</kbd>.
       </p>
     );
-  /** Up and Down move along the list (PRD §7.1). */
-  const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-    const rows = [...(e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('.al-alarm')];
-    const at = rows.findIndex((r) => r.contains(document.activeElement));
-    const to = rows[Math.max(0, Math.min(rows.length - 1, at + (e.key === 'ArrowDown' ? 1 : -1)))];
-    if (!to) return;
-    e.preventDefault();
-    to.focus();
-  };
   return (
-    <ul class="al-alarm-list" aria-label="Alarms" onKeyDown={onKeyDown}>
+    <ul class="al-alarm-list" aria-label="Alarms">
       {alarms.map((a) => (
         <AlarmRow
           key={a.id}

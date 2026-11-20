@@ -8,18 +8,19 @@ In a browser tab, the browser keeps **⌘N** (**Ctrl+N**) for its own windows, s
 
 ## Tabs and windows
 
-|                                      | macOS         | Windows / Linux      |
-| ------------------------------------ | ------------- | -------------------- |
-| Timers                               | **⌘1**        | **Ctrl+1**           |
-| Stopwatch                            | **⌘2**        | **Ctrl+2**           |
-| Alarms                               | **⌘3**        | **Ctrl+3**           |
-| World Clock                          | **⌘4**        | **Ctrl+4**           |
+|  | macOS | Windows / Linux |
+| --- | --- | --- |
+| Timers | **⌘1** | **Ctrl+1** |
+| Stopwatch | **⌘2** | **Ctrl+2** |
+| Alarms | **⌘3** | **Ctrl+3** |
+| World Clock | **⌘4** | **Ctrl+4** |
 | Next / previous tab (in the tab row) | **→** / **←** | **Right** / **Left** |
-| Command menu                         | **⌘K**        | **Ctrl+K**           |
-| Keyboard Shortcuts                   | **⌘/**        | **Ctrl+/**           |
-| Settings                             | **⌘,**        | **Ctrl+,**           |
-| Open Folder…                         | **⌘O**        | **Ctrl+O**           |
-| Close a window or the command menu   | **⎋**         | **Esc**              |
+| Move between the items on a tab, wrapping at the ends | **↑** **↓** **←** **→** | **Up** **Down** **Left** **Right** |
+| Command menu | **⌘K** | **Ctrl+K** |
+| Keyboard Shortcuts | **⌘/** | **Ctrl+/** |
+| Settings | **⌘,** | **Ctrl+,** |
+| Open Folder… | **⌘O** | **Ctrl+O** |
+| Close a window or the command menu | **⎋** | **Esc** |
 
 ## World Clock
 

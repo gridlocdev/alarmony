@@ -249,6 +249,8 @@ Every action is a command in one catalog that feeds the keyboard, ⌘K, context 
 | ⌘, | Settings |
 | ⌘O | Open Folder… (desktop) |
 
+On a tab, the arrow keys move focus between its items: the clocks, the alarms, the presets and timers, or the stopwatch's buttons. ← → step through them in order, ↑ ↓ go to the row above or below, and both wrap at the ends. From the page or the tab row (↓), an arrow goes to the selected item, else the first or the last.
+
 Context menus: a clock (Rename, Move Up, Move Down, Delete); an alarm (Edit, Turn On/Off, Duplicate, Delete); a timer (Start/Pause/Resume, Edit, Cancel, Save as Preset, Delete); a preset (Start, Rename, Delete); a lap (Copy Time). Shift+F10 opens the selected item's menu; arrows move in it and Escape closes it.
 
 ## §15 Desktop

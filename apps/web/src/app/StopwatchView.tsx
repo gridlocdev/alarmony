@@ -47,6 +47,7 @@ export function StopwatchView({
     <button
       type="button"
       class={`al-button al-round${primary ? ' al-button-primary' : ''}`}
+      data-nav
       disabled={!catalog.isEnabled(catalog.get(id)!)}
       onClick={() => catalog.run(id)}
     >

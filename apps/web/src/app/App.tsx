@@ -1,5 +1,6 @@
 import { useRef } from 'preact/hooks';
 import { keyFocus, type CommandCatalog } from '@alarmony/ui';
+import { arrowNavigate } from './arrowNav.ts';
 import { TABS, type AppController } from './controller.ts';
 import { CommandMenu } from './CommandMenu.tsx';
 import { ContextMenu } from './ContextMenu.tsx';
@@ -15,6 +16,7 @@ import { TimersView } from './TimersView.tsx';
 export function handleKey(app: AppController, catalog: CommandCatalog, e: KeyboardEvent): void {
   if (e.defaultPrevented) return;
   app.unlockSound();
+  if (arrowNavigate(app, e)) return e.preventDefault();
   const result = catalog.forEvent(e, keyFocus(document.activeElement));
   if (!result) return;
   e.preventDefault();
