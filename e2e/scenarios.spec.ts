@@ -31,6 +31,7 @@ test.describe('World Clock', () => {
   }) => {
     const errors = watchErrors(page);
     await openApp(page);
+    await page.keyboard.press('ControlOrMeta+Digit4');
     await expect(tab(page, 'World Clock')).toHaveAttribute('aria-selected', 'true');
     // The browser runs in UTC at 9:00 AM.
     await expect(place(page, /^UTC, 9:00 AM, Today, same time$/)).toBeVisible();
@@ -95,7 +96,7 @@ const alarm = (page: Page, name: RegExp) =>
 
 /** Adds an alarm through New Alarm on the Alarms tab, the way a person does. NOW is 9:00 AM UTC. */
 async function newAlarm(page: Page, time: string, label: string): Promise<void> {
-  await page.keyboard.press('ControlOrMeta+Digit2');
+  await page.keyboard.press('ControlOrMeta+Digit3');
   await page.keyboard.press('KeyN');
   const dialog = page.getByRole('dialog', { name: 'New Alarm' });
   const field = dialog.getByRole('textbox', { name: /^Time/ });
@@ -114,7 +115,7 @@ test.describe('Alarms', () => {
   }) => {
     const errors = watchErrors(page);
     await openApp(page);
-    await page.keyboard.press('ControlOrMeta+Digit2');
+    await page.keyboard.press('ControlOrMeta+Digit3');
     await expect(page.getByText('No alarms.')).toBeVisible();
     await newAlarm(page, '905', 'Stand up');
     await expect(alarm(page, /^Stand up, 9:05 AM, Today, on$/)).toBeVisible();
@@ -175,7 +176,7 @@ test.describe('Stopwatch', () => {
   test('starts, laps and stops from the keyboard', async ({ page }) => {
     const errors = watchErrors(page);
     await openApp(page);
-    await page.keyboard.press('ControlOrMeta+Digit3');
+    await page.keyboard.press('ControlOrMeta+Digit2');
     await expect(tab(page, 'Stopwatch')).toHaveAttribute('aria-selected', 'true');
     await page.keyboard.press('Space');
     await page.clock.runFor(3000);
@@ -196,7 +197,7 @@ test.describe('Timers', () => {
   test('a new timer counts down, pauses, and comes back after Delete and Undo', async ({ page }) => {
     const errors = watchErrors(page);
     await openApp(page);
-    await page.keyboard.press('ControlOrMeta+Digit4');
+    await page.keyboard.press('ControlOrMeta+Digit1');
     await expect(page.getByText('No timers.')).toBeVisible();
     await newTimer(page, '3m', 'Pasta');
     await expect(card(page, /^Pasta, 3 minutes left$/)).toBeVisible();
@@ -234,7 +235,7 @@ test.describe('Timers', () => {
 
   test('a preset saved from New Timer starts from its chip', async ({ page }) => {
     await openApp(page);
-    await page.keyboard.press('ControlOrMeta+Digit4');
+    await page.keyboard.press('ControlOrMeta+Digit1');
     await page.keyboard.press('KeyN');
     const dialog = page.getByRole('dialog', { name: 'New Timer' });
     await expect(dialog.getByRole('textbox', { name: 'Length' })).toBeFocused();
@@ -446,7 +447,7 @@ test.describe('Commands and shortcuts', () => {
   test('⌘K runs a command by name and ⌘/ lists the shortcuts', async ({ page }) => {
     const errors = watchErrors(page);
     await openApp(page);
-    await expect(tab(page, 'World Clock')).toHaveAttribute('aria-selected', 'true');
+    await expect(tab(page, 'Timers')).toHaveAttribute('aria-selected', 'true');
     await runCommand(page, 'Stopwatch');
     await expect(tab(page, 'Stopwatch')).toHaveAttribute('aria-selected', 'true');
     await page.keyboard.press('ControlOrMeta+Slash');

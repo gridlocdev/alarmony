@@ -29,4 +29,4 @@ A browser plays sound only after you click or press a key on the page, so a time
 
 ## First run
 
-Alarmony opens on Timers, or on the tab you had open last time. Press `N` to start a timer, `⌘3` for the stopwatch, and `⌘/` to see every shortcut.
+Alarmony opens on Timers, or on the tab you had open last time. Press `N` to start a timer, `⌘2` for the stopwatch, and `⌘/` to see every shortcut.

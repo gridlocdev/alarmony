@@ -34,10 +34,10 @@ import { exportClock, importClock, inPickedFolder, leaveFolder } from './transfe
 const MENU_OVER: readonly string[] = ['menu', 'shortcuts', 'settings'];
 
 const TAB_KEYS: Record<string, string> = {
-  world: 'mod+1',
-  alarms: 'mod+2',
-  stopwatch: 'mod+3',
-  timers: 'mod+4',
+  timers: 'mod+1',
+  stopwatch: 'mod+2',
+  alarms: 'mod+3',
+  world: 'mod+4',
 };
 
 export function commandSpecs(app: AppController): CommandSpec[] {

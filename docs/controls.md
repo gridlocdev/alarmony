@@ -10,10 +10,10 @@ In a browser tab, the browser keeps **⌘N** (**Ctrl+N**) for its own windows, s
 
 |                                      | macOS         | Windows / Linux      |
 | ------------------------------------ | ------------- | -------------------- |
-| World Clock                          | **⌘1**        | **Ctrl+1**           |
-| Alarms                               | **⌘2**        | **Ctrl+2**           |
-| Stopwatch                            | **⌘3**        | **Ctrl+3**           |
-| Timers                               | **⌘4**        | **Ctrl+4**           |
+| Timers                               | **⌘1**        | **Ctrl+1**           |
+| Stopwatch                            | **⌘2**        | **Ctrl+2**           |
+| Alarms                               | **⌘3**        | **Ctrl+3**           |
+| World Clock                          | **⌘4**        | **Ctrl+4**           |
 | Next / previous tab (in the tab row) | **→** / **←** | **Right** / **Left** |
 | Command menu                         | **⌘K**        | **Ctrl+K**           |
 | Keyboard Shortcuts                   | **⌘/**        | **Ctrl+/**           |

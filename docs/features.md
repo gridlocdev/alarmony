@@ -2,25 +2,25 @@
 
 Alarmony is a clock for the desktop and the browser: world clocks, alarms, a stopwatch and timers. The desktop app, the browser and the command line all read and write the same `clock.json`. The exact behaviour of each feature is in the [product requirements](plans/prd.md).
 
-## World Clock
-
-The World Clock tab (**⌘1**) shows the time in the places you care about, as cards with an analog face (light by day, dark at night there) or as a list (**⌘L**). Each says how far ahead or behind it is: "Today, +9 hrs" or "Yesterday, −8 hrs". Press **N** (or **+**) to add a place: type a city, a region or an abbreviation such as `EST`, then Enter. The list stays open so you can add several. **Enter** renames the selected clock, dragging it or **⌥↑** and **⌥↓** move it, and **Delete** removes it, with Undo. A new file starts with one clock for where you are; it's an ordinary clock you can rename or delete. Settings can show seconds.
-
-## Alarms
-
-The Alarms tab (**⌘2**) lists your alarms by time of day, and the next one to ring says how long until it does. Press **N** (or **+**) for a new alarm. Type the time the way you'd say it: `7`, `7:30`, `730`, `7:30 pm` and `19:30` all work, or step the hour or minute with **↑** and **↓**. Pick the days it repeats (or **Weekdays**, **Weekends**, **Every Day**), a label and one of eight sounds, and whether it can snooze. An alarm with no days rings once, at the next time it comes round, then turns itself off.
-
-The switch on each row turns an alarm on or off, and so does **Space** on the selected one. **Enter** or a double-click opens it to edit, and each change saves as you make it. **Delete** removes it, and **⌘Z** brings it back. Alarms ring at the wall-clock time where you are, so they follow you across time zones and through daylight saving changes.
-
-## Stopwatch
-
-The Stopwatch tab shows the time to hundredths of a second, an analog dial with a lap hand, and the laps under it, newest first. Press **Space** to start or stop, **L** for a lap and **R** to reset. Once there are three laps the fastest is green and the slowest red, and both say so in words. The stopwatch keeps running when you close the window or restart the app, because its start time is in the file.
-
 ## Timers
 
 Press **N** (or the **+** button) for a new timer. Type how long: `5` is five minutes, and `5m`, `1h30m`, `90s`, `25:00` and `1:30:00` all work. Add a label if you like, then press Enter. Run as many timers as you like at once. Each card shows a ring that empties, the time left, the label and when it will end. **Pause**, **Resume** and **Cancel** are on the card, and **Space**, **Enter** and **Delete** work on the selected one.
 
 **Save as Preset** keeps a length and label. Presets show as chips above the timers and as buttons in New Timer; click one to start a timer from it.
+
+## Stopwatch
+
+The Stopwatch tab shows the time to hundredths of a second, an analog dial with a lap hand, and the laps under it, newest first. Press **Space** to start or stop, **L** for a lap and **R** to reset. Once there are three laps the fastest is green and the slowest red, and both say so in words. The stopwatch keeps running when you close the window or restart the app, because its start time is in the file.
+
+## Alarms
+
+The Alarms tab (**⌘3**) lists your alarms by time of day, and the next one to ring says how long until it does. Press **N** (or **+**) for a new alarm. Type the time the way you'd say it: `7`, `7:30`, `730`, `7:30 pm` and `19:30` all work, or step the hour or minute with **↑** and **↓**. Pick the days it repeats (or **Weekdays**, **Weekends**, **Every Day**), a label and one of eight sounds, and whether it can snooze. An alarm with no days rings once, at the next time it comes round, then turns itself off.
+
+The switch on each row turns an alarm on or off, and so does **Space** on the selected one. **Enter** or a double-click opens it to edit, and each change saves as you make it. **Delete** removes it, and **⌘Z** brings it back. Alarms ring at the wall-clock time where you are, so they follow you across time zones and through daylight saving changes.
+
+## World Clock
+
+The World Clock tab (**⌘4**) shows the time in the places you care about, as cards with an analog face (light by day, dark at night there) or as a list (**⌘L**). Each says how far ahead or behind it is: "Today, +9 hrs" or "Yesterday, −8 hrs". Press **N** (or **+**) to add a place: type a city, a region or an abbreviation such as `EST`, then Enter. The list stays open so you can add several. **Enter** renames the selected clock, dragging it or **⌥↑** and **⌥↓** move it, and **Delete** removes it, with Undo. A new file starts with one clock for where you are; it's an ordinary clock you can rename or delete. Settings can show seconds.
 
 ## Ringing
 

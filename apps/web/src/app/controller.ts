@@ -52,10 +52,10 @@ const SEEN_EVERY_MS = 60_000;
 
 /** The tabs, in toolbar order (PRD §5.1). */
 export const TABS: readonly { readonly id: Tab; readonly title: string }[] = [
-  { id: 'world', title: 'World Clock' },
-  { id: 'alarms', title: 'Alarms' },
-  { id: 'stopwatch', title: 'Stopwatch' },
   { id: 'timers', title: 'Timers' },
+  { id: 'stopwatch', title: 'Stopwatch' },
+  { id: 'alarms', title: 'Alarms' },
+  { id: 'world', title: 'World Clock' },
 ];
 
 export type DialogState =

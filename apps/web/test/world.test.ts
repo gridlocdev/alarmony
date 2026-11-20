@@ -13,9 +13,9 @@ async function withClocks(...zones: string[]) {
 const zones = (app: Awaited<ReturnType<typeof makeApp>>['app']) => app.data.value.clocks.map((c) => c.zone);
 
 describe('world clocks', () => {
-  it('opens on the World Clock tab, where N adds a clock and the + button says so', async () => {
+  it('N on the World Clock tab adds a clock and the + button says so', async () => {
     const { app, catalog } = await makeApp();
-    expect(app.tab.value).toBe('world');
+    app.showTab('world');
     catalog.run('item.new');
     expect(app.dialog.value).toEqual({ kind: 'addClock' });
   });

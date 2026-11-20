@@ -112,7 +112,7 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 
 ### §5.1 Window
 
-- One window. A toolbar of four tabs: **World Clock**, **Alarms**, **Stopwatch**, **Timers** (⌘1–⌘4), the active tab's **+** button on the right. The last tab reopens.
+- One window. A toolbar of four tabs: **Timers**, **Stopwatch**, **Alarms**, **World Clock** (⌘1–⌘4), most used first, the active tab's **+** button on the right. The first start opens on Timers; after that the last tab reopens.
 - Default 760 × 560, minimum 420 × 420. Below 600 px wide the world clock grid becomes one column.
 - On macOS the title bar is hidden; the tab row is the toolbar, with the traffic lights at its left and drag regions around the tabs.
 - A status bar at the bottom: notices (§5.3), the folder name.
@@ -234,7 +234,7 @@ Every action is a command in one catalog that feeds the keyboard, ⌘K, context 
 
 | Key | Command |
 | --- | --- |
-| ⌘1–⌘4 | World Clock, Alarms, Stopwatch, Timers |
+| ⌘1–⌘4 | Timers, Stopwatch, Alarms, World Clock |
 | N, ⌘N | New clock, alarm or timer on the current tab |
 | Enter | Edit the selected item |
 | Delete, ⌫ | Delete the selected item |
