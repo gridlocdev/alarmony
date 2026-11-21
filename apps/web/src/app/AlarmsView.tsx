@@ -95,9 +95,17 @@ export function AlarmsView({
   const next = nextAlarm(alarms, now, app.zone);
   if (alarms.length === 0)
     return (
-      <p class="al-empty">
-        No alarms. Add one with <kbd>N</kbd>.
-      </p>
+      <div class="al-empty">
+        <p>No alarms.</p>
+        <button
+          type="button"
+          class="al-button al-button-primary"
+          data-nav
+          onClick={() => catalog.run('alarm.new')}
+        >
+          New Alarm
+        </button>
+      </div>
     );
   return (
     <ul class="al-alarm-list" aria-label="Alarms">
@@ -110,6 +118,11 @@ export function AlarmsView({
           soon={next?.alarm.id === a.id ? describeIn(next.at - now) : null}
         />
       ))}
+      <li class="al-add-row">
+        <button type="button" class="al-add-button" data-nav onClick={() => catalog.run('alarm.new')}>
+          + New Alarm
+        </button>
+      </li>
     </ul>
   );
 }

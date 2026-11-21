@@ -564,10 +564,14 @@ export function dynamicEntries(app: AppController): (MenuEntry & { readonly run:
 export function startPreset(app: AppController, presetId: string): void {
   const p = app.data.peek().presets.find((x) => x.id === presetId);
   if (!p) return;
+  startTimerFor(app, p.ms, p.label);
+}
+
+/** Starts a new timer of this length, as a preset or a common length does (PRD §8.2). */
+export function startTimerFor(app: AppController, ms: number, label: string): void {
   app.showTab('timers');
   const id = app.newId('t');
-  if (app.edit(addTimer(app.data.peek(), { id, ms: p.ms, label: p.label }, app.now()), 'New timer'))
-    app.selected.value = id;
+  if (app.edit(addTimer(app.data.peek(), { id, ms, label }, app.now()), 'New timer')) app.selected.value = id;
 }
 
 export function deletePresetFrom(app: AppController, presetId: string): void {

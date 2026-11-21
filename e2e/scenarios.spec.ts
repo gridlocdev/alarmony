@@ -35,7 +35,8 @@ test.describe('World Clock', () => {
     await expect(tab(page, 'World Clock')).toHaveAttribute('aria-selected', 'true');
     // The browser runs in UTC at 9:00 AM.
     await expect(place(page, /^UTC, 9:00 AM, Today, same time$/)).toBeVisible();
-    await page.keyboard.press('KeyN');
+    // The faded card at the end of the clocks adds one, as N does.
+    await page.getByRole('button', { name: '+ Add Clock' }).click();
     const dialog = page.getByRole('dialog', { name: 'Add Clock' });
     const search = dialog.getByRole('combobox', { name: 'City or time zone' });
     await expect(search).toBeFocused();
@@ -117,7 +118,14 @@ test.describe('Alarms', () => {
     await openApp(page);
     await page.keyboard.press('ControlOrMeta+Digit3');
     await expect(page.getByText('No alarms.')).toBeVisible();
+    await page.locator('.al-empty').getByRole('button', { name: 'New Alarm' }).click();
+    await expect(
+      page.getByRole('dialog', { name: 'New Alarm' }).getByRole('textbox', { name: /^Time/ }),
+    ).toBeFocused();
+    await page.keyboard.press('Escape');
     await newAlarm(page, '905', 'Stand up');
+    // Once there are alarms, a faded row at the end of the list adds another.
+    await expect(page.getByRole('button', { name: '+ New Alarm' })).toBeVisible();
     await expect(alarm(page, /^Stand up, 9:05 AM, Today, on$/)).toBeVisible();
     await expect(alarm(page, /^Stand up/)).toContainText('in 5 min');
     await page.clock.runFor(5 * 60_000);
@@ -222,27 +230,36 @@ test.describe('Timers', () => {
     expect(errors).toEqual([]);
   });
 
-  test('the arrow keys move between the presets and timers, and wrap', async ({ page }) => {
+  test('the arrow keys move between the timers and the New Timer card, and wrap', async ({ page }) => {
     const errors = watchErrors(page);
     await openApp(page);
     await newTimer(page, '3m', 'Pasta');
     await newTimer(page, '5m', 'Tea');
-    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-    await page.keyboard.press('ArrowDown');
-    const focused = () => page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? '');
-    const first = await focused();
-    expect(first).toMatch(/^(Pasta|Tea), /);
+    const focused = () =>
+      page.evaluate(() => {
+        const el = document.activeElement as HTMLElement | null;
+        return el?.getAttribute('aria-label') ?? el?.textContent ?? '';
+      });
+    await card(page, /^Pasta/).focus();
     await page.keyboard.press('ArrowRight');
-    const second = await focused();
-    expect(second).toMatch(/^(Pasta|Tea), /);
-    expect(second.split(',')[0]).not.toBe(first.split(',')[0]);
+    await expect.poll(focused).toMatch(/^Tea, /);
+    // After the timers come the New Timer card's buttons: the common lengths, then Custom….
     await page.keyboard.press('ArrowRight');
-    expect((await focused()).split(',')[0]).toBe(first.split(',')[0]);
+    await expect.poll(focused).toBe('1 min');
+    await page.keyboard.press('Enter');
+    await expect(card(page, /^Timer, 1 minute left$/)).toBeVisible();
+    await card(page, /^Pasta/).focus();
+    await page.keyboard.press('ArrowLeft');
+    await expect.poll(focused).toBe('+ Custom…');
+    await page.keyboard.press('Enter');
+    const dialog = page.getByRole('dialog', { name: 'New Timer' });
+    await expect(dialog.getByRole('textbox', { name: 'Length' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
     // ↓ from the tab row goes into the tab.
     await tab(page, 'Timers').focus();
     await page.keyboard.press('ArrowDown');
-    await expect(card(page, /^(Pasta|Tea), /).first()).toBeVisible();
-    expect(await focused()).toMatch(/^(Pasta|Tea), /);
+    await expect.poll(focused).toMatch(/^(Pasta|Tea|Timer), /);
     expect(errors).toEqual([]);
   });
 
@@ -250,7 +267,8 @@ test.describe('Timers', () => {
     const errors = watchErrors(page);
     await openApp(page);
     await page.keyboard.press('ControlOrMeta+Digit1');
-    await expect(page.getByText('No timers.')).toBeVisible();
+    await expect(card(page, /^New timer$/)).toBeVisible();
+    await expect(page.locator('.al-timer')).toHaveCount(0);
     await newTimer(page, '3m', 'Pasta');
     await expect(card(page, /^Pasta, 3 minutes left$/)).toBeVisible();
     await page.clock.runFor(60_000);
@@ -285,7 +303,7 @@ test.describe('Timers', () => {
     await expect(card(page, /^Tea/)).toHaveCount(0);
   });
 
-  test('a preset saved from New Timer starts from its chip', async ({ page }) => {
+  test('a preset saved from New Timer starts from the New Timer card', async ({ page }) => {
     await openApp(page);
     await page.keyboard.press('ControlOrMeta+Digit1');
     await page.keyboard.press('KeyN');
@@ -296,7 +314,7 @@ test.describe('Timers', () => {
     await dialog.getByRole('button', { name: 'Save as Preset' }).click();
     await dialog.getByRole('button', { name: 'Cancel' }).click();
     await page
-      .getByRole('list', { name: 'Presets' })
+      .getByRole('list', { name: 'Start a timer' })
       .getByRole('button', { name: /^Focus/ })
       .click();
     await expect(card(page, /^Focus, 25 minutes left$/)).toBeVisible();
@@ -520,7 +538,7 @@ test.describe('Commands and shortcuts', () => {
     await expect(menu.getByRole('menuitem', { name: 'Pause' })).toBeFocused();
     await menu.getByRole('menuitem', { name: 'Save as Preset' }).click();
     await expect(menu).toBeHidden();
-    const chip = page.getByRole('list', { name: 'Presets' }).getByRole('listitem');
+    const chip = page.getByRole('list', { name: 'Start a timer' }).getByRole('listitem').first();
     await chip.click({ button: 'right' });
     await page
       .getByRole('menu', { name: 'Preset actions' })

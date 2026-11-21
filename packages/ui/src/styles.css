@@ -297,6 +297,97 @@ kbd {
   text-align: center;
   color: var(--al-text-2);
 }
+.al-empty p {
+  margin: 0 0 1em;
+}
+
+/* The faded "add" card or row at the end of a tab's items: dashed, darker on hover and focus. */
+.al-add-button {
+  padding: 0.86em 1em;
+  border: 1px dashed var(--al-border-strong);
+  border-radius: 0.86em;
+  background: none;
+  color: var(--al-text-2);
+  cursor: pointer;
+  font-weight: 500;
+}
+.al-add-button:hover,
+.al-add-button:focus-visible {
+  border-color: var(--al-accent);
+  background: var(--al-hover);
+  color: var(--al-accent);
+}
+.al-add-row {
+  display: flex;
+}
+.al-add-row .al-add-button {
+  flex: 1;
+}
+.al-clock-add {
+  display: flex;
+  min-height: 8em;
+}
+.al-clock-add .al-add-button {
+  flex: 1;
+}
+.al-add-card {
+  border: 1px dashed var(--al-border-strong);
+  border-radius: 12px;
+  color: var(--al-text-2);
+}
+.al-add-card:hover,
+.al-add-card:focus-within {
+  border-color: var(--al-accent-soft);
+}
+.al-add-title {
+  font-size: 0.86em;
+  font-weight: 600;
+}
+.al-timer-add {
+  /* As tall as a timer card when it's alone in its row. */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.86em;
+  min-height: 16em;
+  padding: 1em;
+}
+.al-quick {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.43em;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.al-quick-start {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 0.43em 0.6em;
+  border: 1px solid var(--al-border);
+  border-radius: 0.57em;
+  background: var(--al-raised);
+  color: var(--al-text);
+  cursor: pointer;
+}
+.al-quick-start:hover {
+  background: var(--al-hover);
+  color: var(--al-accent);
+}
+.al-quick-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 550;
+}
+.al-timer-add .al-add-button {
+  padding: 0.3em 1em;
+}
 
 /* Stopwatch (PRD §8.1) */
 .al-stopwatch {
@@ -386,35 +477,6 @@ kbd {
 .al-timers {
   max-width: 900px;
   margin: 0 auto;
-}
-.al-presets {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 18px;
-  padding: 0;
-}
-.al-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding-right: 4px;
-  border: 1px solid var(--al-border-strong);
-  border-radius: 16px;
-  background: var(--al-raised);
-}
-.al-chip-start {
-  display: inline-flex;
-  gap: 8px;
-  padding: 4px 6px 4px 12px;
-  border: 0;
-  border-radius: 16px;
-  background: none;
-  cursor: pointer;
-}
-.al-chip-start:hover {
-  color: var(--al-accent);
 }
 .al-preset-buttons {
   display: flex;

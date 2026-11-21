@@ -185,15 +185,28 @@ export function WorldView({
   };
   if (clocks.length === 0)
     return (
-      <p class="al-empty">
-        No clocks. Add one with <kbd>N</kbd>.
-      </p>
+      <div class="al-empty">
+        <p>No clocks.</p>
+        <button
+          type="button"
+          class="al-button al-button-primary"
+          data-nav
+          onClick={() => catalog.run('clock.add')}
+        >
+          Add Clock
+        </button>
+      </div>
     );
   return (
     <ul class={list ? 'al-clock-list' : 'al-clock-grid'} aria-label="World clocks">
       {clocks.map((c) => (
         <ClockItem key={c.id} app={app} catalog={catalog} clock={c} list={list} dragging={dragging} />
       ))}
+      <li class={list ? 'al-add-row' : 'al-add-card al-clock-add'}>
+        <button type="button" class="al-add-button" data-nav onClick={() => catalog.run('clock.add')}>
+          + Add Clock
+        </button>
+      </li>
     </ul>
   );
 }

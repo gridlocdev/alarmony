@@ -9,7 +9,8 @@ import {
 import { Icon, type CommandCatalog } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
 import { clockTime, doneAgo } from './time.ts';
-import { deletePresetFrom, startPreset } from './commands.ts';
+import { startTimerFor } from './commands.ts';
+import { quickStarts } from './quickStart.ts';
 import { onMenu } from './ContextMenu.tsx';
 
 const RING_R = 47;
@@ -130,7 +131,40 @@ function TimerCard({
   );
 }
 
-/** The Timers tab: presets as chips, then a card per timer (PRD §8.2). */
+/** The last card: one click starts a preset or a common length, and Custom… opens New Timer (PRD §8.2). */
+function AddTimerCard({ app, catalog }: { readonly app: AppController; readonly catalog: CommandCatalog }) {
+  return (
+    <li class="al-add-card al-timer-add" aria-label="New timer">
+      <span class="al-add-title" aria-hidden="true">
+        New Timer
+      </span>
+      <ul class="al-quick" aria-label="Start a timer">
+        {quickStarts(app.data.value.presets).map((q) => (
+          <li
+            key={q.presetId ?? q.ms}
+            onContextMenu={q.presetId ? onMenu(app, 'preset', q.presetId) : undefined}
+          >
+            <button
+              type="button"
+              class="al-quick-start"
+              data-nav
+              title={`Start ${describeDuration(q.ms)}`}
+              onClick={() => startTimerFor(app, q.ms, q.label)}
+            >
+              {q.label && <span class="al-quick-label">{q.label}</span>}
+              <span class="al-num">{q.text}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <button type="button" class="al-add-button" data-nav onClick={() => catalog.run('timer.new')}>
+        + Custom…
+      </button>
+    </li>
+  );
+}
+
+/** The Timers tab: a card per timer, then the New Timer card with the presets (PRD §8.2). */
 export function TimersView({
   app,
   catalog,
@@ -142,43 +176,12 @@ export function TimersView({
   const now = app.clock.value;
   return (
     <div class="al-timers">
-      {data.presets.length > 0 && (
-        <ul class="al-presets" aria-label="Presets">
-          {data.presets.map((p) => (
-            <li key={p.id} class="al-chip" onContextMenu={onMenu(app, 'preset', p.id)}>
-              <button
-                type="button"
-                class="al-chip-start"
-                data-nav
-                title={`Start ${describeDuration(p.ms)}`}
-                onClick={() => startPreset(app, p.id)}
-              >
-                <span>{p.label || 'Timer'}</span>
-                <span class="al-num al-muted">{formatCountdown(p.ms)}</span>
-              </button>
-              <button
-                type="button"
-                class="al-icon-button al-small"
-                aria-label={`Delete preset ${p.label || describeDuration(p.ms)}`}
-                onClick={() => deletePresetFrom(app, p.id)}
-              >
-                <Icon name="x" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {data.timers.length === 0 ? (
-        <p class="al-empty">
-          No timers. Start one with <kbd>N</kbd>.
-        </p>
-      ) : (
-        <ul class="al-timer-grid" aria-label="Timers">
-          {data.timers.map((t) => (
-            <TimerCard key={t.id} app={app} catalog={catalog} timer={t} now={now} />
-          ))}
-        </ul>
-      )}
+      <ul class="al-timer-grid" aria-label="Timers">
+        {data.timers.map((t) => (
+          <TimerCard key={t.id} app={app} catalog={catalog} timer={t} now={now} />
+        ))}
+        <AddTimerCard app={app} catalog={catalog} />
+      </ul>
     </div>
   );
 }
