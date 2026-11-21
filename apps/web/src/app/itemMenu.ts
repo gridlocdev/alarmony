@@ -20,7 +20,15 @@ export interface OpenMenu extends MenuTarget {
 export const MENUS: Record<MenuKind, readonly string[]> = {
   clock: ['clock.rename', 'clock.moveUp', 'clock.moveDown', '|', 'clock.delete'],
   alarm: ['alarm.edit', 'alarm.toggle', 'alarm.duplicate', '|', 'alarm.delete'],
-  timer: ['timer.toggle', 'timer.edit', 'timer.cancel', 'timer.savePreset', '|', 'timer.delete'],
+  timer: [
+    'timer.toggle',
+    'timer.edit',
+    'timer.cancel',
+    'timer.dismiss',
+    'timer.savePreset',
+    '|',
+    'timer.delete',
+  ],
   preset: ['preset.start', 'preset.rename', '|', 'preset.delete'],
   lap: ['lap.copy'],
 };

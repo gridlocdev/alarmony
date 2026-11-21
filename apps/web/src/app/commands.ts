@@ -419,11 +419,23 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Cancel Timer',
       description: 'Stop the selected timer and put it back to its full length.',
       group: 'Clock',
-      enabled: () => onTimers() && timer()?.state !== 'idle',
+      enabled: () => onTimers() && !!timer() && timer()!.state !== 'idle' && !isDone(timer()!, now()),
       run: withTimer((id) => {
-        const t = timer();
-        const word = t && isDone(t, now()) ? 'Dismissed' : 'Cancelled';
-        app.edit(resetTimer(app.data.peek(), id), 'Cancel', `${word} ${app.describeTimer(t!)}.`);
+        const t = timer()!;
+        app.edit(resetTimer(app.data.peek(), id), 'Cancel', `Cancelled ${app.describeTimer(t)}.`);
+      }),
+    },
+    {
+      id: 'timer.dismiss',
+      title: 'Dismiss Timer',
+      description: 'Close the selected timer once it is done.',
+      group: 'Clock',
+      enabled: () => onTimers() && !!timer() && isDone(timer()!, now()),
+      run: withTimer((id) => {
+        const t = timer()!;
+        deleteAndSelectBeside(app, 'timers', id, () =>
+          app.edit(deleteTimer(app.data.peek(), id), 'Dismiss', `Dismissed ${app.describeTimer(t)}.`),
+        );
       }),
     },
     {

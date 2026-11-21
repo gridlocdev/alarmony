@@ -1,6 +1,6 @@
 // The app's commands, notices and ringing, run against a file in memory with a clock the test moves.
 import { describe, expect, it } from 'vitest';
-import { addTimer, resetTimer, serialize } from '@alarmony/core';
+import { addTimer, deleteTimer, serialize } from '@alarmony/core';
 import { startPreset } from '../src/app/commands.ts';
 import { placeLabel } from '../src/app/StatusBar.tsx';
 import { NOW, makeApp } from './helpers.ts';
@@ -238,9 +238,23 @@ describe('ringing', () => {
     app.tick();
     expect(app.ringing.value).toHaveLength(1);
     // The sheet is in front, so the card's Dismiss is the way here; it goes through the same edit.
-    expect(catalog.run('timer.cancel')).toBe(false);
-    app.edit(resetTimer(app.data.peek(), app.selected.value!), 'Cancel');
+    expect(catalog.run('timer.dismiss')).toBe(false);
+    app.edit(deleteTimer(app.data.peek(), app.selected.value!), 'Dismiss');
     expect(app.ringing.value).toEqual([]);
+  });
+
+  it('dismisses a done timer by removing it, with Undo, and only cancels one that is still going', async () => {
+    const { app, catalog, clock, id } = await withTimer(1);
+    expect(catalog.isEnabled(catalog.get('timer.dismiss')!)).toBe(false);
+    clock.at = NOW + MIN;
+    app.tick();
+    catalog.run('ringing.stop');
+    expect(catalog.isEnabled(catalog.get('timer.cancel')!)).toBe(false);
+    expect(catalog.run('timer.dismiss')).toBe(true);
+    expect(app.data.value.timers).toEqual([]);
+    expect(app.notice.value?.text).toBe('Dismissed “Pasta”.');
+    app.notice.value!.action!.run();
+    expect(app.data.value.timers.map((t) => t.id)).toEqual([id]);
   });
 
   it('gives a sticky Missed notice for one that finished over 10 minutes ago', async () => {

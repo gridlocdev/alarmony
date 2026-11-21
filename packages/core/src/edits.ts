@@ -75,7 +75,7 @@ export function toggleTimer(data: ClockData, id: string, now: number): Op[] | nu
   return isDone(t, now) ? restartTimer(data, id, now) : pauseTimer(data, id, now);
 }
 
-/** Back to idle with its length kept: Cancel, and Dismiss on a finished timer (PRD §8.2). */
+/** Back to idle with its length kept: Cancel (PRD §8.2). */
 export function resetTimer(data: ClockData, id: string): Op[] | null {
   const t = findTimer(data, id);
   if (!t || t.state === 'idle') return null;

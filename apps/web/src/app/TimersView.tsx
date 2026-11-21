@@ -87,7 +87,7 @@ function TimerCard({
       <div class="al-timer-buttons">
         {done ? (
           <>
-            <button type="button" class="al-button al-button-small" onClick={run('timer.cancel')}>
+            <button type="button" class="al-button al-button-small" onClick={run('timer.dismiss')}>
               Dismiss
             </button>
             <button

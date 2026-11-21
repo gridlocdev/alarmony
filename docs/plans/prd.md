@@ -170,7 +170,7 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 - **New Timer** (N, ⌘N, +): a duration field (`5`, `5m`, `1h30m`, `90s`, `1:30:00`, `25:00`; a bare number is minutes), a label, and the presets as buttons under it. Enter starts it. **Save as Preset** keeps the duration and label.
 - Each timer is a card: a ring that empties, the time left (`H:MM:SS` or `M:SS`), the label, the time it will end ("🔔 6:20 PM"), **Pause/Resume** and **Cancel** (back to idle with its length kept; Delete removes it, with Undo). An idle timer shows its length and **Start**. Any number run at once. Space pauses or resumes the selected timer.
 - After the timers, a faded **New Timer** card: one button per preset (its label and length), then the common lengths 1, 3, 5 and 10 min that no preset already has, each starting a timer in one click, and **+ Custom…**, which opens New Timer. Right-click on a preset: Start, Rename, Delete.
-- A finished timer rings (§9) and its card shows "Done" and the minutes since, with **Restart** and **Dismiss** (back to idle). Dismissing writes the file; the ringing itself doesn't.
+- A finished timer rings (§9) and its card shows "Done" and the minutes since, with **Restart** and **Dismiss**, which closes the timer (removes it, with Undo). **Cancel** is only for a timer still running or paused, and puts it back to idle. Dismissing writes the file; the ringing itself doesn't.
 - Empty: the New Timer card alone.
 
 ## §9 Ringing
