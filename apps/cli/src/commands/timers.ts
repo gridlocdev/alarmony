@@ -5,7 +5,7 @@ import {
   deletePreset,
   deleteTimer,
   formatCountdown,
-  isFinished,
+  isDone,
   newId,
   parseDuration,
   pauseTimer,
@@ -85,7 +85,7 @@ async function waitFor(ctx: Context, id: string): Promise<{ timer: Timer | null;
       return { timer: t, finished: false };
     }
     last = t;
-    if (isFinished(t, now)) {
+    if (isDone(t, now)) {
       io.stderr(`\r${timerName(t)} is done.\u0007\n`);
       return { timer: t, finished: true };
     }
@@ -140,7 +140,7 @@ function presetSearch(data: ClockData) {
   };
 }
 
-const running = (t: Timer, now: number) => t.state === 'running' && !isFinished(t, now);
+const running = (t: Timer, now: number) => t.state === 'running' && !isDone(t, now);
 
 export const timerCommands: CommandSpec[] = [
   {

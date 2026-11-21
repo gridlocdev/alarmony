@@ -1,7 +1,7 @@
 /** What the desktop app's menu bar icon shows, worked out from the page's state (PRD §15). */
 import {
   formatCountdown,
-  isFinished,
+  isDone,
   nextAlarm,
   soonestTimer,
   timerLeft,
@@ -22,7 +22,7 @@ export interface TrayInput {
 }
 
 export function trayState({ data, now, zone, format, ringing, countdown }: TrayInput): TrayState {
-  const running = data.timers.filter((t) => t.state === 'running' && !isFinished(t, now));
+  const running = data.timers.filter((t) => t.state === 'running' && !isDone(t, now));
   const soonest = soonestTimer(data.timers, now);
   const next = nextAlarm(data.alarms, now, zone);
   return {

@@ -10,7 +10,7 @@ import {
   RING_LIMIT_MS,
   alarmIsOn,
   dueNow,
-  isFinished,
+  isDone,
   newId,
   shouldRing,
   soonestTimer,
@@ -592,8 +592,8 @@ export class AppController {
     this.#sound.preview(id, this.settings.peek().volume);
   }
 
-  /** Timers that finished and still show Done. */
-  finished(now: number): Timer[] {
-    return this.data.peek().timers.filter((t) => isFinished(t, now));
+  /** Timers that are Done: their time has run out and they haven't been dismissed. */
+  done(now: number): Timer[] {
+    return this.data.peek().timers.filter((t) => isDone(t, now));
   }
 }

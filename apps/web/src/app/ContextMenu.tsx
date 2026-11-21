@@ -1,5 +1,5 @@
 import { PopupMenu, type Command, type CommandCatalog } from '@alarmony/ui';
-import { isFinished } from '@alarmony/core';
+import { isDone } from '@alarmony/core';
 import type { AppController } from './controller.ts';
 import { MENUS, SELECTED_KINDS, type MenuKind } from './itemMenu.ts';
 
@@ -47,7 +47,7 @@ function menuTitle(app: AppController, c: Command): string {
   if (c.id === 'timer.toggle') {
     const t = app.selectedTimer.value;
     if (!t || t.state === 'idle') return 'Start';
-    return t.state === 'running' && !isFinished(t, app.clock.value) ? 'Pause' : 'Resume';
+    return t.state === 'running' && !isDone(t, app.clock.value) ? 'Pause' : 'Resume';
   }
   return c.title.replace(/ (Clock|Alarm|Timer|Preset|Lap)\b/, '');
 }

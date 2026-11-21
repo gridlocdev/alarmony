@@ -15,7 +15,7 @@ import {
 } from './format.ts';
 import type { Op } from './ops.ts';
 import { stopwatchElapsed } from './stopwatch.ts';
-import { isFinished, timerLeft } from './timers.ts';
+import { isDone, timerLeft } from './timers.ts';
 
 const NO_EXTRA = Object.freeze({});
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -62,7 +62,7 @@ export function startTimer(data: ClockData, id: string, now: number): Op[] | nul
 /** Pause a running timer that hasn't finished. */
 export function pauseTimer(data: ClockData, id: string, now: number): Op[] | null {
   const t = findTimer(data, id);
-  if (!t || t.state !== 'running' || isFinished(t, now)) return null;
+  if (!t || t.state !== 'running' || isDone(t, now)) return null;
   const leftMs = Math.min(t.ms, Math.max(1, Math.round(timerLeft(t, now))));
   return updateTimer(t, { ...t, state: 'paused', endsAt: null, leftMs });
 }
@@ -72,7 +72,7 @@ export function toggleTimer(data: ClockData, id: string, now: number): Op[] | nu
   const t = findTimer(data, id);
   if (!t) return null;
   if (t.state !== 'running') return startTimer(data, id, now);
-  return isFinished(t, now) ? restartTimer(data, id, now) : pauseTimer(data, id, now);
+  return isDone(t, now) ? restartTimer(data, id, now) : pauseTimer(data, id, now);
 }
 
 /** Back to idle with its length kept: Cancel, and Dismiss on a finished timer (PRD §8.2). */

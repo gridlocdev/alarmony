@@ -1,7 +1,7 @@
 import {
   describeDuration,
   formatCountdown,
-  isFinished,
+  isDone,
   timerLeft,
   timerProgress,
   type Timer,
@@ -35,7 +35,7 @@ function TimerCard({
   readonly timer: Timer;
   readonly now: number;
 }) {
-  const done = isFinished(timer, now);
+  const done = isDone(timer, now);
   const left = timerLeft(timer, now);
   const progress = timerProgress(timer, now);
   const name = timer.label || 'Timer';

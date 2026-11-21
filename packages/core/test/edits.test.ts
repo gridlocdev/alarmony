@@ -11,7 +11,7 @@ import {
   dueNow,
   editTimer,
   emptyData,
-  isFinished,
+  isDone,
   lapMarks,
   lapStopwatch,
   nextDueAt,
@@ -52,7 +52,7 @@ describe('timers', () => {
     const t = doc.data.timers[0]!;
     expect(t.state).toBe('running');
     expect(timerLeft(t, T0 + M)).toBe(9 * M);
-    expect(isFinished(t, T0 + 10 * M)).toBe(true);
+    expect(isDone(t, T0 + 10 * M)).toBe(true);
     checkInvariants(doc.data);
   });
 

@@ -12,8 +12,8 @@ export function timerLeft(timer: Timer, now: number): number {
   }
 }
 
-/** A running timer whose end has passed is finished (PRD §8.2); finishing writes nothing. */
-export function isFinished(timer: Timer, now: number): boolean {
+/** A running timer whose end has passed is Done (PRD §8.2); becoming Done writes nothing. */
+export function isDone(timer: Timer, now: number): boolean {
   return timer.state === 'running' && Date.parse(timer.endsAt ?? '') <= now;
 }
 
@@ -26,7 +26,7 @@ export function timerProgress(timer: Timer, now: number): number {
 export function soonestTimer(timers: readonly Timer[], now: number): Timer | null {
   let best: Timer | null = null;
   for (const t of timers)
-    if (t.state === 'running' && !isFinished(t, now) && (!best || timerLeft(t, now) < timerLeft(best, now)))
+    if (t.state === 'running' && !isDone(t, now) && (!best || timerLeft(t, now) < timerLeft(best, now)))
       best = t;
   return best;
 }

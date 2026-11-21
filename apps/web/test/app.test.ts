@@ -225,7 +225,7 @@ describe('ringing', () => {
     clock.at += 1000;
     app.tick();
     expect(app.ringing.value).toEqual([]);
-    expect(app.finished(clock.at).map((t) => t.id)).toEqual([id]);
+    expect(app.done(clock.at).map((t) => t.id)).toEqual([id]);
   });
 
   it('rings again after a restart, and stops when the timer is dismissed', async () => {

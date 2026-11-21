@@ -11,7 +11,7 @@ import {
   describeDuration,
   canReset,
   deleteTimer,
-  isFinished,
+  isDone,
   lapStopwatch,
   pauseAllTimers,
   resetStopwatch,
@@ -422,7 +422,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       enabled: () => onTimers() && timer()?.state !== 'idle',
       run: withTimer((id) => {
         const t = timer();
-        const word = t && isFinished(t, now()) ? 'Dismissed' : 'Cancelled';
+        const word = t && isDone(t, now()) ? 'Dismissed' : 'Cancelled';
         app.edit(resetTimer(app.data.peek(), id), 'Cancel', `${word} ${app.describeTimer(t!)}.`);
       }),
     },
@@ -462,8 +462,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Pause All Timers',
       description: 'Pause every running timer.',
       group: 'Clock',
-      enabled: () =>
-        app.data.value.timers.some((t) => t.state === 'running' && !isFinished(t, app.clock.value)),
+      enabled: () => app.data.value.timers.some((t) => t.state === 'running' && !isDone(t, app.clock.value)),
       run: () => void app.edit(pauseAllTimers(app.data.peek(), now()), 'Pause all', 'Paused all timers.'),
     },
     {

@@ -115,7 +115,7 @@ export {
 } from './ringing.ts';
 export { DEFAULT_SOUND, SOUNDS, soundFor, type Note, type Sound, type Wave } from './sounds.ts';
 export { MIN_LAPS_TO_MARK, currentLap, lapMarks, stopwatchElapsed, type LapMarks } from './stopwatch.ts';
-export { isFinished, soonestTimer, timerLeft, timerProgress } from './timers.ts';
+export { isDone, soonestTimer, timerLeft, timerProgress } from './timers.ts';
 export { importOps, type ImportRead } from './transfer.ts';
 export { addDays, instantOf, knownZone, offsetAt, wallAt, weekday, type Wall } from './zoneTime.ts';
 export {
