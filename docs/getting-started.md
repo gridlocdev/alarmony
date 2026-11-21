@@ -12,6 +12,7 @@ Node 22.18 or later, pnpm (through `corepack enable`) and [just](https://github.
 just setup         # corepack enable, then pnpm install
 just run-web       # the web app on http://localhost:5173
 just run-desktop   # the desktop app
+just cli timers    # the alarmony command, from source (just cli man lists every command)
 ```
 
 ## Where your data is kept

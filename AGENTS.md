@@ -2,6 +2,8 @@
 
 Alarmony is a clock app for one person: world clock, alarms, stopwatch and timers. One UI runs in the browser and in the Electron app, and a CLI runs in Node, all on one `clock.json`. The spec is [docs/plans/prd.md](docs/plans/prd.md), the code layout is [docs/architecture.md](docs/architecture.md), and the commands are in [docs/development.md](docs/development.md).
 
+Use the terms in [GLOSSARY.md](GLOSSARY.md) in code, docs and commit messages, and add a term there when a new concept appears.
+
 ## Gates
 
 - `just check` (= `pnpm check`) must pass before you commit: Prettier check, ESLint, `tsc -b`, Vitest (including the architecture rules in `test/architecture.test.ts`), and the build.

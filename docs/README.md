@@ -13,4 +13,4 @@ These pages cover using Alarmony and working on its code.
 
 - [Development](development.md): setting up, every `just` recipe, checking your work, adding a command, packaging and releasing.
 - [Architecture](architecture.md): how the code is organized, its layer rules, and how each host reaches `clock.json`.
-- [Product requirements](plans/prd.md) and the [1.0 slices](plans/1-alarmony-1.0.md).
+- [Glossary](../GLOSSARY.md): the words Alarmony uses for its own things, and the ones to avoid.
