@@ -20,7 +20,7 @@ The faded **+ New Alarm** row at the end of the list adds one too. The switch on
 
 ## World Clock
 
-The World Clock tab (**⌘4**) shows the time in the places you care about, as cards with an analog face (light by day, dark at night there) or as a list (**⌘L**). Each says how far ahead or behind it is: "Today, +9 hrs" or "Yesterday, −8 hrs". Press **N** (or **+**) to add a place: type a city, a region or an abbreviation such as `EST`, then Enter. The list stays open so you can add several. The faded **+ Add Clock** card after the clocks does the same. **Enter** renames the selected clock, dragging it or **⌥↑** and **⌥↓** move it, and **Delete** removes it, with Undo. A new file starts with one clock for where you are; it's an ordinary clock you can rename or delete. Settings can show seconds.
+The World Clock tab (**⌘4**) shows the time in the places you care about, as cards with an analog face (light by day, dark at night there) or as a list (**⌘L**). Each says how far ahead or behind it is: "Today, +9 hrs" or "Yesterday, −8 hrs". Press **N** (or **+**) to add a place. The list starts with the places at your own time; type a city, a region or an abbreviation such as `EST`, then Enter. The list stays open so you can add several. The faded **+ Add Clock** card after the clocks does the same. **Enter** renames the selected clock, dragging it or **⌥↑** and **⌥↓** move it, and **Delete** removes it, with Undo. A new file starts with one clock for where you are; it's an ordinary clock you can rename or delete. Settings can show seconds.
 
 ## Ringing
 

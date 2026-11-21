@@ -66,12 +66,15 @@ export function App({ app, catalog }: { readonly app: AppController; readonly ca
             </button>
           ))}
         </div>
-        {tab !== 'stopwatch' && plus && (
+        {plus && (
           <button
             type="button"
             class="al-icon-button al-plus"
-            aria-label={PLUS[tab]}
-            title={`${PLUS[tab]} (${catalog.keys(plus).join('')})`}
+            aria-label={PLUS[tab] ?? 'New'}
+            title={
+              PLUS[tab] ? `${PLUS[tab]} (${catalog.keys(plus).join('')})` : 'The stopwatch has nothing to add'
+            }
+            disabled={!PLUS[tab]}
             onClick={() => catalog.run('item.new')}
           >
             +

@@ -87,6 +87,12 @@ export function zoneChoices(zones: readonly string[], at: number): readonly Zone
     .sort((a, b) => a.offset - b.offset || a.city.localeCompare(b.city));
 }
 
+/** With nothing typed, the list starts at the zones on the same offset as here and runs east, wrapping round (PRD §6.1). */
+export function fromHere(choices: readonly ZoneChoice[], here: number): readonly ZoneChoice[] {
+  const at = choices.findIndex((c) => c.offset >= here);
+  return at <= 0 ? choices : [...choices.slice(at), ...choices.slice(0, at)];
+}
+
 /** The choices that match every word typed; cities that start with what was typed come first (PRD §6.1). */
 export function searchZones(choices: readonly ZoneChoice[], query: string): readonly ZoneChoice[] {
   const q = fold(query.trim());

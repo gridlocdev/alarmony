@@ -173,9 +173,13 @@ kbd {
   color: var(--al-text-2);
   cursor: pointer;
 }
-.al-icon-button:hover {
+.al-icon-button:hover:not(:disabled) {
   background: var(--al-hover);
   color: var(--al-text);
+}
+.al-icon-button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 .al-icon-button.al-small {
   width: 22px;
@@ -597,10 +601,11 @@ kbd {
 .al-clock-grid {
   /* Clocks are sized in em from the app's text size, so a card's face, time and text grow together. */
   display: grid;
-  grid-template-columns: repeat(auto-fill, 13.6em);
-  justify-content: center;
+  grid-template-columns: repeat(auto-fill, minmax(13.6em, 1fr));
   gap: 0.86em;
-  padding: 1.15em;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0;
   list-style: none;
 }
 @media (max-width: 599px) {

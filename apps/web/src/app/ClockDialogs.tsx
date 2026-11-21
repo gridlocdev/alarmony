@@ -1,5 +1,14 @@
 import { useMemo, useRef, useState } from 'preact/hooks';
-import { addClock, renameClock, searchZones, systemZones, zoneChoices, zoneCity } from '@alarmony/core';
+import {
+  addClock,
+  fromHere,
+  offsetAt,
+  renameClock,
+  searchZones,
+  systemZones,
+  zoneChoices,
+  zoneCity,
+} from '@alarmony/core';
 import { Dialog } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
 
@@ -11,7 +20,10 @@ const SHOWN = 60;
  * another; a zone already shown is marked Added (PRD §6.1).
  */
 function AddClockDialog({ app }: { readonly app: AppController }) {
-  const choices = useMemo(() => zoneChoices(systemZones(), app.now()), [app]);
+  const choices = useMemo(
+    () => fromHere(zoneChoices(systemZones(), app.now()), offsetAt(app.now(), app.zone)),
+    [app],
+  );
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
   const listRef = useRef<HTMLUListElement>(null);

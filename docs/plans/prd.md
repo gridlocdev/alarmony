@@ -112,8 +112,8 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 
 ### §5.1 Window
 
-- One window. A toolbar of four tabs: **Timers**, **Stopwatch**, **Alarms**, **World Clock** (⌘1–⌘4), most used first, the active tab's **+** button on the right. The first start opens on Timers; after that the last tab reopens.
-- Default 760 × 560, minimum 420 × 420. Below 600 px wide the world clock grid becomes one column.
+- One window. A toolbar of four tabs: **Timers**, **Stopwatch**, **Alarms**, **World Clock** (⌘1–⌘4), most used first, the **+** button on the right, which adds to the open tab and is greyed on Stopwatch so it doesn't jump in and out. The first start opens on Timers; after that the last tab reopens.
+- Default 760 × 560, minimum 420 × 420. Timers and world clocks share one grid, at most 900 px wide and centred; below 600 px wide the world clock grid becomes one column.
 - On macOS the title bar is hidden; the tab row is the toolbar, with the traffic lights at its left and drag regions around the tabs.
 - A status bar at the bottom: notices (§5.3), the folder name and, in a browser while an alarm or timer is set, "Keep this tab open to ring" (§9.4).
 
@@ -129,7 +129,7 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 
 ### §6.1 Places
 
-- **Add Clock…** (N on this tab, ⌘N, the + button) opens a search over the system's zones. Each zone shows as its city (the last part of the id, underscores as spaces: `America/New_York` → "New York"), with the region and the current offset ("America · UTC−5"). Typing matches city, region and abbreviations the system gives (`EST`, `JST`), accent- and case-insensitive. Enter adds the first match; the list stays open for another. A zone already shown is marked "Added" and can't be added twice.
+- **Add Clock…** (N on this tab, ⌘N, the + button) opens a search over the system's zones. Each zone shows as its city (the last part of the id, underscores as spaces: `America/New_York` → "New York"), with the region and the current offset ("America · UTC−5"). Typing matches city, region and abbreviations the system gives (`EST`, `JST`), accent- and case-insensitive. With nothing typed the list starts at the zones on this device's offset and runs east, wrapping round. Enter adds the first match; the list stays open for another. A zone already shown is marked "Added" and can't be added twice.
 - A clock can be renamed (its label shows instead of the city, with the city under it), moved (drag, or ⌥↑/⌥↓), and deleted (Delete, with Undo). The local clock is an ordinary clock: it can be deleted too.
 - After the clocks, a faded **+ Add Clock** card (a row in the list view) opens Add Clock. Empty: "No clocks." and an **Add Clock** button.
 

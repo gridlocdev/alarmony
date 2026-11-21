@@ -122,6 +122,7 @@ export {
   clockName,
   compareToHere,
   fold,
+  fromHere,
   handAngles,
   isDaytime,
   offsetText,

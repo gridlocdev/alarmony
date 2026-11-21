@@ -6,6 +6,7 @@ import {
   compareToHere,
   deleteClock,
   emptyData,
+  fromHere,
   handAngles,
   invertOps,
   isDaytime,
@@ -46,6 +47,15 @@ describe('searchZones', () => {
     expect(choices.some((c) => c.zone === 'UTC')).toBe(true);
     expect(choices.length).toBeGreaterThan(300);
     expect(choices.every((c, i) => i === 0 || choices[i - 1]!.offset <= c.offset)).toBe(true);
+  });
+
+  it('starts the unsearched list at the zones here and wraps round to the far west', () => {
+    const tokyo = 9 * 3_600_000;
+    const list = fromHere(choices, tokyo);
+    expect(list).toHaveLength(choices.length);
+    expect(list[0]?.offset).toBe(tokyo);
+    expect(list.at(-1)!.offset).toBeLessThan(tokyo);
+    expect(fromHere(choices, -100 * 3_600_000)).toBe(choices);
   });
 
   it('matches city, region and abbreviation, ignoring case and accents', () => {
