@@ -528,11 +528,12 @@ kbd {
 
 /* World Clock */
 .al-clock-grid {
+  /* Clocks are sized in em from the app's text size, so a card's face, time and text grow together. */
   display: grid;
-  grid-template-columns: repeat(auto-fill, 190px);
+  grid-template-columns: repeat(auto-fill, 13.6em);
   justify-content: center;
-  gap: 12px;
-  padding: 16px;
+  gap: 0.86em;
+  padding: 1.15em;
   list-style: none;
 }
 @media (max-width: 599px) {
@@ -543,10 +544,10 @@ kbd {
 .al-clock-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-width: 560px;
+  gap: 0.43em;
+  max-width: 40em;
   margin: 0 auto;
-  padding: 16px;
+  padding: 1.15em;
   list-style: none;
 }
 .al-clock {
@@ -554,10 +555,10 @@ kbd {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 16px 12px 14px;
+  gap: 0.43em;
+  padding: 1.15em 0.86em 1em;
   border: 1px solid var(--al-border);
-  border-radius: 12px;
+  border-radius: 0.86em;
   background: var(--al-card);
   cursor: default;
   text-align: center;
@@ -567,27 +568,27 @@ kbd {
 .al-clock.al-drop-after::before {
   content: '';
   position: absolute;
-  inset: -6px auto -6px -7px;
+  inset: -0.43em auto -0.43em -0.5em;
   width: 3px;
   border-radius: 2px;
   background: var(--al-accent);
 }
 .al-clock.al-drop-after::before {
-  inset: -6px -7px -6px auto;
+  inset: -0.43em -0.5em -0.43em auto;
 }
 .al-clock-row.al-drop-before::before {
-  inset: -4px 0 auto 0;
+  inset: -0.29em 0 auto 0;
   width: auto;
   height: 3px;
 }
 .al-clock-row.al-drop-after::before {
-  inset: auto 0 -4px 0;
+  inset: auto 0 -0.29em 0;
   width: auto;
   height: 3px;
 }
 .al-clock.al-clock-row {
   flex-direction: row;
-  padding: 10px 14px;
+  padding: 0.71em 1em;
   text-align: left;
 }
 .al-clock.al-selected {
@@ -615,16 +616,16 @@ kbd {
   font-size: 0.9em;
 }
 .al-clock-time {
-  font-size: 1.4rem;
+  font-size: 1.6em;
   font-weight: 300;
 }
 .al-clock-row .al-clock-time {
-  font-size: 1.6rem;
+  font-size: 1.83em;
 }
 .al-clock-delete {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 0.43em;
+  right: 0.43em;
   opacity: 0;
 }
 .al-clock-row .al-clock-delete {
@@ -635,8 +636,8 @@ kbd {
   opacity: 1;
 }
 .al-face {
-  width: 120px;
-  height: 120px;
+  width: 8.6em;
+  height: 8.6em;
 }
 .al-face-rim {
   stroke-width: 1.5;
