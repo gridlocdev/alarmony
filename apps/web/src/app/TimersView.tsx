@@ -8,7 +8,7 @@ import {
 } from '@alarmony/core';
 import { Icon, type CommandCatalog } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
-import { clockTime } from './time.ts';
+import { clockTime, doneAgo } from './time.ts';
 import { deletePresetFrom, startPreset } from './commands.ts';
 import { onMenu } from './ContextMenu.tsx';
 
@@ -48,8 +48,7 @@ function TimerCard({
   };
   let status: string;
   if (done) {
-    const since = Math.floor((now - Date.parse(timer.endsAt ?? '')) / MINUTE);
-    status = since < 1 ? 'Done' : `Done ${since} min ago`;
+    status = doneAgo(now - Date.parse(timer.endsAt ?? ''));
   } else if (timer.state === 'running') status = `🔔 ${clockTime(now + left, app.settings.value.timeFormat)}`;
   else if (timer.state === 'paused') status = 'Paused';
   else status = describeDuration(timer.ms);
@@ -74,7 +73,7 @@ function TimerCard({
           r={RING_R}
           class="al-ring-left"
           stroke-dasharray={RING_LENGTH}
-          stroke-dashoffset={RING_LENGTH * progress}
+          stroke-dashoffset={done ? 0 : RING_LENGTH * progress}
         />
       </svg>
       <div class="al-timer-text" aria-hidden="true">

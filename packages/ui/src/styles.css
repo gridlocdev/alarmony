@@ -464,6 +464,8 @@ kbd {
   transition: stroke-dashoffset 1s linear;
 }
 .al-timer-text {
+  /* Above the ring, which is positioned and would otherwise paint over the text. */
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -484,6 +486,11 @@ kbd {
   font-weight: 550;
 }
 .al-timer-status {
+  /* The ring's inside is about 110px across. */
+  max-width: 104px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--al-text-2);
   font-size: 12px;
 }
