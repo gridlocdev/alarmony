@@ -26,7 +26,7 @@ The World Clock tab (**⌘4**) shows the time in the places you care about, as c
 
 When an alarm goes off or a timer finishes, Alarmony plays its sound, growing louder over 30 seconds, and shows a sheet with **Stop** (Enter or Esc). An alarm that can snooze also has **Snooze** (**S**), which rings it again after the snooze length in Settings. A finished timer's card then says Done, with **Restart** and **Dismiss**, which closes the timer. Ringing stops by itself after 15 minutes and leaves a "Missed" notice. Anything that came due while Alarmony wasn't open rings if it was in the last 10 minutes, and gives a "Missed" notice if it's older. Alarmony also shows a system notification; turn off **Show notifications** in Settings if you'd rather not.
 
-Every copy of Alarmony with the file open rings, so turn off **Ring on this device** in Settings on a device that should stay quiet. In a browser, sound starts after your first click on the page, and a tab in the background can ring up to a minute late.
+Every copy of Alarmony with the file open rings, so turn off **Ring on this device** in Settings on a device that should stay quiet. In a browser, sound starts after your first click on the page, and a tab in the background can ring up to a minute late. While something is set to ring, the status bar says **Keep this tab open to ring**.
 
 ## Keeping your data
 

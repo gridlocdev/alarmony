@@ -14,9 +14,14 @@ export function placeLabel(kind: ClockStore['kind'], location: string): string {
   );
 }
 
+/** In a browser something will ring, but only while this tab is open: the status bar says so (PRD §5.3, §9). */
+export function keepTabOpen(app: AppController): boolean {
+  return app.session.store.kind === 'browser' && app.tray.value.armed;
+}
+
 /** Whether the status bar has nothing to show: no notice, and everything saved. On a phone it then takes no room. */
 export function statusQuiet(app: AppController): boolean {
-  return !app.notice.value && app.session.status.value === 'saved';
+  return !app.notice.value && app.session.status.value === 'saved' && !keepTabOpen(app);
 }
 
 /** The status bar: the latest notice with its action, the save state and where the file is (PRD §5.1, §5.3). */
@@ -56,6 +61,14 @@ export function StatusBar({ app }: { readonly app: AppController }) {
         )}
       </div>
       <span class={`al-save al-save-${status}`}>{STATUS_TEXT[status]}</span>
+      {keepTabOpen(app) && (
+        <span
+          class="al-keep-open"
+          title="In a browser, alarms and timers ring only while this tab is open, and a tab in the background can ring up to a minute late."
+        >
+          Keep this tab open to ring
+        </span>
+      )}
       <span class="al-where" title={app.session.store.location()}>
         {placeLabel(app.session.store.kind, app.session.store.location())}
       </span>

@@ -115,7 +115,7 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 - One window. A toolbar of four tabs: **Timers**, **Stopwatch**, **Alarms**, **World Clock** (⌘1–⌘4), most used first, the active tab's **+** button on the right. The first start opens on Timers; after that the last tab reopens.
 - Default 760 × 560, minimum 420 × 420. Below 600 px wide the world clock grid becomes one column.
 - On macOS the title bar is hidden; the tab row is the toolbar, with the traffic lights at its left and drag regions around the tabs.
-- A status bar at the bottom: notices (§5.3), the folder name.
+- A status bar at the bottom: notices (§5.3), the folder name and, in a browser while an alarm or timer is set, "Keep this tab open to ring" (§9.4).
 
 ### §5.2 Theme
 
@@ -195,7 +195,7 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 ### §9.4 Missed while not running
 
 - On start, waking from sleep or reopening a tab, an alarm or timer that came due in the last 10 minutes rings now. Older ones, back to the last time this device was running (at most 24 h), each give one notice "Missed: Wake up at 7:00 AM" that stays until dismissed.
-- Browser: background tabs throttle timers, so a tab rings up to a minute late; the Settings page says so. Sound in a browser needs one click on the page first; until then a due alarm shows the sheet and a notification, and the sheet's first click starts the sound.
+- Browser: background tabs throttle timers, so a tab rings up to a minute late; the status bar's "Keep this tab open to ring" says so on hover, and the Settings page too. Sound in a browser needs one click on the page first; until then a due alarm shows the sheet and a notification, and the sheet's first click starts the sound.
 
 ### §9.5 Scheduling
 

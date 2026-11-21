@@ -1138,6 +1138,11 @@ kbd {
 .al-save {
   color: var(--al-text-3);
 }
+.al-keep-open {
+  white-space: nowrap;
+  color: var(--al-text-2);
+  cursor: help;
+}
 .al-save-failed,
 .al-save-conflict {
   color: var(--al-danger);
