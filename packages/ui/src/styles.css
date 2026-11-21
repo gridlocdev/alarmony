@@ -362,10 +362,15 @@ kbd {
   padding: 0;
   list-style: none;
 }
+.al-quick li {
+  /* Every button in a row as tall as the tallest, a preset's two lines or a length's one. */
+  display: flex;
+}
 .al-quick-start {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   width: 100%;
   padding: 0.43em 0.6em;
   border: 1px solid var(--al-border);
