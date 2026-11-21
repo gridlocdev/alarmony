@@ -300,15 +300,16 @@ kbd {
 
 /* Stopwatch (PRD §8.1) */
 .al-stopwatch {
+  /* Sized in em from the app's text size, so the dial, the time and the buttons grow together. */
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  max-width: 420px;
+  gap: 1em;
+  max-width: 30em;
   margin: 0 auto;
 }
 .al-dial {
-  width: min(220px, 40vh);
+  width: min(16em, 40vh);
   height: auto;
 }
 .al-dial-face {
@@ -338,7 +339,7 @@ kbd {
   fill: var(--al-accent);
 }
 .al-big-time {
-  font-size: 56px;
+  font-size: 4em;
   font-weight: 300;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
@@ -346,24 +347,24 @@ kbd {
 }
 .al-row-buttons {
   display: flex;
-  gap: 16px;
+  gap: 1.15em;
 }
 .al-round {
-  width: 88px;
-  height: 40px;
-  border-radius: 20px;
+  width: 6.3em;
+  height: 2.85em;
+  border-radius: 1.43em;
 }
 .al-laps {
   list-style: none;
   width: 100%;
-  margin: 8px 0 0;
+  margin: 0.57em 0 0;
   padding: 0;
   border-top: 1px solid var(--al-border);
 }
 .al-lap {
   display: flex;
   justify-content: space-between;
-  padding: 7px 4px;
+  padding: 0.5em 0.3em;
   border-bottom: 1px solid var(--al-border);
 }
 .al-lap-current {
@@ -376,8 +377,8 @@ kbd {
   color: var(--al-slow);
 }
 .al-lap-tag {
-  margin-left: 8px;
-  font-size: 12px;
+  margin-left: 0.67em;
+  font-size: 0.86em;
   font-weight: 600;
 }
 
@@ -720,21 +721,22 @@ kbd {
 
 /* Alarms */
 .al-alarm-list {
+  /* Sized in em from the app's text size, so a row's time, text and switch grow together. */
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-width: 560px;
+  gap: 0.57em;
+  max-width: 40em;
   margin: 0 auto;
-  padding: 16px;
+  padding: 1.15em;
   list-style: none;
 }
 .al-alarm {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 0.86em;
+  padding: 0.86em 1em;
   border: 1px solid var(--al-border);
-  border-radius: 12px;
+  border-radius: 0.86em;
   background: var(--al-card);
   cursor: default;
 }
@@ -749,7 +751,7 @@ kbd {
   min-width: 0;
 }
 .al-alarm-time {
-  font-size: 2rem;
+  font-size: 2.3em;
   font-weight: 300;
   line-height: 1.1;
 }
@@ -775,11 +777,11 @@ kbd {
 .al-switch {
   position: relative;
   flex: none;
-  width: 42px;
-  height: 24px;
+  width: 3em;
+  height: 1.7em;
   padding: 0;
   border: 1px solid var(--al-border-strong);
-  border-radius: 12px;
+  border-radius: 0.85em;
   background: var(--al-hover);
   cursor: pointer;
   transition: background 0.15s;
@@ -790,17 +792,17 @@ kbd {
 }
 .al-switch-knob {
   position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 18px;
-  height: 18px;
+  top: 0.14em;
+  left: 0.14em;
+  width: 1.28em;
+  height: 1.28em;
   border-radius: 50%;
   background: var(--al-raised);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   transition: transform 0.15s;
 }
 .al-switch[aria-checked='true'] .al-switch-knob {
-  transform: translateX(18px);
+  transform: translateX(1.28em);
 }
 .al-days {
   margin: 0;
