@@ -123,17 +123,25 @@ function showWindow(): void {
   win.focus();
 }
 
-/** Closing hides the window; the page keeps running so alarms ring. The first close says so (PRD §15). */
+/**
+ * Closing hides the window; the page keeps running so alarms ring. The first close says so, and Cancel there
+ * keeps the window open and the note for next time (PRD §15).
+ */
 async function hideWindow(w: BrowserWindow): Promise<void> {
   if (prefs.closeNote && !closeNoteShown) {
     closeNoteShown = true;
     const r = await dialogs.ask(w, {
       type: 'info',
       message: 'Alarmony keeps running in the menu bar so alarms ring.',
-      buttons: ['OK'],
+      buttons: ['OK', 'Cancel'],
       defaultId: 0,
+      cancelId: 1,
       checkboxLabel: 'Don’t show again',
     });
+    if (r.response === 1) {
+      closeNoteShown = false;
+      return;
+    }
     if (r.checkboxChecked) savePrefs({ ...prefs, closeNote: false });
   }
   if (!w.isDestroyed()) w.hide();

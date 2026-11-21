@@ -34,7 +34,7 @@ Every change saves at once to `clock.json`. On the desktop, the first start asks
 
 ## Desktop in the background
 
-Closing the desktop window doesn't quit Alarmony: it keeps running in the menu bar so alarms ring, and says so the first time. The menu bar icon shows the soonest timer's time left (turn off **Show countdown in the menu bar** in Settings to hide it), and its menu has Stop and Snooze while something rings, the next alarm, running timers, Show Alarmony, Pause All Timers, Settings… and Quit Alarmony. Quitting while an alarm is on or a timer runs asks first. **Open at login** in Settings starts Alarmony in the menu bar when you log in. After the computer wakes from sleep, anything that came due rings at once.
+Closing the desktop window doesn't quit Alarmony: it keeps running in the menu bar so alarms ring, and says so the first time; choose **Cancel** there to keep the window open. The menu bar icon shows the soonest timer's time left (turn off **Show countdown in the menu bar** in Settings to hide it), and its menu has Stop and Snooze while something rings, the next alarm, running timers, Show Alarmony, Pause All Timers, Settings… and Quit Alarmony. Quitting while an alarm is on or a timer runs asks first. **Open at login** in Settings starts Alarmony in the menu bar when you log in. After the computer wakes from sleep, anything that came due rings at once.
 
 ## Commands and shortcuts
 
