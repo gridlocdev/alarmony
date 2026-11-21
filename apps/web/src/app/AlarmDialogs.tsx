@@ -19,13 +19,44 @@ import type { AppController } from './controller.ts';
 
 const BAD_TIME = 'Type a time like 7, 7:30, 730, 7:30 pm or 19:30.';
 const DAYS = [
-  { day: 1, short: 'M', name: 'Monday' },
-  { day: 2, short: 'T', name: 'Tuesday' },
-  { day: 3, short: 'W', name: 'Wednesday' },
-  { day: 4, short: 'T', name: 'Thursday' },
-  { day: 5, short: 'F', name: 'Friday' },
-  { day: 6, short: 'S', name: 'Saturday' },
-  { day: 7, short: 'S', name: 'Sunday' },
+  { day: 1, short: 'Mo', name: 'Monday' },
+  { day: 2, short: 'Tu', name: 'Tuesday' },
+  { day: 3, short: 'We', name: 'Wednesday' },
+  { day: 4, short: 'Th', name: 'Thursday' },
+  { day: 5, short: 'Fr', name: 'Friday' },
+  { day: 6, short: 'Sa', name: 'Saturday' },
+  { day: 7, short: 'Su', name: 'Sunday' },
+];
+
+/** The first day of the week where this browser is (1 Monday … 7 Sunday); Monday where it can't tell. */
+function firstDayHere(): number {
+  try {
+    const locale = new Intl.Locale(navigator.language) as Intl.Locale & {
+      getWeekInfo?: () => { firstDay: number };
+      weekInfo?: { firstDay: number };
+    };
+    const first = locale.getWeekInfo?.().firstDay ?? locale.weekInfo?.firstDay;
+    return first && first >= 1 && first <= 7 ? first : 1;
+  } catch {
+    return 1;
+  }
+}
+
+/** The seven day buttons, starting on `first` (PRD §7.2). */
+export function daysFrom(first: number): typeof DAYS {
+  const at = DAYS.findIndex((d) => d.day === first);
+  return at <= 0 ? DAYS : [...DAYS.slice(at), ...DAYS.slice(0, at)];
+}
+
+/** The same days, in any order. */
+const sameDays = (a: readonly number[], b: readonly number[]) =>
+  a.length === b.length && a.every((d) => b.includes(d));
+
+const SHORTCUTS = [
+  { label: 'Weekdays', days: WEEKDAYS },
+  { label: 'Weekends', days: WEEKENDS },
+  { label: 'Every Day', days: EVERY_DAY },
+  { label: 'Never', days: [] as readonly number[] },
 ];
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -52,6 +83,9 @@ function AlarmFieldsView(props: {
 }) {
   const { app, fields } = props;
   const parsed = parseAlarmTime(props.timeText);
+  const shown = parsed === null ? null : alarmTime(parsed, app.settings.value.timeFormat);
+  // The time as Alarmony reads it, when that tells you more than what you typed ("730" → "7:30 AM").
+  const reading = shown && shown.toLowerCase() !== props.timeText.trim().toLowerCase() ? shown : ' ';
   const setDays = (days: readonly number[]) => props.onChange({ days });
   const toggleDay = (day: number) =>
     setDays(fields.days.includes(day) ? fields.days.filter((d) => d !== day) : [...fields.days, day]);
@@ -71,6 +105,15 @@ function AlarmFieldsView(props: {
             // Up and Down step the hour, or the minute when the caret is after the colon (PRD §7.2).
             if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
             const input = e.currentTarget;
+            if (!input.value.trim()) {
+              // An empty field starts at the next whole hour, then steps from there.
+              e.preventDefault();
+              const text = alarmTime(nextWholeHour(app), app.settings.value.timeFormat);
+              input.value = text;
+              props.onTimeText(text);
+              props.onTimeDone(text);
+              return;
+            }
             const time = parseAlarmTime(input.value);
             if (time === null) return;
             e.preventDefault();
@@ -88,14 +131,12 @@ function AlarmFieldsView(props: {
             props.onTimeDone(text);
           }}
         />
-        <small class={props.timeError ? 'al-error-text' : 'al-muted'}>
-          {props.timeError ?? (parsed ? alarmTime(parsed, app.settings.value.timeFormat) : ' ')}
-        </small>
+        <small class={props.timeError ? 'al-error-text' : 'al-muted'}>{props.timeError ?? reading}</small>
       </label>
       <fieldset class="al-field al-days">
         <legend>Repeat</legend>
         <div class="al-day-buttons" role="group" aria-label="Days">
-          {DAYS.map((d) => (
+          {daysFrom(firstDayHere()).map((d) => (
             <button
               key={d.day}
               type="button"
@@ -110,18 +151,17 @@ function AlarmFieldsView(props: {
           ))}
         </div>
         <div class="al-day-shortcuts">
-          <button type="button" class="al-button al-button-small" onClick={() => setDays(WEEKDAYS)}>
-            Weekdays
-          </button>
-          <button type="button" class="al-button al-button-small" onClick={() => setDays(WEEKENDS)}>
-            Weekends
-          </button>
-          <button type="button" class="al-button al-button-small" onClick={() => setDays(EVERY_DAY)}>
-            Every Day
-          </button>
-          <button type="button" class="al-button al-button-small" onClick={() => setDays([])}>
-            Never
-          </button>
+          {SHORTCUTS.map((s) => (
+            <button
+              key={s.label}
+              type="button"
+              class="al-button al-button-small"
+              aria-pressed={sameDays(fields.days, s.days)}
+              onClick={() => setDays(s.days)}
+            >
+              {s.label}
+            </button>
+          ))}
         </div>
       </fieldset>
       <label class="al-field">
@@ -170,9 +210,8 @@ function AlarmFieldsView(props: {
 }
 
 function NewAlarmDialog({ app }: { readonly app: AppController }) {
-  const [timeText, setTimeText] = useState(() =>
-    alarmTime(nextWholeHour(app), app.settings.peek().timeFormat),
-  );
+  // The time starts empty, so Enter can't add an alarm at a time nobody chose (PRD §7.2).
+  const [timeText, setTimeText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [fields, setFields] = useState<AlarmFields>(() => ({
     time: nextWholeHour(app),

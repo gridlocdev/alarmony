@@ -905,6 +905,11 @@ kbd {
   gap: 6px;
   margin-top: 8px;
 }
+.al-day-shortcuts [aria-pressed='true'] {
+  border-color: var(--al-accent);
+  color: var(--al-accent);
+  font-weight: 600;
+}
 .al-button-danger {
   border-color: var(--al-danger);
   color: var(--al-danger);

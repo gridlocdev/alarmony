@@ -102,7 +102,7 @@ async function newAlarm(page: Page, time: string, label: string): Promise<void> 
   const dialog = page.getByRole('dialog', { name: 'New Alarm' });
   const field = dialog.getByRole('textbox', { name: /^Time/ });
   await expect(field).toBeFocused();
-  await expect(field).toHaveValue('10:00 AM');
+  await expect(field).toHaveValue('');
   await page.keyboard.press('ControlOrMeta+KeyA');
   await page.keyboard.type(time);
   await dialog.getByRole('textbox', { name: 'Label' }).fill(label);

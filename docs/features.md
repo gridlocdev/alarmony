@@ -14,7 +14,7 @@ The Stopwatch tab shows the time to hundredths of a second, an analog dial with 
 
 ## Alarms
 
-The Alarms tab (**⌘3**) lists your alarms by time of day, and the next one to ring says how long until it does. Press **N** (or **+**) for a new alarm. Type the time the way you'd say it: `7`, `7:30`, `730`, `7:30 pm` and `19:30` all work, or step the hour or minute with **↑** and **↓**. Pick the days it repeats (or **Weekdays**, **Weekends**, **Every Day**), a label and one of eight sounds, and whether it can snooze. An alarm with no days rings once, at the next time it comes round, then turns itself off.
+The Alarms tab (**⌘3**) lists your alarms by time of day, and the next one to ring says how long until it does. Press **N** (or **+**) for a new alarm. Type the time the way you'd say it: `7`, `7:30`, `730`, `7:30 pm` and `19:30` all work, or step the hour or minute with **↑** and **↓** (in the empty field they fill in the next whole hour). Pick the days it repeats, from the first day of the week where you are (or **Never**, **Weekdays**, **Weekends**, **Every Day**, which shows as pressed when it matches), a label and one of eight sounds, and whether it can snooze. An alarm with no days rings once, at the next time it comes round, then turns itself off.
 
 The faded **+ New Alarm** row at the end of the list adds one too. The switch on each row turns an alarm on or off, and so does **Space** on the selected one. **Enter** or a double-click opens it to edit, and each change saves as you make it. **Delete** removes it, and **⌘Z** brings it back. Alarms ring at the wall-clock time where you are, so they follow you across time zones and through daylight saving changes.
 
