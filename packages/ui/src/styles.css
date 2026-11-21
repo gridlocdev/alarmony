@@ -444,11 +444,17 @@ kbd {
   border-color: var(--al-accent-soft);
   background: var(--al-chosen);
 }
+.al-timer-dial {
+  /* One size for the ring; its text is sized in em and its widths in % of it, so they grow together. */
+  position: relative;
+  width: 11em;
+  height: 11em;
+}
 .al-timer-ring {
   position: absolute;
-  top: 14px;
-  width: 132px;
-  height: 132px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   transform: rotate(-90deg);
 }
 .al-ring-track {
@@ -465,34 +471,33 @@ kbd {
 }
 .al-timer-text {
   /* Above the ring, which is positioned and would otherwise paint over the text. */
-  position: relative;
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 132px;
-  height: 132px;
   text-align: center;
 }
 .al-timer-left {
-  font-size: 26px;
+  font-size: 1.85em;
   font-weight: 400;
 }
+/* The ring's inside is 89% of its width across the middle, narrowing below it: these keep each line inside. */
 .al-timer-label {
-  max-width: 110px;
+  max-width: 75%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 550;
 }
 .al-timer-status {
-  /* The ring's inside is about 110px across. */
-  max-width: 104px;
+  max-width: 68%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--al-text-2);
-  font-size: 12px;
+  font-size: 0.86em;
 }
 .al-timer-done .al-timer-left,
 .al-timer-done .al-timer-status {

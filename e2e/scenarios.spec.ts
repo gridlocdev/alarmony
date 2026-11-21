@@ -194,21 +194,28 @@ test.describe('Stopwatch', () => {
 });
 
 test.describe('Timers', () => {
-  test('a timer done long ago says so in hours, inside a full ring', async ({ page }) => {
+  test('a timer done long ago says so in days, inside a full ring', async ({ page }) => {
     const errors = watchErrors(page);
     await openApp(page);
     await newTimer(page, '1m', 'Eggs');
     await page.clock.runFor(61_000);
     await page.keyboard.press('Escape');
-    await page.clock.fastForward(3 * 60 * 60_000);
-    const status = page.locator('.al-timer-status', { hasText: 'Done 3 hrs ago' });
+    await page.clock.fastForward(3 * 24 * 60 * 60_000);
+    const status = page.locator('.al-timer-status', { hasText: 'Done 3 days ago' });
     await expect(status).toBeVisible();
-    // Nothing paints over the status, and it stays inside the ring.
+    // Nothing paints over the status, and its corners sit inside the ring's circle, clear of the stroke.
     const clear = await status.evaluate((el) => {
       const r = el.getBoundingClientRect();
       const ring = el.closest('.al-timer')!.querySelector('.al-timer-ring')!.getBoundingClientRect();
       const ends = [r.left + 1, r.right - 1].map((x) => document.elementFromPoint(x, r.top + r.height / 2));
-      return ends.every((hit) => el.contains(hit)) && r.left > ring.left + 8 && r.right < ring.right - 8;
+      const cx = ring.left + ring.width / 2;
+      const cy = ring.top + ring.height / 2;
+      // The track's inner edge: radius 47 less half the 5-wide stroke, in a 100-wide view box.
+      const inner = ((47 - 2.5) / 100) * ring.width;
+      const corners = [r.left, r.right].flatMap((x) =>
+        [r.top, r.bottom].map((y) => Math.hypot(x - cx, y - cy)),
+      );
+      return ends.every((hit) => el.contains(hit)) && corners.every((d) => d < inner - 4);
     });
     expect(clear).toBe(true);
     await expect(page.locator('.al-timer-done .al-ring-left')).toHaveAttribute('stroke-dashoffset', '0');

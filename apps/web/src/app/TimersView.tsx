@@ -12,7 +12,7 @@ import { clockTime, doneAgo } from './time.ts';
 import { deletePresetFrom, startPreset } from './commands.ts';
 import { onMenu } from './ContextMenu.tsx';
 
-const RING_R = 44;
+const RING_R = 47;
 const RING_LENGTH = 2 * Math.PI * RING_R;
 const MINUTE = 60_000;
 /** Above this, a screen reader hears the time left once a minute, not every second (PRD §16). */
@@ -65,21 +65,23 @@ function TimerCard({
       onClick={select}
       onDblClick={run('timer.edit')}
     >
-      <svg class="al-timer-ring" viewBox="0 0 100 100" aria-hidden="true">
-        <circle cx="50" cy="50" r={RING_R} class="al-ring-track" />
-        <circle
-          cx="50"
-          cy="50"
-          r={RING_R}
-          class="al-ring-left"
-          stroke-dasharray={RING_LENGTH}
-          stroke-dashoffset={done ? 0 : RING_LENGTH * progress}
-        />
-      </svg>
-      <div class="al-timer-text" aria-hidden="true">
-        <span class="al-timer-left al-num">{done ? '0:00' : formatCountdown(left)}</span>
-        <span class="al-timer-label">{name}</span>
-        <span class="al-timer-status">{status}</span>
+      <div class="al-timer-dial">
+        <svg class="al-timer-ring" viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="50" cy="50" r={RING_R} class="al-ring-track" />
+          <circle
+            cx="50"
+            cy="50"
+            r={RING_R}
+            class="al-ring-left"
+            stroke-dasharray={RING_LENGTH}
+            stroke-dashoffset={done ? 0 : RING_LENGTH * progress}
+          />
+        </svg>
+        <div class="al-timer-text" aria-hidden="true">
+          <span class="al-timer-left al-num">{done ? '0:00' : formatCountdown(left)}</span>
+          <span class="al-timer-label">{name}</span>
+          <span class="al-timer-status">{status}</span>
+        </div>
       </div>
       <div class="al-timer-buttons">
         {done ? (
