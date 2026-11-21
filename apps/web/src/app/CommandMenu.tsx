@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'preact/hooks';
 import { ListPopup, filterEntries, type CommandCatalog, type MenuEntry } from '@alarmony/ui';
-import { dynamicEntries } from './commands.ts';
+import { dynamicEntries } from './timerCommands.ts';
 import type { AppController } from './controller.ts';
 
 interface Entry extends MenuEntry {

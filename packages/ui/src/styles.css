@@ -221,6 +221,23 @@ kbd {
   padding: 3px 10px;
   font-size: 13px;
 }
+/* A button that undoes work (Cancel on a running timer): text only, so it doesn't sit level with the main one. */
+.al-button-quiet {
+  border-color: transparent;
+  background: none;
+  color: var(--al-text-2);
+}
+.al-button-quiet:hover {
+  background: var(--al-hover);
+  color: var(--al-text);
+}
+/* The ⋯ on a card is always there, faint until the card is pointed at or focused (PRD §14). */
+.al-more {
+  color: var(--al-text-3);
+}
+:is(.al-timer, .al-alarm, .al-clock):is(:hover, :focus-within) .al-more {
+  color: var(--al-text);
+}
 .al-link-button {
   padding: 0;
   border: 0;
@@ -586,15 +603,10 @@ kbd {
   display: flex;
   gap: 8px;
 }
-.al-timer-delete {
+.al-timer .al-more {
   position: absolute;
   top: 6px;
   right: 6px;
-  opacity: 0;
-}
-.al-timer:hover .al-timer-delete,
-.al-timer:focus-within .al-timer-delete {
-  opacity: 1;
 }
 
 /* World Clock */
@@ -694,18 +706,13 @@ kbd {
 .al-clock-row .al-clock-time {
   font-size: 1.83em;
 }
-.al-clock-delete {
+.al-clock .al-more {
   position: absolute;
   top: 0.43em;
   right: 0.43em;
-  opacity: 0;
 }
-.al-clock-row .al-clock-delete {
+.al-clock-row .al-more {
   position: static;
-}
-.al-clock:hover .al-clock-delete,
-.al-clock:focus-within .al-clock-delete {
-  opacity: 1;
 }
 .al-face {
   width: 8.6em;
@@ -839,13 +846,6 @@ kbd {
 }
 .al-alarm-off .al-alarm-text {
   opacity: 0.5;
-}
-.al-alarm-delete {
-  opacity: 0;
-}
-.al-alarm:hover .al-alarm-delete,
-.al-alarm:focus-within .al-alarm-delete {
-  opacity: 1;
 }
 .al-switch {
   position: relative;

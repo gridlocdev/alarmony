@@ -24,9 +24,9 @@ Alarmony is a clock app with timers, a stopwatch, alarms and world clocks, kept 
 
 **Tab**: One of the four views, in order: **Timers**, **Stopwatch**, **Alarms** and **World Clock**. _Avoid_: page, screen, mode
 
-**Timer**: A countdown with a length and an optional label, shown as a card with a ring. It is idle, running, paused or **Done**. _Avoid_: countdown
+**Timer**: A countdown with a length and an optional label, named by its label or else its length ("5 min timer"), shown as a card with a ring. It is idle, running, paused or **Done**. _Avoid_: countdown
 
-**Done**: The state of a **Timer** whose time has run out: it rings, then its card says "Done" and how long ago, with **Restart** and **Dismiss**, which removes it. _Avoid_: expired, finished
+**Done**: The state of a **Timer** whose time has run out: it rings, then its card says "Done" and how long ago, with **Dismiss**, which removes it, **+1 min** and **Restart**. _Avoid_: expired, finished
 
 **Preset**: A saved length and label that starts a new **Timer** in one click. _Avoid_: template, favourite, chip
 

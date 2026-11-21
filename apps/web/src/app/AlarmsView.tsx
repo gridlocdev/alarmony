@@ -1,7 +1,7 @@
 import { alarmClock, describeIn, describeRepeat, nextAlarm, sortAlarms, type Alarm } from '@alarmony/core';
-import { Icon, type CommandCatalog, type TimeFormat } from '@alarmony/ui';
+import { type CommandCatalog, type TimeFormat } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
-import { onMenu } from './ContextMenu.tsx';
+import { MoreButton, onMenu } from './ContextMenu.tsx';
 import { clockTime } from './time.ts';
 
 /** An alarm's `HH:MM` in the chosen format: "7:00 AM" or "07:00". */
@@ -66,18 +66,7 @@ function AlarmRow({
       >
         <span class="al-switch-knob" />
       </button>
-      <button
-        type="button"
-        class="al-icon-button al-small al-alarm-delete"
-        aria-label={`Delete ${alarm.label || 'alarm'} at ${time}`}
-        title="Delete Alarm"
-        onClick={(e) => {
-          e.stopPropagation();
-          run('alarm.delete')();
-        }}
-      >
-        <Icon name="x" />
-      </button>
+      <MoreButton app={app} kind="alarm" id={alarm.id} name={`${alarm.label || 'Alarm'} at ${time}`} />
     </li>
   );
 }

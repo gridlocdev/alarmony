@@ -122,7 +122,7 @@ describe('changes made elsewhere', () => {
     b = applyOps(b, addTimer(b, { id: 't', ms: 60_000, label: '' }, T0) ?? []);
     const theirs = applyOps(b, pauseTimer(b, 't', T0 + 1000) ?? []);
     const mine = pauseTimer(b, 't', T0 + 2000) ?? [];
-    expect(findClashes(b, theirs, mine).map((c) => c.name)).toEqual(['Timer']);
+    expect(findClashes(b, theirs, mine).map((c) => c.name)).toEqual(['1 min timer']);
     expect(replay(b, theirs, mine, 'mine').data.timers[0]).toMatchObject({ state: 'paused', leftMs: 58_000 });
   });
 

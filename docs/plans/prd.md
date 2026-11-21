@@ -168,9 +168,9 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 ### §8.2 Timers
 
 - **New Timer** (N, ⌘N, +): a duration field (`5`, `5m`, `1h30m`, `90s`, `1:30:00`, `25:00`; a bare number is minutes), a label, and the presets as buttons under it. Enter starts it. **Save as Preset** keeps the duration and label.
-- Each timer is a card: a ring that empties, the time left (`H:MM:SS` or `M:SS`), the label, the time it will end ("🔔 6:20 PM"), **Pause/Resume** and **Cancel** (back to idle with its length kept; Delete removes it, with Undo). An idle timer shows its length and **Start**. Any number run at once. Space pauses or resumes the selected timer.
+- Each timer is a card: a ring that empties, the time left (`H:MM:SS` or `M:SS`), its name (the label, or its length: "5 min timer"), the time it will end ("Ends 6:20 PM"), **Cancel** (a quiet button: back to idle with its length kept), **+1 min** and **Pause/Resume**. **+1 min** adds a minute to the time left and to the length. Delete removes a timer, with Undo. An ⋯ button on each card opens its context menu. An idle timer shows its length and **Start**. Any number run at once. Space pauses or resumes the selected timer.
 - After the timers, a faded **New Timer** card: one button per preset (its label and length), then the common lengths 1, 3, 5 and 10 min that no preset already has, each starting a timer in one click, and **+ Custom…**, which opens New Timer. Right-click on a preset: Start, Rename, Delete.
-- A finished timer rings (§9) and its card shows "Done" and the minutes since, with **Restart** and **Dismiss**, which closes the timer (removes it, with Undo). **Cancel** is only for a timer still running or paused, and puts it back to idle. Dismissing writes the file; the ringing itself doesn't.
+- A finished timer rings (§9) and its card shows "Done" and the minutes since, with **Dismiss**, which closes the timer (removes it, with Undo), **+1 min**, which runs it again for a minute, and **Restart**. **Cancel** is only for a timer still running or paused, and puts it back to idle. Dismissing writes the file; the ringing itself doesn't.
 - Empty: the New Timer card alone.
 
 ## §9 Ringing
@@ -251,7 +251,7 @@ Every action is a command in one catalog that feeds the keyboard, ⌘K, context 
 
 On a tab, the arrow keys move focus between its items: the clocks, the alarms, the timers, the buttons on the add cards and rows, or the stopwatch's buttons. ← → step through them in order, ↑ ↓ go to the row above or below, and both wrap at the ends. From the page or the tab row (↓), an arrow goes to the selected item, else the first or the last.
 
-Context menus: a clock (Rename, Move Up, Move Down, Delete); an alarm (Edit, Turn On/Off, Duplicate, Delete); a timer (Start/Pause/Resume, Edit, Cancel, Save as Preset, Delete); a preset (Start, Rename, Delete); a lap (Copy Time). Shift+F10 opens the selected item's menu; arrows move in it and Escape closes it.
+Context menus: a clock (Rename, Move Up, Move Down, Delete); an alarm (Edit, Turn On/Off, Duplicate, Delete); a timer (Start/Pause/Resume, Edit, Add 1 Minute, Cancel, Dismiss, Save as Preset, Delete); a preset (Start, Rename, Delete); a lap (Copy Time). Shift+F10, or the ⋯ button on a clock, alarm or timer, opens its menu; arrows move in it and Escape closes it.
 
 ## §15 Desktop
 

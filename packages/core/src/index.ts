@@ -20,6 +20,8 @@ export {
   describeDuration,
   durationInput,
   formatCountdown,
+  shortDuration,
+  timerName,
   formatStopwatch,
   parseDuration,
 } from './duration.ts';
@@ -40,6 +42,7 @@ export {
   canLap,
   canReset,
   deletePreset,
+  addTimerTime,
   deleteTimer,
   editTimer,
   lapStopwatch,

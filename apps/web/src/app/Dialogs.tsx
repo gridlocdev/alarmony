@@ -12,7 +12,7 @@ import {
 } from '@alarmony/core';
 import { Dialog, isMac, type CommandCatalog, type Theme, type TimeFormat } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
-import { startPreset } from './commands.ts';
+import { startPreset } from './timerCommands.ts';
 import { shortcutGroups } from './shortcuts.ts';
 import { AlarmDialog } from './AlarmDialogs.tsx';
 import { ClockDialog } from './ClockDialogs.tsx';

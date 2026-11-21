@@ -6,28 +6,19 @@ import {
   deleteAlarm,
   duplicateAlarm,
   toggleAlarm,
-  addTimer,
   canLap,
-  describeDuration,
   canReset,
-  deleteTimer,
-  isDone,
   lapStopwatch,
-  pauseAllTimers,
   resetStopwatch,
-  resetTimer,
-  restartTimer,
-  addPreset,
-  deletePreset,
   formatStopwatch,
   toggleStopwatch,
-  toggleTimer,
 } from '@alarmony/core';
-import { CommandCatalog, type CommandSpec, type MenuEntry } from '@alarmony/ui';
+import { CommandCatalog, type CommandSpec } from '@alarmony/ui';
 import { TABS, type AppController } from './controller.ts';
 import { openSelectedMenu } from './ContextMenu.tsx';
 import { targetOf } from './itemMenu.ts';
 import { deleteAndSelectBeside } from './afterDelete.ts';
+import { timerCommandSpecs } from './timerCommands.ts';
 import { exportClock, importClock, inPickedFolder, leaveFolder } from './transfer.ts';
 
 /** The dialogs ⌘K may replace: none of them holds anything typed. */
@@ -43,12 +34,7 @@ const TAB_KEYS: Record<string, string> = {
 export function commandSpecs(app: AppController): CommandSpec[] {
   const now = () => app.now();
   const sw = () => app.data.value.stopwatch;
-  const timer = () => app.selectedTimer.value;
-  const onTimers = () => app.tab.value === 'timers' && timer() !== null;
-  const withTimer = (run: (id: string) => void) => () => {
-    const t = timer();
-    if (t) run(t.id);
-  };
+  const onTimers = () => app.tab.value === 'timers' && app.selectedTimer.value !== null;
   const clock = () => app.selectedClock.value;
   const onWorld = () => app.tab.value === 'world' && clock() !== null;
   const withClock = (run: (id: string) => void) => () => {
@@ -60,10 +46,6 @@ export function commandSpecs(app: AppController): CommandSpec[] {
   const withAlarm = (run: (id: string) => void) => () => {
     const a = alarm();
     if (a) run(a.id);
-  };
-  const preset = () => {
-    const id = targetOf(app.itemMenu, 'preset');
-    return app.data.value.presets.find((p) => p.id === id) ?? null;
   };
   const lap = () => {
     const at = targetOf(app.itemMenu, 'lap');
@@ -386,125 +368,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       enabled: () => canReset(sw()),
       run: () => void app.edit(resetStopwatch(app.data.peek()), 'Reset', 'Reset the stopwatch.'),
     },
-    {
-      id: 'timer.toggle',
-      title: 'Pause or Resume Timer',
-      description: 'Pause the selected timer, or carry on with it.',
-      group: 'Clock',
-      shortcuts: ['space'],
-      keysOnly: true,
-      enabled: onTimers,
-      run: withTimer((id) => app.edit(toggleTimer(app.data.peek(), id, now()), 'Pause or resume')),
-    },
-    {
-      id: 'timer.edit',
-      title: 'Edit Timer…',
-      description: 'Change the selected timer’s length or label.',
-      group: 'Clock',
-      shortcuts: ['enter'],
-      keysOnly: true,
-      enabled: onTimers,
-      run: withTimer((id) => app.open({ kind: 'editTimer', id })),
-    },
-    {
-      id: 'timer.restart',
-      title: 'Restart Timer',
-      description: 'Start the selected timer again from its full length.',
-      group: 'Clock',
-      enabled: () => onTimers() && timer()?.state !== 'idle',
-      run: withTimer((id) => app.edit(restartTimer(app.data.peek(), id, now()), 'Restart')),
-    },
-    {
-      id: 'timer.cancel',
-      title: 'Cancel Timer',
-      description: 'Stop the selected timer and put it back to its full length.',
-      group: 'Clock',
-      enabled: () => onTimers() && !!timer() && timer()!.state !== 'idle' && !isDone(timer()!, now()),
-      run: withTimer((id) => {
-        const t = timer()!;
-        app.edit(resetTimer(app.data.peek(), id), 'Cancel', `Cancelled ${app.describeTimer(t)}.`);
-      }),
-    },
-    {
-      id: 'timer.dismiss',
-      title: 'Dismiss Timer',
-      description: 'Close the selected timer once it is done.',
-      group: 'Clock',
-      enabled: () => onTimers() && !!timer() && isDone(timer()!, now()),
-      run: withTimer((id) => {
-        const t = timer()!;
-        deleteAndSelectBeside(app, 'timers', id, () =>
-          app.edit(deleteTimer(app.data.peek(), id), 'Dismiss', `Dismissed ${app.describeTimer(t)}.`),
-        );
-      }),
-    },
-    {
-      id: 'timer.savePreset',
-      title: 'Save Timer as Preset',
-      description: 'Keep the selected timer’s length and label as a preset.',
-      group: 'Clock',
-      enabled: onTimers,
-      run: withTimer(() => {
-        const t = timer()!;
-        app.edit(
-          addPreset(app.data.peek(), { id: app.newId('p'), ms: t.ms, label: t.label }),
-          'Save preset',
-          'Saved as a preset.',
-        );
-      }),
-    },
-    {
-      id: 'timer.delete',
-      title: 'Delete Timer',
-      description: 'Remove the selected timer.',
-      group: 'Clock',
-      shortcuts: ['delete', 'backspace'],
-      keysOnly: true,
-      danger: true,
-      enabled: onTimers,
-      run: withTimer((id) => {
-        const t = timer()!;
-        deleteAndSelectBeside(app, 'timers', id, () =>
-          app.edit(deleteTimer(app.data.peek(), id), 'Delete', `Deleted ${app.describeTimer(t)}.`),
-        );
-      }),
-    },
-    {
-      id: 'timer.pauseAll',
-      title: 'Pause All Timers',
-      description: 'Pause every running timer.',
-      group: 'Clock',
-      enabled: () => app.data.value.timers.some((t) => t.state === 'running' && !isDone(t, app.clock.value)),
-      run: () => void app.edit(pauseAllTimers(app.data.peek(), now()), 'Pause all', 'Paused all timers.'),
-    },
-    {
-      id: 'preset.start',
-      title: 'Start Preset',
-      description: 'Start a timer from the preset.',
-      group: 'Clock',
-      hidden: true,
-      enabled: () => preset() !== null,
-      run: () => startPreset(app, preset()!.id),
-    },
-    {
-      id: 'preset.rename',
-      title: 'Rename Preset…',
-      description: 'Change the preset’s label.',
-      group: 'Clock',
-      hidden: true,
-      enabled: () => preset() !== null,
-      run: () => app.open({ kind: 'renamePreset', id: preset()!.id }),
-    },
-    {
-      id: 'preset.delete',
-      title: 'Delete Preset',
-      description: 'Remove the preset.',
-      group: 'Clock',
-      hidden: true,
-      danger: true,
-      enabled: () => preset() !== null,
-      run: () => deletePresetFrom(app, preset()!.id),
-    },
+    ...timerCommandSpecs(app),
     {
       id: 'lap.copy',
       title: 'Copy Lap Time',
@@ -559,38 +423,4 @@ export function buildCommands(app: AppController): CommandCatalog {
   // With a dialog, the ringing sheet or a save question in front, only global commands run (PRD §14).
   catalog.gate = (c) => c.global === true || !app.blocked();
   return catalog;
-}
-
-/** Entries ⌘K finds besides the commands: the presets, each starting a timer. */
-export function dynamicEntries(app: AppController): (MenuEntry & { readonly run: () => void })[] {
-  return app.data.peek().presets.map((p) => ({
-    id: `preset:${p.id}`,
-    title: `Start ${p.label || 'Timer'} (${describeDuration(p.ms)})`,
-    group: 'Presets',
-    keywords: 'preset timer start',
-    run: () => startPreset(app, p.id),
-  }));
-}
-
-export function startPreset(app: AppController, presetId: string): void {
-  const p = app.data.peek().presets.find((x) => x.id === presetId);
-  if (!p) return;
-  startTimerFor(app, p.ms, p.label);
-}
-
-/** Starts a new timer of this length, as a preset or a common length does (PRD §8.2). */
-export function startTimerFor(app: AppController, ms: number, label: string): void {
-  app.showTab('timers');
-  const id = app.newId('t');
-  if (app.edit(addTimer(app.data.peek(), { id, ms, label }, app.now()), 'New timer')) app.selected.value = id;
-}
-
-export function deletePresetFrom(app: AppController, presetId: string): void {
-  const p = app.data.peek().presets.find((x) => x.id === presetId);
-  if (!p) return;
-  app.edit(
-    deletePreset(app.data.peek(), p.id),
-    'Delete preset',
-    `Deleted preset${p.label ? ` “${p.label}”` : ''}.`,
-  );
 }

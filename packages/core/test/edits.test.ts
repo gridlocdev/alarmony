@@ -3,6 +3,7 @@ import {
   ClockDoc,
   MAX_HISTORY,
   addPreset,
+  addTimerTime,
   addTimer,
   classifyFile,
   currentLap,
@@ -81,6 +82,22 @@ describe('timers', () => {
     expect(doc.data.timers).toEqual([]);
     doc.undo();
     expect(doc.data.timers[0]?.id).toBe('t_1');
+  });
+
+  it('adds a minute to a running, paused or done timer, and its length grows with it', () => {
+    const doc = withTimer();
+    doc.apply(addTimerTime(doc.data, 't_1', M, T0 + 3 * M), '+1 min');
+    expect(doc.data.timers[0]).toMatchObject({ ms: 11 * M });
+    expect(timerLeft(doc.data.timers[0]!, T0 + 3 * M)).toBe(8 * M);
+    doc.apply(pauseTimer(doc.data, 't_1', T0 + 3 * M), 'Paused');
+    doc.apply(addTimerTime(doc.data, 't_1', M, T0 + 3 * M), '+1 min');
+    expect(doc.data.timers[0]).toMatchObject({ ms: 12 * M, leftMs: 9 * M });
+    doc.apply(startTimer(doc.data, 't_1', T0 + 3 * M), 'Resumed');
+    doc.apply(addTimerTime(doc.data, 't_1', M, T0 + 20 * M), '+1 min');
+    expect(doc.data.timers[0]).toMatchObject({ ms: 12 * M, state: 'running' });
+    expect(timerLeft(doc.data.timers[0]!, T0 + 20 * M)).toBe(M);
+    doc.apply(resetTimer(doc.data, 't_1'), 'Cancelled');
+    expect(addTimerTime(doc.data, 't_1', M, T0 + 20 * M)).toBeNull();
   });
 
   it('restarts from the full length', () => {
@@ -269,6 +286,7 @@ describe('random edits', () => {
               ['toggle', (d, id, now) => toggleTimer(d, id, now)],
               ['reset', (d, id) => resetTimer(d, id)],
               ['restart', (d, id, now) => restartTimer(d, id, now)],
+              ['add a minute', (d, id, now) => addTimerTime(d, id, M, now)],
               ['delete', (d, id) => deleteTimer(d, id)],
               ['edit', (d, id, now) => editTimer(d, id, 'x'.repeat(120), M, now)],
             ] as const satisfies readonly (readonly [string, TimerEdit])[]

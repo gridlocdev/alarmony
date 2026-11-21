@@ -88,6 +88,24 @@ export function describeDuration(ms: number): string {
   return parts.length ? parts.join(' ') : '0 seconds';
 }
 
+/** A short length for names: "5 min", "1 hr 30 min", "45 sec", "2 min 30 sec". */
+export function shortDuration(ms: number): string {
+  const total = Math.max(0, Math.round(ms / SECOND));
+  const parts: string[] = [];
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  if (h) parts.push(`${h} hr`);
+  if (m) parts.push(`${m} min`);
+  if (s) parts.push(`${s} sec`);
+  return parts.length ? parts.join(' ') : '0 sec';
+}
+
+/** What a timer is called: its label, or its length ("5 min timer") so unlabelled timers differ (PRD §8.2). */
+export function timerName(t: { readonly label: string; readonly ms: number }): string {
+  return t.label || `${shortDuration(t.ms)} timer`;
+}
+
 /** A duration in the form `parseDuration` reads back: `5m`, `1h30m`, `1h0m5s`. */
 export function durationInput(ms: number): string {
   const total = Math.max(0, Math.round(ms / SECOND));

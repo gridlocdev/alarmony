@@ -23,7 +23,7 @@ describe('the menu bar icon', () => {
     clock.at = NOW + 1000;
     app.tick();
     expect(app.tray.value.title).toBe('0:59');
-    expect(app.tray.value.timers).toEqual(['Bread, 9:59 left', 'Timer, 0:59 left']);
+    expect(app.tray.value.timers).toEqual(['Bread, 9:59 left', '1 min timer, 0:59 left']);
     expect(app.tray.value.armed).toBe(true);
     app.setSettings({ menuBarCountdown: false });
     expect(app.tray.value.title).toBe('');

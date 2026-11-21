@@ -9,9 +9,9 @@ import {
   zoneCity,
   type WorldClock,
 } from '@alarmony/core';
-import { Icon, type CommandCatalog } from '@alarmony/ui';
+import { type CommandCatalog } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
-import { onMenu } from './ContextMenu.tsx';
+import { MoreButton, onMenu } from './ContextMenu.tsx';
 import { zoneClockTime } from './time.ts';
 
 const TICKS = Array.from({ length: 12 }, (_, i) => i * 30);
@@ -139,19 +139,7 @@ function ClockItem({
           {time}
         </span>
       )}
-      <button
-        type="button"
-        class="al-icon-button al-small al-clock-delete"
-        aria-label={`Delete ${name}`}
-        title="Delete Clock"
-        onClick={(e) => {
-          e.stopPropagation();
-          select();
-          catalog.run('clock.delete');
-        }}
-      >
-        <Icon name="x" />
-      </button>
+      <MoreButton app={app} kind="clock" id={clock.id} name={name} />
     </li>
   );
 }

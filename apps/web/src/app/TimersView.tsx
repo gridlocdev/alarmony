@@ -3,15 +3,16 @@ import {
   formatCountdown,
   isDone,
   timerLeft,
+  timerName,
   timerProgress,
   type Timer,
 } from '@alarmony/core';
-import { Icon, type CommandCatalog } from '@alarmony/ui';
+import type { CommandCatalog } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
 import { clockTime, doneAgo } from './time.ts';
-import { startTimerFor } from './commands.ts';
+import { startTimerFor } from './timerCommands.ts';
 import { quickStarts } from './quickStart.ts';
-import { onMenu } from './ContextMenu.tsx';
+import { MoreButton, onMenu } from './ContextMenu.tsx';
 
 const RING_R = 47;
 const RING_LENGTH = 2 * Math.PI * RING_R;
@@ -38,7 +39,7 @@ function TimerCard({
   const done = isDone(timer, now);
   const left = timerLeft(timer, now);
   const progress = timerProgress(timer, now);
-  const name = timer.label || 'Timer';
+  const name = timerName(timer);
   const select = () => {
     app.selected.value = timer.id;
   };
@@ -50,7 +51,8 @@ function TimerCard({
   let status: string;
   if (done) {
     status = doneAgo(now - Date.parse(timer.endsAt ?? ''));
-  } else if (timer.state === 'running') status = `🔔 ${clockTime(now + left, app.settings.value.timeFormat)}`;
+  } else if (timer.state === 'running')
+    status = `Ends ${clockTime(now + left, app.settings.value.timeFormat)}`;
   else if (timer.state === 'paused') status = 'Paused';
   else status = describeDuration(timer.ms);
   const label = `${name}, ${done ? 'done' : timer.state === 'idle' ? describeDuration(timer.ms) : `${spoken(left)} left${timer.state === 'paused' ? ', paused' : ''}`}`;
@@ -90,6 +92,9 @@ function TimerCard({
             <button type="button" class="al-button al-button-small" onClick={run('timer.dismiss')}>
               Dismiss
             </button>
+            <button type="button" class="al-button al-button-small" onClick={run('timer.addMinute')}>
+              +1 min
+            </button>
             <button
               type="button"
               class="al-button al-button-small al-button-primary"
@@ -101,9 +106,18 @@ function TimerCard({
         ) : (
           <>
             {timer.state !== 'idle' && (
-              <button type="button" class="al-button al-button-small" onClick={run('timer.cancel')}>
-                Cancel
-              </button>
+              <>
+                <button
+                  type="button"
+                  class="al-button al-button-small al-button-quiet"
+                  onClick={run('timer.cancel')}
+                >
+                  Cancel
+                </button>
+                <button type="button" class="al-button al-button-small" onClick={run('timer.addMinute')}>
+                  +1 min
+                </button>
+              </>
             )}
             <button
               type="button"
@@ -115,18 +129,7 @@ function TimerCard({
           </>
         )}
       </div>
-      <button
-        type="button"
-        class="al-icon-button al-small al-timer-delete"
-        aria-label={`Delete ${name}`}
-        title="Delete Timer"
-        onClick={(e) => {
-          e.stopPropagation();
-          run('timer.delete')();
-        }}
-      >
-        <Icon name="x" />
-      </button>
+      <MoreButton app={app} kind="timer" id={timer.id} name={name} />
     </li>
   );
 }

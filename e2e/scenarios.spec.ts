@@ -247,7 +247,7 @@ test.describe('Timers', () => {
     await page.keyboard.press('ArrowRight');
     await expect.poll(focused).toBe('1 min');
     await page.keyboard.press('Enter');
-    await expect(card(page, /^Timer, 1 minute left$/)).toBeVisible();
+    await expect(card(page, /^1 min timer, 1 minute left$/)).toBeVisible();
     await card(page, /^Pasta/).focus();
     await page.keyboard.press('ArrowLeft');
     await expect.poll(focused).toBe('+ Custom…');
@@ -259,7 +259,7 @@ test.describe('Timers', () => {
     // ↓ from the tab row goes into the tab.
     await tab(page, 'Timers').focus();
     await page.keyboard.press('ArrowDown');
-    await expect.poll(focused).toMatch(/^(Pasta|Tea|Timer), /);
+    await expect.poll(focused).toMatch(/^(Pasta|Tea|1 min timer), /);
     expect(errors).toEqual([]);
   });
 
@@ -286,13 +286,32 @@ test.describe('Timers', () => {
     expect(errors).toEqual([]);
   });
 
+  test('+1 min adds a minute, and the ⋯ button opens the timer menu', async ({ page }) => {
+    const errors = watchErrors(page);
+    await openApp(page);
+    await newTimer(page, '3m', 'Pasta');
+    await card(page, /^Pasta/)
+      .getByRole('button', { name: '+1 min' })
+      .click();
+    await expect(card(page, /^Pasta, (4 minutes|3 minutes \d+ seconds) left$/)).toBeVisible();
+    await card(page, /^Pasta/)
+      .getByRole('button', { name: 'Pasta actions' })
+      .click();
+    const menu = page.getByRole('menu', { name: 'Timer actions' });
+    await expect(menu).toBeVisible();
+    await menu.getByRole('menuitem', { name: 'Add 1 Minute' }).click();
+    await expect(menu).toBeHidden();
+    await expect(card(page, /^Pasta, (5 minutes|4 minutes \d+ seconds) left$/)).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
   test('Delete acts on the card that holds focus, even on one of its buttons', async ({ page }) => {
     await openApp(page);
     await newTimer(page, '3m', 'Pasta');
     await newTimer(page, '5m', 'Tea');
     await card(page, /^Tea/).focus();
     await card(page, /^Pasta/)
-      .getByRole('button', { name: 'Delete Pasta' })
+      .getByRole('button', { name: 'Pasta actions' })
       .focus();
     await page.keyboard.press('Delete');
     await expect(card(page, /^Pasta/)).toHaveCount(0);

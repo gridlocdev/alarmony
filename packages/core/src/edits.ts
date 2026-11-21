@@ -89,6 +89,18 @@ export function restartTimer(data: ClockData, id: string, now: number): Op[] | n
   return updateTimer(t, { ...t, state: 'running', endsAt: iso(now + t.ms), leftMs: null });
 }
 
+/**
+ * Add time to a running, paused or Done timer: +1 min (PRD §8.2). Its length grows by the same amount, so the
+ * ring and a later Restart match. A Done timer runs again with just the added time left.
+ */
+export function addTimerTime(data: ClockData, id: string, add: number, now: number): Op[] | null {
+  const t = findTimer(data, id);
+  if (!t || t.state === 'idle' || add <= 0) return null;
+  if (isDone(t, now)) return updateTimer(t, { ...t, ms: Math.max(t.ms, add), endsAt: iso(now + add) });
+  if (t.state === 'paused') return updateTimer(t, { ...t, ms: t.ms + add, leftMs: (t.leftMs ?? t.ms) + add });
+  return updateTimer(t, { ...t, ms: t.ms + add, endsAt: iso(Date.parse(t.endsAt ?? '') + add) });
+}
+
 export function deleteTimer(data: ClockData, id: string): Op[] | null {
   const index = data.timers.findIndex((t) => t.id === id);
   const item = data.timers[index];

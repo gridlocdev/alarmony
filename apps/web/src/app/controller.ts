@@ -17,6 +17,7 @@ import {
   timerKey,
   timerLeft,
   formatCountdown,
+  shortDuration,
   type Alarm,
   type WorldClock,
   type AlarmWindow,
@@ -121,7 +122,6 @@ const SILENT: SoundOut = {
 };
 
 const shown = (tab: Tab): Tab => (TABS.some((t) => t.id === tab) ? tab : 'world');
-const quoted = (label: string) => (label ? `“${label}”` : 'timer');
 /** What decides when an alarm rings: a change to any of it starts its due times afresh. */
 const ringSig = (a: Alarm) => `${a.enabled}|${a.time}|${a.days.join(',')}|${a.once ?? ''}`;
 
@@ -290,7 +290,7 @@ export class AppController {
   }
 
   describeTimer(t: Timer): string {
-    return quoted(t.label);
+    return t.label ? `“${t.label}”` : `the ${shortDuration(t.ms)} timer`;
   }
 
   // ── Notices ──────────────────────────────────────────────────────────────
@@ -478,7 +478,7 @@ export class AppController {
   ringTitle(d: Due): string {
     return d.kind === 'alarm'
       ? `${d.label || 'Alarm'} · ${clockTime(d.at, this.settings.peek().timeFormat)}`
-      : `${d.label || 'Timer'} · Timer done`;
+      : `${d.label} · ${/ timer$/i.test(d.label) ? 'Done' : 'Timer done'}`;
   }
 
   /** One sticky notice names everything missed since it was last dismissed (PRD §9.4). */

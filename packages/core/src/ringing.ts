@@ -4,6 +4,7 @@
  */
 import { dueBetween, nextDue } from './alarms.ts';
 import type { Alarm, ClockData, Timer } from './format.ts';
+import { timerName } from './duration.ts';
 import { DEFAULT_SOUND } from './sounds.ts';
 
 /** Something due less than this long ago rings now; older is a missed notice (PRD §9.4). */
@@ -77,7 +78,15 @@ export function dueNow(
     const at = Date.parse(t.endsAt);
     const key = timerKey(t);
     if (at <= now && !rung.has(key))
-      out.push({ key, kind: 'timer', id: t.id, label: t.label, at, sound: DEFAULT_SOUND, snooze: false });
+      out.push({
+        key,
+        kind: 'timer',
+        id: t.id,
+        label: timerName(t),
+        at,
+        sound: DEFAULT_SOUND,
+        snooze: false,
+      });
   }
   if (alarms) {
     for (const a of data.alarms)

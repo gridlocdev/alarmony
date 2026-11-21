@@ -1,7 +1,7 @@
 // The app's commands, notices and ringing, run against a file in memory with a clock the test moves.
 import { describe, expect, it } from 'vitest';
 import { addTimer, deleteTimer, serialize } from '@alarmony/core';
-import { startPreset } from '../src/app/commands.ts';
+import { startPreset } from '../src/app/timerCommands.ts';
 import { placeLabel } from '../src/app/StatusBar.tsx';
 import { NOW, makeApp } from './helpers.ts';
 
@@ -257,6 +257,18 @@ describe('ringing', () => {
     expect(app.data.value.timers.map((t) => t.id)).toEqual([id]);
   });
 
+  it('gives a done timer another minute, and it rings again when that is up', async () => {
+    const { app, catalog, clock } = await withTimer(1);
+    clock.at = NOW + MIN;
+    app.tick();
+    catalog.run('ringing.stop');
+    expect(catalog.run('timer.addMinute')).toBe(true);
+    expect(app.done(clock.at)).toEqual([]);
+    clock.at += MIN;
+    app.tick();
+    expect(app.ringing.value).toHaveLength(1);
+  });
+
   it('gives a sticky Missed notice for one that finished over 10 minutes ago', async () => {
     const { app, clock } = await withTimer(1);
     clock.at = NOW + 20 * MIN;
@@ -271,7 +283,10 @@ describe('ringing', () => {
     app.edit(addTimer(app.data.peek(), { id: app.newId('t'), ms: 3 * MIN, label: '' }, NOW), 'New timer');
     clock.at = NOW + 20 * MIN;
     app.tick();
-    expect(app.notice.value).toMatchObject({ text: 'Missed: Pasta, Tea and Timer finished.', sticky: true });
+    expect(app.notice.value).toMatchObject({
+      text: 'Missed: Pasta, Tea and 3 min timer finished.',
+      sticky: true,
+    });
     clock.at += 15 * MIN;
     app.edit(
       addTimer(app.data.peek(), { id: app.newId('t'), ms: MIN, label: 'Eggs' }, clock.at),
@@ -279,7 +294,7 @@ describe('ringing', () => {
     );
     clock.at += 20 * MIN;
     app.tick();
-    expect(app.notice.value?.text).toBe('Missed: Pasta, Tea, Timer and Eggs finished.');
+    expect(app.notice.value?.text).toBe('Missed: Pasta, Tea, 3 min timer and Eggs finished.');
 
     const old = await withTimer(1, 'Old');
     old.clock.at = NOW + 2 * 24 * 60 * MIN;

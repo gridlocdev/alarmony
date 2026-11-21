@@ -4,7 +4,7 @@ Alarmony is a clock for the desktop and the browser: world clocks, alarms, a sto
 
 ## Timers
 
-Press **N** (or the **+** button) for a new timer. Type how long: `5` is five minutes, and `5m`, `1h30m`, `90s`, `25:00` and `1:30:00` all work. Add a label if you like, then press Enter. Run as many timers as you like at once. Each card shows a ring that empties, the time left, the label and when it will end. **Pause**, **Resume** and **Cancel** are on the card, and **Space**, **Enter** and **Delete** work on the selected one.
+Press **N** (or the **+** button) for a new timer. Type how long: `5` is five minutes, and `5m`, `1h30m`, `90s`, `25:00` and `1:30:00` all work. Add a label if you like, then press Enter. Run as many timers as you like at once. Each card shows a ring that empties, the time left, its name (the label, or its length, such as "5 min timer") and when it ends. **Pause**, **Resume**, **Cancel** and **+1 min** are on the card, the **⋯** button opens its menu, and **Space**, **Enter** and **Delete** work on the selected one.
 
 The faded **New Timer** card after the timers starts one in a single click: your presets, then 1, 3, 5 or 10 minutes. **+ Custom…** on it opens New Timer. **Save as Preset** keeps a length and label; presets show on that card and as buttons in New Timer, and right-clicking one renames or deletes it.
 
@@ -24,7 +24,7 @@ The World Clock tab (**⌘4**) shows the time in the places you care about, as c
 
 ## Ringing
 
-When an alarm goes off or a timer finishes, Alarmony plays its sound, growing louder over 30 seconds, and shows a sheet with **Stop** (Enter or Esc). An alarm that can snooze also has **Snooze** (**S**), which rings it again after the snooze length in Settings. A finished timer's card then says Done, with **Restart** and **Dismiss**, which closes the timer. Ringing stops by itself after 15 minutes and leaves a "Missed" notice. Anything that came due while Alarmony wasn't open rings if it was in the last 10 minutes, and gives a "Missed" notice if it's older. Alarmony also shows a system notification; turn off **Show notifications** in Settings if you'd rather not.
+When an alarm goes off or a timer finishes, Alarmony plays its sound, growing louder over 30 seconds, and shows a sheet with **Stop** (Enter or Esc). An alarm that can snooze also has **Snooze** (**S**), which rings it again after the snooze length in Settings. A finished timer's card then says Done, with **Dismiss**, which closes the timer, **+1 min** and **Restart**. Ringing stops by itself after 15 minutes and leaves a "Missed" notice. Anything that came due while Alarmony wasn't open rings if it was in the last 10 minutes, and gives a "Missed" notice if it's older. Alarmony also shows a system notification; turn off **Show notifications** in Settings if you'd rather not.
 
 Every copy of Alarmony with the file open rings, so turn off **Ring on this device** in Settings on a device that should stay quiet. In a browser, sound starts after your first click on the page, and a tab in the background can ring up to a minute late. While something is set to ring, the status bar says **Keep this tab open to ring**.
 
@@ -38,7 +38,7 @@ Closing the desktop window doesn't quit Alarmony: it keeps running in the menu b
 
 ## Commands and shortcuts
 
-Every action is in the command menu (**⌘K**), which also starts presets by name, and in the Keyboard Shortcuts window (**⌘/**). Right-click a clock, an alarm, a timer, a preset or a lap for a menu of what it can do (**⇧F10** from the keyboard); a preset's menu is where you rename it, and a lap's copies its time. See [controls](controls.md) for the full list.
+Every action is in the command menu (**⌘K**), which also starts presets by name, and in the Keyboard Shortcuts window (**⌘/**). Right-click a clock, an alarm, a timer, a preset or a lap for a menu of what it can do (or use the **⋯** button on a clock, alarm or timer, or **⇧F10** from the keyboard); a preset's menu is where you rename it, and a lap's copies its time. See [controls](controls.md) for the full list.
 
 ## Command line
 

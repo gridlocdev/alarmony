@@ -1,4 +1,4 @@
-import { PopupMenu, type Command, type CommandCatalog } from '@alarmony/ui';
+import { Icon, PopupMenu, type Command, type CommandCatalog } from '@alarmony/ui';
 import { isDone } from '@alarmony/core';
 import type { AppController } from './controller.ts';
 import { MENUS, SELECTED_KINDS, type MenuKind } from './itemMenu.ts';
@@ -19,6 +19,38 @@ export function openMenu(
     y = r.top + Math.min(r.height, 32);
   }
   app.itemMenu.show({ kind, id, x, y, from: el });
+}
+
+/**
+ * The ⋯ button on a card: the same menu as a right-click, so Delete, Rename and the rest can be found without
+ * hovering or knowing to right-click, and on a touch screen (PRD §14).
+ */
+export function MoreButton({
+  app,
+  kind,
+  id,
+  name,
+}: {
+  readonly app: AppController;
+  readonly kind: MenuKind;
+  readonly id: string;
+  readonly name: string;
+}) {
+  return (
+    <button
+      type="button"
+      class="al-icon-button al-small al-more"
+      aria-label={`${name} actions`}
+      aria-haspopup="menu"
+      title="Actions (Shift+F10)"
+      onClick={(e) => {
+        e.stopPropagation();
+        openMenu(app, kind, id, e.currentTarget);
+      }}
+    >
+      <Icon name="ellipsis" />
+    </button>
+  );
 }
 
 /** `onContextMenu` for an item that has a menu. */

@@ -23,6 +23,7 @@ export const MENUS: Record<MenuKind, readonly string[]> = {
   timer: [
     'timer.toggle',
     'timer.edit',
+    'timer.addMinute',
     'timer.cancel',
     'timer.dismiss',
     'timer.savePreset',

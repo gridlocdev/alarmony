@@ -5,6 +5,8 @@ import {
   formatCountdown,
   formatStopwatch,
   parseDuration,
+  shortDuration,
+  timerName,
 } from '../src/index.ts';
 
 const S = 1000;
@@ -57,5 +59,13 @@ describe('formatting', () => {
     expect(describeDuration(90 * M)).toBe('1 hour 30 minutes');
     expect(describeDuration(S)).toBe('1 second');
     expect(describeDuration(0)).toBe('0 seconds');
+  });
+
+  it('says a length briefly, and names an unlabelled timer by it', () => {
+    expect(shortDuration(90 * M)).toBe('1 hr 30 min');
+    expect(shortDuration(2 * M + 30 * S)).toBe('2 min 30 sec');
+    expect(shortDuration(45 * S)).toBe('45 sec');
+    expect(timerName({ label: '', ms: 5 * M })).toBe('5 min timer');
+    expect(timerName({ label: 'Pasta', ms: 5 * M })).toBe('Pasta');
   });
 });

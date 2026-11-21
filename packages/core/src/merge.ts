@@ -4,6 +4,7 @@
  */
 import { clockName } from './clocks.ts';
 import { LISTS, type ClockData, type Item, type ListName } from './format.ts';
+import { timerName } from './duration.ts';
 import { applyOps, changedFields, sameValue, type Op } from './ops.ts';
 
 /** One thing both sides changed. */
@@ -34,7 +35,7 @@ function itemName(list: ListName, item: Item): string {
     case 'presets':
       return (item as ClockData['presets'][number]).label || 'Preset';
     case 'timers':
-      return (item as ClockData['timers'][number]).label || 'Timer';
+      return timerName(item as ClockData['timers'][number]);
   }
 }
 

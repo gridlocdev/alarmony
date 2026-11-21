@@ -5,6 +5,7 @@ import {
   nextAlarm,
   soonestTimer,
   timerLeft,
+  timerName,
   type ClockData,
   type Due,
 } from '@alarmony/core';
@@ -30,7 +31,7 @@ export function trayState({ data, now, zone, format, ringing, countdown }: TrayI
     ringing: ringing.length > 0,
     canSnooze: ringing.some((r) => r.snooze),
     next: next ? `Next: ${next.alarm.label || 'Alarm'}, ${clockTime(next.at, format)}` : null,
-    timers: running.map((t) => `${t.label || 'Timer'}, ${formatCountdown(timerLeft(t, now))} left`),
+    timers: running.map((t) => `${timerName(t)}, ${formatCountdown(timerLeft(t, now))} left`),
     armed: next !== null || running.length > 0,
   };
 }
