@@ -1,12 +1,23 @@
 # Getting started
 
-Alarmony runs in your browser or as a desktop app. There are no downloads yet, so for now you run it from source.
+Alarmony runs in your browser or as a desktop app.
 
-## What you need
+## Download
 
-Node 22.18 or later, pnpm (through `corepack enable`) and [just](https://github.com/casey/just).
+Get the desktop app from the [latest release](https://github.com/gridlocdev/alarmony/releases/latest):
 
-## Run it
+| System                | File                                       |
+| --------------------- | ------------------------------------------ |
+| macOS (Apple silicon) | `Alarmony-<version>-mac-arm64.dmg`         |
+| macOS (Intel)         | `Alarmony-<version>-mac-x64.dmg`           |
+| Windows               | `Alarmony-<version>-win-x64.exe`           |
+| Linux                 | `Alarmony-<version>-linux-x86_64.AppImage` |
+
+The macOS app isn't notarized by Apple, so the first time you open it macOS refuses. Open **System Settings → Privacy & Security** and click **Open Anyway** next to Alarmony. On Windows, choose **More info → Run anyway** if SmartScreen stops the installer. On Linux, make the AppImage executable (`chmod +x`) and run it.
+
+## Run it from source
+
+You need Node 22.18 or later, pnpm (through `corepack enable`) and [just](https://github.com/casey/just).
 
 ```bash
 just setup         # corepack enable, then pnpm install

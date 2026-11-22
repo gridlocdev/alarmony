@@ -10,13 +10,7 @@ A clock app for your desktop and your browser: timers, a stopwatch, alarms and a
 
 ## Getting started
 
-There are no downloads yet. With Node 22.18 or later and [just](https://github.com/casey/just), run it from source:
-
-```bash
-just setup && just run-web   # the web app on http://localhost:5173
-```
-
-[Getting started](docs/getting-started.md) covers the desktop app, the command line and where your data is kept.
+Download the desktop app for macOS, Windows or Linux from [Releases](https://github.com/gridlocdev/alarmony/releases/latest). [Getting started](docs/getting-started.md) covers running it from source, the command line and where your data is kept.
 
 ## Learn more
 
