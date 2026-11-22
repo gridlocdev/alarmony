@@ -2,6 +2,10 @@
 
 Alarmony runs in your browser or as a desktop app.
 
+## Use it in your browser
+
+Open [gridloc.dev/apps/alarmony](https://gridloc.dev/apps/alarmony/). Your clock is kept in that browser's storage; in Chrome and Edge, **Open Folder…** (**⌘O**) keeps it in a folder instead. Keep the tab open for alarms and timers to ring.
+
 ## Download
 
 Get the desktop app from the [latest release](https://github.com/gridlocdev/alarmony/releases/latest):

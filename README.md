@@ -10,7 +10,7 @@ A clock app for your desktop and your browser: timers, a stopwatch, alarms and a
 
 ## Getting started
 
-Download the desktop app for macOS, Windows or Linux from [Releases](https://github.com/gridlocdev/alarmony/releases/latest). [Getting started](docs/getting-started.md) covers running it from source, the command line and where your data is kept.
+Use it in your browser at [gridloc.dev/apps/alarmony](https://gridloc.dev/apps/alarmony/), or download the desktop app for macOS, Windows or Linux from [Releases](https://github.com/gridlocdev/alarmony/releases/latest). [Getting started](docs/getting-started.md) covers running it from source, the command line and where your data is kept.
 
 ## Learn more
 
