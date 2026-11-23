@@ -1,6 +1,7 @@
 import { alarmClock, describeIn, describeRepeat, nextAlarm, sortAlarms, type Alarm } from '@alarmony/core';
 import { type CommandCatalog, type TimeFormat } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
+import { lockedProps } from './locked.ts';
 import { MoreButton, onMenu } from './ContextMenu.tsx';
 import { clockTime } from './time.ts';
 
@@ -59,6 +60,7 @@ function AlarmRow({
         class="al-switch"
         aria-checked={on}
         aria-label={`${alarm.label || 'Alarm'} at ${time}`}
+        {...lockedProps(catalog)}
         onClick={(e) => {
           e.stopPropagation();
           run('alarm.toggle')();
@@ -90,6 +92,7 @@ export function AlarmsView({
           type="button"
           class="al-button al-button-primary"
           data-nav
+          {...lockedProps(catalog)}
           onClick={() => catalog.run('alarm.new')}
         >
           New Alarm
@@ -108,7 +111,13 @@ export function AlarmsView({
         />
       ))}
       <li class="al-add-row">
-        <button type="button" class="al-add-button" data-nav onClick={() => catalog.run('alarm.new')}>
+        <button
+          type="button"
+          class="al-add-button"
+          data-nav
+          {...lockedProps(catalog)}
+          onClick={() => catalog.run('alarm.new')}
+        >
           + New Alarm
         </button>
       </li>

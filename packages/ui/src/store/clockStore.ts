@@ -12,6 +12,8 @@ export interface StoredFile {
 
 export interface ClockStore {
   readonly kind: 'memory' | 'browser' | 'native';
+  /** True when nothing can be written here: a folder picked with the file input in Firefox or Safari (PRD §3.7). */
+  readonly readOnly: boolean;
   load(): Promise<StoredFile>;
   /** Saves `text` if the file still has version `expected`, and returns the new version. Throws ConflictError if not. */
   save(text: string, expected: string | null): Promise<string>;

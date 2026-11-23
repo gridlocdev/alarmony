@@ -26,6 +26,8 @@ export interface CommandSpec {
   readonly keywords?: string;
   readonly run: () => void | Promise<void>;
   readonly enabled?: () => boolean;
+  /** It changes clock.json, so it is off while the file is read-only (PRD §3.3, §3.7). */
+  readonly writes?: boolean;
   /** Left out of the command menu (the command menu itself, say). */
   readonly hidden?: boolean;
   /** A ticked menu item (the current theme, say). */
@@ -72,6 +74,9 @@ export class CommandCatalog {
   readonly #recent: string[] = [];
   #pending: { readonly first: Shortcut; readonly at: number } | null = null;
 
+  /** Why commands that write are off, or null when they can run: the file is read-only. */
+  locked: () => string | null = () => null;
+
   /** Asked before every run; returning false cancels it. */
   gate: ((c: Command) => boolean) | null = null;
 
@@ -86,7 +91,13 @@ export class CommandCatalog {
   }
 
   isEnabled(c: Command): boolean {
+    if (c.writes === true && this.locked() !== null) return false;
     return c.enabled?.() ?? true;
+  }
+
+  /** Why a command can't run now, when the reason is one a person should see (a read-only file); else null. */
+  whyDisabled(c: Command): string | null {
+    return c.writes === true ? this.locked() : null;
   }
 
   /** Runs `id` if it is enabled and the gate lets it. */

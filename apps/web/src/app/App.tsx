@@ -72,9 +72,12 @@ export function App({ app, catalog }: { readonly app: AppController; readonly ca
             class="al-icon-button al-plus"
             aria-label={PLUS[tab] ?? 'New'}
             title={
-              PLUS[tab] ? `${PLUS[tab]} (${catalog.keys(plus).join('')})` : 'The stopwatch has nothing to add'
+              catalog.whyDisabled(plus) ??
+              (PLUS[tab]
+                ? `${PLUS[tab]} (${catalog.keys(plus).join('')})`
+                : 'The stopwatch has nothing to add')
             }
-            disabled={!PLUS[tab]}
+            disabled={!PLUS[tab] || !catalog.isEnabled(plus)}
             onClick={() => catalog.run('item.new')}
           >
             +

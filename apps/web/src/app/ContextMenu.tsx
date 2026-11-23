@@ -126,6 +126,7 @@ export function ContextMenu({
             role="menuitem"
             class={`al-context-item${c.danger ? ' al-danger' : ''}`}
             disabled={!catalog.isEnabled(c)}
+            title={catalog.whyDisabled(c) ?? undefined}
             onPointerDown={(e) => e.preventDefault()}
             onClick={() => {
               close(true);

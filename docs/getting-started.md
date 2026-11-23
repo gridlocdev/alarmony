@@ -4,7 +4,7 @@ Alarmony runs in your browser or as a desktop app.
 
 ## Use it in your browser
 
-Open [gridloc.dev/apps/alarmony](https://gridloc.dev/apps/alarmony/). Your clock is kept in that browser's storage; in Chrome and Edge, **Open Folder…** (**⌘O**) keeps it in a folder instead. Keep the tab open for alarms and timers to ring.
+Open [gridloc.dev/apps/alarmony](https://gridloc.dev/apps/alarmony/). Your clock is kept in that browser's storage; in Chrome and Edge, **Open Folder…** (**⌘O**) keeps it in a folder instead, and in Firefox and Safari it shows a folder's clock read-only. Keep the tab open for alarms and timers to ring.
 
 ## Download
 
@@ -35,7 +35,7 @@ just cli timers    # the alarmony command, from source (just cli man lists every
 | Runs as | File |
 | --- | --- |
 | Desktop | `clock.json` in the folder you pick on first start (`Documents/Alarmony` or your own), or the one `ALARMONY_FOLDER` names |
-| Browser | The browser's private storage for the site, or in Chrome and Edge a folder you pick with Open Folder… (⌘O) |
+| Browser | The browser's private storage for the site, or in Chrome and Edge a folder you pick with Open Folder… (⌘O); Firefox and Safari open a folder read-only |
 
 It is plain JSON, so you can back it up or sync the folder. In a browser, Export clock.json… and Import clock.json… in the ⌘K menu save and restore a copy. Each device keeps its own settings (theme, time format, volume, whether it rings) and its own record of what it has rung, so two computers sharing the folder never ring each other's timers twice.
 

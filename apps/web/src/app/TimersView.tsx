@@ -9,6 +9,7 @@ import {
 } from '@alarmony/core';
 import type { CommandCatalog } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
+import { lockedProps } from './locked.ts';
 import { clockTime, doneAgo } from './time.ts';
 import { startTimerFor } from './timerCommands.ts';
 import { quickStarts } from './quickStart.ts';
@@ -89,15 +90,26 @@ function TimerCard({
       <div class="al-timer-buttons">
         {done ? (
           <>
-            <button type="button" class="al-button al-button-small" onClick={run('timer.dismiss')}>
+            <button
+              type="button"
+              class="al-button al-button-small"
+              {...lockedProps(catalog)}
+              onClick={run('timer.dismiss')}
+            >
               Dismiss
             </button>
-            <button type="button" class="al-button al-button-small" onClick={run('timer.addMinute')}>
+            <button
+              type="button"
+              class="al-button al-button-small"
+              {...lockedProps(catalog)}
+              onClick={run('timer.addMinute')}
+            >
               +1 min
             </button>
             <button
               type="button"
               class="al-button al-button-small al-button-primary"
+              {...lockedProps(catalog)}
               onClick={run('timer.restart')}
             >
               Restart
@@ -110,11 +122,17 @@ function TimerCard({
                 <button
                   type="button"
                   class="al-button al-button-small al-button-quiet"
+                  {...lockedProps(catalog)}
                   onClick={run('timer.cancel')}
                 >
                   Cancel
                 </button>
-                <button type="button" class="al-button al-button-small" onClick={run('timer.addMinute')}>
+                <button
+                  type="button"
+                  class="al-button al-button-small"
+                  {...lockedProps(catalog)}
+                  onClick={run('timer.addMinute')}
+                >
                   +1 min
                 </button>
               </>
@@ -122,6 +140,7 @@ function TimerCard({
             <button
               type="button"
               class="al-button al-button-small al-button-primary"
+              {...lockedProps(catalog)}
               onClick={run('timer.toggle')}
             >
               {timer.state === 'running' ? 'Pause' : timer.state === 'paused' ? 'Resume' : 'Start'}
@@ -153,6 +172,7 @@ function AddTimerCard({ app, catalog }: { readonly app: AppController; readonly 
               data-nav
               title={`Start ${describeDuration(q.ms)}`}
               onClick={() => startTimerFor(app, q.ms, q.label)}
+              {...lockedProps(catalog)}
             >
               {q.label && <span class="al-quick-label">{q.label}</span>}
               <span class="al-num">{q.text}</span>
@@ -160,7 +180,13 @@ function AddTimerCard({ app, catalog }: { readonly app: AppController; readonly 
           </li>
         ))}
       </ul>
-      <button type="button" class="al-add-button" data-nav onClick={() => catalog.run('timer.new')}>
+      <button
+        type="button"
+        class="al-add-button"
+        data-nav
+        {...lockedProps(catalog)}
+        onClick={() => catalog.run('timer.new')}
+      >
         + Custom…
       </button>
     </li>

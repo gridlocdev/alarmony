@@ -1,7 +1,9 @@
 // What a person does with Alarmony, in a real browser, one describe per feature in docs/features.md.
 // The page's clock starts at NOW; `page.clock.runFor` moves it on, so a timer finishes without a wait.
+import { fileURLToPath } from 'node:url';
 import type { Page } from '@playwright/test';
 import {
+  commandMenu,
   expect,
   newTimer,
   openApp,
@@ -21,6 +23,9 @@ async function readStream(stream: NodeJS.ReadableStream): Promise<string> {
 const card = (page: Page, name: RegExp) =>
   page.getByRole('list', { name: 'Timers' }).getByRole('listitem', { name });
 const tab = (page: Page, name: string) => page.getByRole('tab', { name });
+
+/** A folder with a clock.json in it, as Open Folder picks one in Firefox and Safari. */
+const FOLDER = fileURLToPath(new URL('folder/Alarmony', import.meta.url));
 
 const place = (page: Page, name: RegExp) =>
   page.getByRole('list', { name: 'World clocks' }).getByRole('listitem', { name });
@@ -442,7 +447,13 @@ test.describe('Keeping your data', () => {
     await writeClock(page, newer);
     await expect(page.locator('.al-notice')).toContainText('made by a newer Alarmony');
     await expect(card(page, /^Laundry, /)).toBeVisible();
-    await runCommand(page, 'Pause All Timers');
+    await page.keyboard.press('ControlOrMeta+k');
+    await commandMenu(page).getByRole('combobox').fill('Pause All Timers');
+    const pause = commandMenu(page).getByRole('option', { name: /Pause All Timers/ });
+    await expect(pause).toHaveAttribute('aria-disabled', 'true');
+    await expect(pause).toHaveAttribute('title', /made by a newer Alarmony/);
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Escape');
     await expect(card(page, /^Laundry, .*paused/i)).toBeHidden();
     expect((await readClock(page))?.format).toBe(99);
     await expect(page.locator('.al-where')).toHaveText('Stored in this browser');
@@ -529,6 +540,61 @@ test.describe('Keeping your data', () => {
     await page.getByRole('tablist', { name: 'Clock' }).waitFor();
     await expect(page.locator('.al-where')).toHaveText('Stored in this browser');
     await expect(card(page, /^Tea, /)).toBeVisible();
+  });
+
+  test('without the folder picker, Open Folder shows a folder read-only and Use This Browser goes back', async ({
+    page,
+  }) => {
+    // Firefox and Safari have no showDirectoryPicker; they hand over a copy of the folder's files instead.
+    await page.addInitScript(() => {
+      Object.defineProperty(window, 'showDirectoryPicker', { value: undefined });
+    });
+    const errors = watchErrors(page);
+    await openApp(page);
+    await newTimer(page, '10m', 'Laundry');
+    await expect(page.locator('.al-save')).toHaveClass(/al-save-saved/);
+
+    const chooser = page.waitForEvent('filechooser');
+    const loaded = page.waitForEvent('load');
+    await runCommand(page, 'Open Folder');
+    await (await chooser).setFiles(FOLDER);
+    await loaded;
+    await page.getByRole('tablist', { name: 'Clock' }).waitFor();
+    await expect(page.locator('.al-where')).toHaveText('Alarmony (read-only)');
+    await expect(page.locator('.al-notice')).toContainText('is read-only in this browser');
+    await expect(card(page, /^Pasta, /)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'New Timer' })).toBeDisabled();
+    await expect(
+      page.getByRole('list', { name: 'Start a timer' }).getByRole('button').first(),
+    ).toBeDisabled();
+
+    await page.keyboard.press('ControlOrMeta+k');
+    await commandMenu(page).getByRole('combobox').fill('New Timer');
+    const newTimerOption = commandMenu(page)
+      .getByRole('option', { name: /New Timer/ })
+      .first();
+    await expect(newTimerOption).toHaveAttribute('aria-disabled', 'true');
+    await expect(newTimerOption).toHaveAttribute('title', /read-only in this browser/);
+    await page.keyboard.press('Escape');
+
+    const download = page.waitForEvent('download');
+    await runCommand(page, 'Export clock.json');
+    const exported = JSON.parse(await readStream(await (await download).createReadStream())) as {
+      timers: { label: string }[];
+    };
+    expect(exported.timers.map((t) => t.label)).toEqual(['Pasta']);
+
+    await runCommand(page, 'World Clock');
+    await expect(place(page, /^Office, /)).toBeVisible();
+
+    const back = page.waitForEvent('load');
+    await runCommand(page, 'Use This Browser');
+    await back;
+    await page.getByRole('tablist', { name: 'Clock' }).waitFor();
+    await expect(page.locator('.al-where')).toHaveText('Stored in this browser');
+    await runCommand(page, 'Timers');
+    await expect(card(page, /^Laundry, /)).toBeVisible();
+    expect(errors).toEqual([]);
   });
 });
 

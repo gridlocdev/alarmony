@@ -4,6 +4,7 @@ import { ConflictError, sha256Hex, type ClockStore, type StoredFile } from './cl
 /** A store in memory, for tests and demos. `copies` holds the saved copies by name. */
 export class MemoryStore implements ClockStore {
   readonly kind = 'memory';
+  readonly readOnly = false;
   text: string | null;
   readonly copies = new Map<string, string>();
   /** Set to make the next saves fail, like a full disk. */

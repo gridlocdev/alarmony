@@ -13,6 +13,7 @@ Alarmony is one TypeScript code base with two hosts and a command line. The brow
      │  ClockSession (saving, retries, conflicts, recovery)                  │
      │  ClockStore ─┬─ BrowserStore  (the browser's private file system)     │
      │              ├─ NativeStore   (window.alarmonyNative IPC)              │
+     │              ├─ SnapshotStore (a folder opened read-only)             │
      │              └─ MemoryStore   (tests, and browsers with no storage)   │
      │  deviceSettings (this device's settings and ringing log)              │
      └──────────────────────────────────────┬───────────────────────────────┘

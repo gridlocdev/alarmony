@@ -64,6 +64,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       description:
         'Add a clock on the World Clock tab, an alarm on the Alarms tab, or start a timer on the others.',
       group: 'File',
+      writes: true,
       shortcuts: ['mod+n', 'n'],
       hidden: true,
       run: () =>
@@ -76,6 +77,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Add Clock…',
       description: 'Add a world clock: search for a city or time zone.',
       group: 'File',
+      writes: true,
       keywords: 'world city time zone place',
       run: () => {
         app.showTab('world');
@@ -87,6 +89,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'New Alarm…',
       description: 'Add an alarm: its time, the days it repeats, a label and a sound.',
       group: 'File',
+      writes: true,
       keywords: 'add wake',
       run: () => {
         app.showTab('alarms');
@@ -98,6 +101,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'New Timer…',
       description: 'Start a new timer: type how long, and a label if you like.',
       group: 'File',
+      writes: true,
       keywords: 'add countdown',
       run: () => {
         app.showTab('timers');
@@ -118,7 +122,9 @@ export function commandSpecs(app: AppController): CommandSpec[] {
     {
       id: 'file.useBrowser',
       title: 'Use This Browser’s Storage',
-      description: 'Stop using the picked folder: the clock, as it is, goes back into this browser.',
+      description: app.session.store.readOnly
+        ? 'Stop reading the picked folder and go back to the clock kept in this browser.'
+        : 'Stop using the picked folder: the clock, as it is, goes back into this browser.',
       group: 'File',
       keywords: 'folder forget leave',
       hidden: !inPickedFolder(app.session),
@@ -144,6 +150,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Import clock.json…',
       description: 'Replace everything here with a clock.json you pick. Undo takes it back.',
       group: 'File',
+      writes: true,
       keywords: 'restore upload load backup',
       hidden: app.session.store.kind === 'native',
       enabled: () => !app.session.readOnly.value,
@@ -165,6 +172,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Undo',
       description: 'Take back the last change.',
       group: 'Edit',
+      writes: true,
       shortcuts: ['mod+z'],
       enabled: () => (void app.rev.value, app.doc.canUndo),
       run: () => app.undo(),
@@ -174,6 +182,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Redo',
       description: 'Make the change you took back again.',
       group: 'Edit',
+      writes: true,
       shortcuts: ['mod+shift+z'],
       enabled: () => (void app.rev.value, app.doc.canRedo),
       run: () => app.redo(),
@@ -240,6 +249,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Rename Clock…',
       description: 'Give the selected clock a name of its own, shown instead of the city.',
       group: 'Clock',
+      writes: true,
       shortcuts: ['enter'],
       keysOnly: true,
       enabled: onWorld,
@@ -250,6 +260,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Move Clock Up',
       description: 'Move the selected clock one place earlier.',
       group: 'Clock',
+      writes: true,
       shortcuts: ['alt+up'],
       enabled: () => onWorld() && app.data.value.clocks[0]?.id !== clock()?.id,
       run: withClock((id) => app.edit(moveClock(app.data.peek(), id, -1), 'Move')),
@@ -259,6 +270,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Move Clock Down',
       description: 'Move the selected clock one place later.',
       group: 'Clock',
+      writes: true,
       shortcuts: ['alt+down'],
       enabled: () => onWorld() && app.data.value.clocks.at(-1)?.id !== clock()?.id,
       run: withClock((id) => app.edit(moveClock(app.data.peek(), id, 1), 'Move')),
@@ -268,6 +280,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Delete Clock',
       description: 'Remove the selected world clock.',
       group: 'Clock',
+      writes: true,
       shortcuts: ['delete', 'backspace'],
       keysOnly: true,
       danger: true,
@@ -284,6 +297,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Turn Alarm On or Off',
       description: 'Switch the selected alarm on or off.',
       group: 'Clock',
+      writes: true,
       shortcuts: ['space'],
       keysOnly: true,
       enabled: onAlarms,
@@ -301,6 +315,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Edit Alarm…',
       description: 'Change the selected alarm’s time, days, label or sound.',
       group: 'Clock',
+      writes: true,
       shortcuts: ['enter'],
       keysOnly: true,
       enabled: onAlarms,
@@ -311,6 +326,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Duplicate Alarm',
       description: 'Add a copy of the selected alarm.',
       group: 'Clock',
+      writes: true,
       enabled: onAlarms,
       run: withAlarm((id) => {
         const copy = app.newId('a');
@@ -323,6 +339,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Delete Alarm',
       description: 'Remove the selected alarm.',
       group: 'Clock',
+      writes: true,
       shortcuts: ['delete', 'backspace'],
       keysOnly: true,
       danger: true,
@@ -339,6 +356,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Start or Stop Stopwatch',
       description: 'Start the stopwatch, or stop it where it is.',
       group: 'Clock',
+      writes: true,
       shortcuts: ['space'],
       keysOnly: true,
       enabled: () => app.tab.value === 'stopwatch',
@@ -350,6 +368,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Lap',
       description: 'Start a new lap; the one that ended goes on the list.',
       group: 'Clock',
+      writes: true,
       shortcuts: ['l'],
       keysOnly: true,
       enabled: () => sw().state === 'running' && canLap(sw()),
@@ -363,6 +382,7 @@ export function commandSpecs(app: AppController): CommandSpec[] {
       title: 'Reset Stopwatch',
       description: 'Set the stopped stopwatch back to zero and clear its laps.',
       group: 'Clock',
+      writes: true,
       shortcuts: ['r'],
       keysOnly: true,
       enabled: () => canReset(sw()),
@@ -422,5 +442,7 @@ export function buildCommands(app: AppController): CommandCatalog {
   const catalog = new CommandCatalog(commandSpecs(app));
   // With a dialog, the ringing sheet or a save question in front, only global commands run (PRD §14).
   catalog.gate = (c) => c.global === true || !app.blocked();
+  // A read-only file turns off every command that would change it, and says why (PRD §3.3, §3.7).
+  catalog.locked = () => (app.session.readOnly.value ? app.session.lockReason : null);
   return catalog;
 }

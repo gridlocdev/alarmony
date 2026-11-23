@@ -62,6 +62,24 @@ const spec1 = (id: string, shortcuts: string[]): CommandSpec => ({
 const id = (r: ReturnType<CommandCatalog['forEvent']>) =>
   r?.kind === 'run' ? r.command.id : (r?.kind ?? null);
 
+describe('a read-only file', () => {
+  it('turns off the commands that write, lets their keys through, and says why', () => {
+    const { c, ran } = catalog([{ ...spec1('delete', ['backspace']), writes: true }]);
+    let why: string | null = null;
+    c.locked = () => why;
+    const del = c.get('delete')!;
+    expect(c.isEnabled(del)).toBe(true);
+    why = 'read-only';
+    expect(c.isEnabled(del)).toBe(false);
+    expect(c.whyDisabled(del)).toBe('read-only');
+    expect(c.whyDisabled(c.get('menu')!)).toBeNull();
+    expect(c.run('delete')).toBe(false);
+    expect(c.forEvent(key({ key: 'Backspace', code: 'Backspace' }), 'list')).toBeNull();
+    expect(c.run('menu')).toBe(true);
+    expect(ran).toEqual(['menu']);
+  });
+});
+
 describe('shortcuts', () => {
   it('mod is ⌘ on a Mac and Ctrl elsewhere', () => {
     const { c } = catalog();

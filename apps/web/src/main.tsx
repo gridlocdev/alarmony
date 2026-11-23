@@ -6,6 +6,9 @@ import {
   ClockSession,
   MemoryStore,
   NativeStore,
+  SnapshotStore,
+  canKeepFolderCopy,
+  keptFolderCopy,
   SoundPlayer,
   after,
   canPickFolder,
@@ -25,7 +28,8 @@ import {
 } from '@alarmony/ui';
 import { App, handleKey } from './app/App.tsx';
 import { FolderGate } from './app/FolderGate.tsx';
-import { openBrowserFolder } from './app/transfer.ts';
+import { NO_FOLDER_MESSAGE, openBrowserFolder, openFolderCopy } from './app/transfer.ts';
+import { canPickFolderFiles } from './app/folderInput.ts';
 import { buildCommands } from './app/commands.ts';
 import { AppController } from './app/controller.ts';
 import { nativeBridge } from './app/native.ts';
@@ -85,9 +89,14 @@ async function pickedFolder(): Promise<{ store: ClockStore | null; notice: strin
   };
 }
 
-/** The desktop app's folder, else a folder picked in this browser, else its own storage, else memory (PRD §3.7). */
+/**
+ * The desktop app's folder, else a folder this tab opened read-only, else one picked in this browser, else its own
+ * storage, else memory (PRD §3.7).
+ */
 async function chooseStore(): Promise<{ store: ClockStore; notice: string | null }> {
   if (native) return { store: new NativeStore(native), notice: null };
+  const copy = keptFolderCopy();
+  if (copy) return { store: new SnapshotStore(copy), notice: null };
   if (BrowserStore.available()) {
     const picked = canPickFolder() ? await pickedFolder() : { store: null, notice: null };
     return { store: picked.store ?? new BrowserStore(), notice: picked.notice };
@@ -99,6 +108,23 @@ async function chooseStore(): Promise<{ store: ClockStore; notice: string | null
 }
 
 const reload = () => location.reload();
+
+/**
+ * Open Folder in a browser, chosen by what the browser can do (PRD §3.7): a folder it can write
+ * (`showDirectoryPicker`), else a read-only copy through the file input, else a note that it can't.
+ */
+function browserOpenFolder(
+  store: ClockStore,
+  app: () => AppController,
+  session: ClockSession,
+): () => Promise<void> {
+  const failed = (e: unknown) =>
+    app().say(`Couldn't open that folder: ${e instanceof Error ? e.message : String(e)}`, { tone: 'error' });
+  if (canPickFolder() && store instanceof BrowserStore)
+    return () => openBrowserFolder(session, reload).catch(failed);
+  if (canPickFolderFiles() && canKeepFolderCopy()) return () => openFolderCopy(app(), reload).catch(failed);
+  return () => Promise.resolve(app().say(NO_FOLDER_MESSAGE));
+}
 
 async function start(): Promise<void> {
   const choice = await chooseStore();
@@ -121,16 +147,7 @@ async function start(): Promise<void> {
           // Saves still waiting go to the old folder before the window reloads from the new one.
           openFolder: () => session.flush().then(() => native.openFolder()),
         }
-      : canPickFolder() && choice.store instanceof BrowserStore
-        ? {
-            openFolder: (): Promise<void> =>
-              openBrowserFolder(session, reload).catch((e: unknown) =>
-                app.say(`Couldn't open that folder: ${e instanceof Error ? e.message : String(e)}`, {
-                  tone: 'error',
-                }),
-              ),
-          }
-        : {}),
+      : { openFolder: browserOpenFolder(choice.store, () => app, session) }),
   });
   const catalog = buildCommands(app);
   render(<App app={app} catalog={catalog} />, root);

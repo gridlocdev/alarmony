@@ -8,7 +8,7 @@ Alarmony is a clock app with timers, a stopwatch, alarms and world clocks, kept 
 
 **Clock file**: The one `clock.json` that holds every **Clock**, **Alarm**, **Preset** and **Timer** and the **Stopwatch**. In prose, call it `clock.json`. _Avoid_: database, document, data file (except in `packages/node-files`, which reads any such file)
 
-**Folder**: The folder that holds the **Clock file**: `Documents/Alarmony`, one you choose with **Open Folder…**, or the browser's own storage. _Avoid_: data folder, notebook
+**Folder**: The folder that holds the **Clock file**: `Documents/Alarmony`, one you choose with **Open Folder…**, or the browser's own storage. Firefox and Safari open a folder read-only. _Avoid_: data folder, notebook
 
 **Operation**: One edit to one item (add, change fields, delete, move, start, pause, lap), kept until it is saved and replayed onto the file if it changed elsewhere. _Avoid_: patch, diff
 

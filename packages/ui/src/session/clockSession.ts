@@ -25,6 +25,7 @@ import {
 } from '@alarmony/core';
 import { wait } from '../schedule.ts';
 import { ConflictError, type ClockStore } from '../store/clockStore.ts';
+import { SnapshotStore, readOnlyFolderMessage } from '../store/snapshotStore.ts';
 import { step, type Effect, type SaveEvent, type SaveState } from './saveChart.ts';
 
 export type SaveStatus = 'saved' | 'saving' | 'failed' | 'conflict';
@@ -173,7 +174,10 @@ export class ClockSession {
   readonly choosing = signal(false);
   /** Unsaved changes another window left; the UI offers Restore or Discard (PRD §3.6). */
   readonly recoverable = signal<string | null>(null);
-  /** The file is from a newer Alarmony: it is shown and rings, but nothing here changes it (PRD §3.3). */
+  /**
+   * Nothing here changes the file: it is from a newer Alarmony (PRD §3.3), or the store can't be written (a folder
+   * picked in Firefox or Safari, PRD §3.7). It is shown and rings. `lockReason` says which.
+   */
   readonly readOnly = signal(false);
   /** False when the last change couldn't be kept in the recovery slot (PRD §3.6). */
   readonly backedUp = signal(true);
@@ -222,7 +226,7 @@ export class ClockSession {
   static async open(store: ClockStore, opts: SessionOptions = {}): Promise<OpenResult> {
     const file = await store.load();
     const read = readText(file.text);
-    if (read.newer) {
+    if (read.newer || store.readOnly) {
       const session = new ClockSession(store, read.data ?? emptyData(opts.zone ?? null), file.version, opts);
       session.#lock(true);
       // What another window left unsaved waits until this version can write the file. The app says why it can't.
@@ -250,6 +254,11 @@ export class ClockSession {
     // A new file is written at once, and an unreadable one is replaced, so the next start finds it (PRD §3.1).
     if (read.data === null) session.#fire('edit');
     return { session, notice };
+  }
+
+  /** Why nothing here can change the file, while `readOnly` is true. */
+  get lockReason(): string {
+    return this.store instanceof SnapshotStore ? readOnlyFolderMessage(this.store.name) : NEWER_FILE_MESSAGE;
   }
 
   /** The version of the file this session last read or wrote. */
@@ -477,7 +486,7 @@ export class ClockSession {
     this.#base = data;
     this.#version = file.version;
     this.doc.replace(data);
-    if (r?.kind === 'ok') {
+    if (r?.kind === 'ok' && !this.store.readOnly) {
       this.#lock(false);
       this.onNotice('clock.json can be changed again.');
     }

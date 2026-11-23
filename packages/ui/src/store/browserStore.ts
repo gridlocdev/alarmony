@@ -31,6 +31,7 @@ const BROWSER_PLACE = 'Stored in this browser';
 
 export class BrowserStore implements ClockStore {
   readonly kind = 'browser';
+  readonly readOnly = false;
   readonly #root: () => Promise<DirHandle>;
   readonly #locks: LockManagerLike | null;
   readonly #place: string;

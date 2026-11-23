@@ -6,6 +6,8 @@ import type { AppController } from './controller.ts';
 interface Entry extends MenuEntry {
   readonly keys: string;
   readonly enabled: boolean;
+  /** Why it is off, when a person should know (a read-only file). */
+  readonly why: string | null;
   readonly run: () => void;
 }
 
@@ -31,9 +33,11 @@ export function CommandMenu({
         keywords: `${c.keywords ?? ''} ${c.description}`,
         keys: catalog.keys(c).join(' '),
         enabled: catalog.isEnabled(c),
+        why: catalog.whyDisabled(c),
         run: () => catalog.run(c.id),
       }));
-    const extra = dynamicEntries(app).map((e) => ({ ...e, keys: '', enabled: true }));
+    const locked = catalog.locked();
+    const extra = dynamicEntries(app).map((e) => ({ ...e, keys: '', enabled: locked === null, why: locked }));
     return [...commands, ...extra];
   }, [app, catalog]);
   const results = filterEntries(entries, query, catalog.recentIds).slice(0, 80);
@@ -68,6 +72,7 @@ export function CommandMenu({
           aria-selected={i === index}
           aria-disabled={!e.enabled}
           class={e.enabled ? undefined : 'al-disabled'}
+          title={e.why ?? undefined}
           onPointerMove={() => setIndex(i)}
           onClick={() => pick(i)}
         >

@@ -25,7 +25,6 @@ import {
   type Due,
   type Op,
   type Timer,
-  NEWER_FILE_MESSAGE,
 } from '@alarmony/core';
 import {
   deviceMemory,
@@ -210,11 +209,11 @@ export class AppController {
     this.settings = signal(deps.settings);
     this.tab = signal(shown(deps.settings.tab));
     session.onNotice = (text, tone) => this.say(text, tone ? { tone, sticky: true } : {});
-    // A file from a newer Alarmony says so for as long as it is shown read-only (PRD §3.3).
+    // A read-only file says why for as long as it is shown (PRD §3.3, §3.7).
     let locked: Notice | null = null;
     effect(() => {
       if (session.readOnly.value) {
-        this.say(NEWER_FILE_MESSAGE, { tone: 'error', sticky: true });
+        this.say(session.lockReason, { tone: 'error', sticky: true });
         locked = this.notice.peek();
       } else if (locked) {
         if (this.notice.peek() === locked) this.notice.value = null;
@@ -265,10 +264,10 @@ export class AppController {
     return done;
   }
 
-  /** True, after saying why, when the file is read-only (PRD §3.3). */
+  /** True, after saying why, when the file is read-only (PRD §3.3, §3.7). */
   #refuseLocked(): boolean {
     if (!this.doc.locked) return false;
-    this.say(NEWER_FILE_MESSAGE, { tone: 'error' });
+    this.say(this.session.lockReason, { tone: 'error' });
     return true;
   }
 

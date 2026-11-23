@@ -5,6 +5,7 @@ import {
   deviceMemory,
   memoryRecovery,
   rungLog,
+  type ClockStore,
   type DeviceMemory,
   type RungLog,
 } from '@alarmony/ui';
@@ -46,11 +47,11 @@ export function fakeSound(allowed = true) {
 /** An app on a file in memory, with a clock the test moves (`clock.at`). */
 export async function makeApp(
   text: string | null = null,
-  opts: { soundAllowed?: boolean; memory?: DeviceMemory; rung?: RungLog } = {},
+  opts: { soundAllowed?: boolean; memory?: DeviceMemory; rung?: RungLog; store?: ClockStore } = {},
 ) {
   const clock = { at: NOW };
   const store = new MemoryStore(text);
-  const { session } = await ClockSession.open(store, {
+  const { session } = await ClockSession.open(opts.store ?? store, {
     recovery: memoryRecovery(),
     wait: async () => undefined,
   });

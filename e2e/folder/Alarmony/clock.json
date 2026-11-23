@@ -1,0 +1,22 @@
+{
+  "format": 1,
+  "settings": { "snoozeMinutes": 9 },
+  "clocks": [{ "id": "c_office", "zone": "Asia/Tokyo", "label": "Office" }],
+  "alarms": [
+    {
+      "id": "a_wake",
+      "time": "07:00",
+      "days": [1, 2, 3, 4, 5],
+      "label": "Wake up",
+      "sound": "chimes",
+      "snooze": true,
+      "enabled": true,
+      "once": null
+    }
+  ],
+  "presets": [{ "id": "p_tea", "label": "Tea", "ms": 240000 }],
+  "timers": [
+    { "id": "t_pasta", "label": "Pasta", "ms": 600000, "state": "idle", "endsAt": null, "leftMs": null }
+  ],
+  "stopwatch": { "state": "idle", "startedAt": null, "elapsedMs": 0, "laps": [] }
+}

@@ -60,6 +60,7 @@ export interface AlarmonyNative extends NativeData {
 
 export class NativeStore implements ClockStore {
   readonly kind = 'native';
+  readonly readOnly = false;
   readonly #bridge: NativeData;
   #folder = '';
 

@@ -11,6 +11,7 @@ import {
 } from '@alarmony/core';
 import { type CommandCatalog } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
+import { lockedProps } from './locked.ts';
 import { MoreButton, onMenu } from './ContextMenu.tsx';
 import { zoneClockTime } from './time.ts';
 
@@ -103,7 +104,7 @@ function ClockItem({
       tabIndex={0}
       data-id={clock.id}
       data-nav
-      draggable
+      draggable={catalog.locked() === null}
       onContextMenu={onMenu(app, 'clock', clock.id)}
       onDragStart={(e) => {
         e.dataTransfer?.setData('text/plain', name);
@@ -179,6 +180,7 @@ export function WorldView({
           type="button"
           class="al-button al-button-primary"
           data-nav
+          {...lockedProps(catalog)}
           onClick={() => catalog.run('clock.add')}
         >
           Add Clock
@@ -191,7 +193,13 @@ export function WorldView({
         <ClockItem key={c.id} app={app} catalog={catalog} clock={c} list={list} dragging={dragging} />
       ))}
       <li class={list ? 'al-add-row' : 'al-add-card al-clock-add'}>
-        <button type="button" class="al-add-button" data-nav onClick={() => catalog.run('clock.add')}>
+        <button
+          type="button"
+          class="al-add-button"
+          data-nav
+          {...lockedProps(catalog)}
+          onClick={() => catalog.run('clock.add')}
+        >
           + Add Clock
         </button>
       </li>
