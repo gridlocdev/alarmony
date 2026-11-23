@@ -542,6 +542,24 @@ test.describe('Keeping your data', () => {
     await expect(card(page, /^Tea, /)).toBeVisible();
   });
 
+  test('a browser whose own storage won’t open still starts, keeping the clock for this tab', async ({
+    page,
+  }) => {
+    // Some browsers have the private file system but refuse it, such as a private window or some WebKit builds.
+    await page.addInitScript(() => {
+      Object.defineProperty(StorageManager.prototype, 'getDirectory', {
+        value: () =>
+          Promise.reject(
+            new DOMException('The operation failed for an unknown transient reason', 'UnknownError'),
+          ),
+      });
+    });
+    await openApp(page);
+    await expect(page.locator('.al-notice')).toContainText('nothing here is saved after the tab closes');
+    await newTimer(page, '10m', 'Laundry');
+    await expect(card(page, /^Laundry, /)).toBeVisible();
+  });
+
   test('without the folder picker, Open Folder shows a folder read-only and Use This Browser goes back', async ({
     page,
   }) => {

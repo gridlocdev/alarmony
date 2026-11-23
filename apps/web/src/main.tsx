@@ -99,7 +99,9 @@ async function chooseStore(): Promise<{ store: ClockStore; notice: string | null
   if (copy) return { store: new SnapshotStore(copy), notice: null };
   if (BrowserStore.available()) {
     const picked = canPickFolder() ? await pickedFolder() : { store: null, notice: null };
-    return { store: picked.store ?? new BrowserStore(), notice: picked.notice };
+    if (picked.store) return { store: picked.store, notice: picked.notice };
+    const own = new BrowserStore();
+    if (await own.opens()) return { store: own, notice: picked.notice };
   }
   return {
     store: new MemoryStore(null),

@@ -56,6 +56,20 @@ export class BrowserStore implements ClockStore {
     return typeof navigator !== 'undefined' && typeof navigator.storage?.getDirectory === 'function';
   }
 
+  /**
+   * Does the private file system open? Some browsers have it but refuse it (a private window, a WebKit
+   * build whose storage fails), and then the clock is kept in memory instead of not starting (PRD §3.7).
+   */
+  async opens(): Promise<boolean> {
+    try {
+      await this.#root();
+      return true;
+    } catch (e) {
+      console.warn('This browser’s private file system did not open:', e);
+      return false;
+    }
+  }
+
   async #read(name: string): Promise<string | null> {
     try {
       const handle = await (await this.#root()).getFileHandle(name);

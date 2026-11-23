@@ -2,7 +2,7 @@ import { versionOf } from '@alarmony/node-files';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   BrowserStore,
   ConflictError,
@@ -96,6 +96,24 @@ describe('a picked folder', () => {
     const own = new BrowserStore(() => Promise.resolve(root as unknown as DirHandle), null);
     expect([folder.location(), folder.inFolder]).toEqual(['Clocks', true]);
     expect([own.location(), own.inFolder]).toEqual(['Stored in this browser', false]);
+  });
+});
+
+describe('the browser’s own storage', () => {
+  it('opens when the private file system does, and says so when it refuses', async () => {
+    const { root } = fakeFolder('own');
+    const works = new BrowserStore(() => Promise.resolve(root as unknown as DirHandle), null);
+    const refused = new BrowserStore(
+      () =>
+        Promise.reject(
+          new DOMException('The operation failed for an unknown transient reason', 'UnknownError'),
+        ),
+      null,
+    );
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    expect([await works.opens(), await refused.opens()]).toEqual([true, false]);
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
   });
 });
 
