@@ -23,6 +23,7 @@ import {
   listenKeys,
   loadSettings,
   localRecovery,
+  probeMenuCommand,
   rungLog,
   type ClockStore,
 } from '@alarmony/ui';
@@ -188,6 +189,8 @@ async function start(): Promise<void> {
     html.toggle('al-unified', native.chrome === 'unified');
     native.onFullScreen((full) => html.toggle('al-fullscreen', full));
     native.onCommand((id) => {
+      // "Press a shortcut" shows a menu bar shortcut instead of running it.
+      if (probeMenuCommand(id)) return;
       // Menu accelerators reach the app before the page; in a text field ⌘Z stays the field's.
       const inText = !!document.activeElement?.closest('input, textarea, select');
       if (inText && !catalog.get(id)?.global) {

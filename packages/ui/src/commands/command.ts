@@ -175,6 +175,26 @@ export class CommandCatalog {
     return null;
   }
 
+  /**
+   * Every one-key command a key press matches, best match first, whether or not it's enabled now: what the
+   * Keyboard Shortcuts window says a key does. Unlike `forEvent`, it changes nothing.
+   */
+  commandsForKey(e: ShortcutEvent, mac = isMac): Command[] {
+    let found: Command[] = [];
+    let bestRank = Infinity;
+    for (const c of this.all)
+      for (const seq of c.sequences) {
+        const [only] = seq;
+        if (seq.length !== 1 || !only) continue;
+        const rank = matchRank(only, e, mac);
+        if (rank === 0 || rank > bestRank) continue;
+        if (rank < bestRank) found = [];
+        bestRank = rank;
+        if (!found.includes(c)) found.push(c);
+      }
+    return found;
+  }
+
   /** Disabled commands let their keys through, so two commands can share a key (Delete in the Trash). */
   #allowed(c: Command, focus: KeyFocus): boolean {
     return (focus !== 'text' || c.global === true) && this.isEnabled(c);

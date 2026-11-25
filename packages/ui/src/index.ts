@@ -97,6 +97,9 @@ export {
   type ShortcutEvent,
   keyFocus,
   listenKeys,
+  probeMenuCommand,
+  startKeyProbe,
+  type ProbeHandlers,
 } from './commands/index.ts';
 export { after, debounce, every, frames, wait } from './schedule.ts';
 export { SoundPlayer } from './sound/player.ts';

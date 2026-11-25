@@ -632,6 +632,35 @@ test.describe('Commands and shortcuts', () => {
     expect(errors).toEqual([]);
   });
 
+  test('Press a Shortcut says what a key runs without running it, and Esc always gets out', async ({
+    page,
+  }) => {
+    const errors = watchErrors(page);
+    await openApp(page);
+    await runCommand(page, 'Stopwatch');
+    await page.keyboard.press('ControlOrMeta+Slash');
+    const shortcuts = page.getByRole('dialog', { name: 'Keyboard Shortcuts' });
+    await shortcuts.getByRole('button', { name: 'Press a Shortcut…' }).click();
+    const answer = shortcuts.getByRole('status');
+    await expect(answer).toContainText('Press a key');
+    await page.keyboard.press('Space');
+    await expect(answer).toContainText('Start or Stop Stopwatch');
+    await page.keyboard.press('ControlOrMeta+k');
+    await expect(answer).toContainText('runs Command Menu');
+    await expect(commandMenu(page)).toBeHidden();
+    await page.keyboard.press('ControlOrMeta+Alt+j');
+    await expect(answer).toContainText('runs no command.');
+    await shortcuts.getByRole('button', { name: 'Stop' }).click();
+    await expect(answer).toBeHidden();
+    await expect(page.getByText(/^Stopwatch stopped/)).toBeAttached();
+    await shortcuts.getByRole('button', { name: 'Press a Shortcut…' }).click();
+    await page.keyboard.press('Escape');
+    await expect(shortcuts).toBeHidden();
+    await page.keyboard.press('ControlOrMeta+k');
+    await expect(commandMenu(page)).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
   test('right-click menus act on their item, and Shift+F10 opens one from the keyboard', async ({ page }) => {
     const errors = watchErrors(page);
     await openApp(page);

@@ -1088,6 +1088,20 @@ kbd {
 }
 
 /* Keyboard Shortcuts */
+.al-probe {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 14px;
+  color: var(--al-text-2);
+}
+.al-probe-on {
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid var(--al-accent);
+  border-radius: var(--al-radius);
+  color: var(--al-text);
+}
 .al-shortcuts {
   columns: 2 260px;
 }

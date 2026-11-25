@@ -14,6 +14,7 @@ import { Dialog, isMac, type CommandCatalog, type Theme, type TimeFormat } from 
 import type { AppController } from './controller.ts';
 import { startPreset } from './timerCommands.ts';
 import { shortcutGroups } from './shortcuts.ts';
+import { ShortcutProbe } from './ShortcutProbe.tsx';
 import { AlarmDialog } from './AlarmDialogs.tsx';
 import { ClockDialog } from './ClockDialogs.tsx';
 
@@ -363,11 +364,12 @@ function ShortcutsDialog({
       class="al-dialog-wide"
       onClose={() => app.close()}
       actions={
-        <button type="button" class="al-button al-button-primary" onClick={() => app.close()}>
+        <button type="button" class="al-button al-button-primary" data-autofocus onClick={() => app.close()}>
           Done
         </button>
       }
     >
+      <ShortcutProbe catalog={catalog} />
       <div class="al-shortcuts">
         {shortcutGroups(catalog, isMac).map((g) => (
           <section key={g.title}>

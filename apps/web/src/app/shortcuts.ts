@@ -1,5 +1,5 @@
 /** What the Keyboard Shortcuts window lists (PRD §14): every command with a key, plus keys that aren't commands. */
-import { COMMAND_GROUPS, type CommandCatalog, type CommandGroup } from '@alarmony/ui';
+import { COMMAND_GROUPS, type CommandCatalog, type CommandGroup, type ShortcutEvent } from '@alarmony/ui';
 
 export interface ShortcutLine {
   readonly title: string;
@@ -52,4 +52,47 @@ export function shortcutGroups(catalog: CommandCatalog, mac: boolean): ShortcutG
       }));
     return { title: GROUP_TITLES[group], lines: [...lines, ...(more[group] ?? [])] };
   }).filter((g) => g.lines.length > 0);
+}
+
+const KEY_NAMES: Record<string, string> = {
+  ' ': 'Space',
+  ArrowUp: 'Up',
+  ArrowDown: 'Down',
+  ArrowLeft: 'Left',
+  ArrowRight: 'Right',
+  Escape: 'Esc',
+};
+const MAC_KEY_NAMES: Record<string, string> = {
+  Enter: '↩',
+  Backspace: '⌫',
+  Delete: '⌦',
+  Tab: '⇥',
+  ArrowUp: '↑',
+  ArrowDown: '↓',
+  ArrowLeft: '←',
+  ArrowRight: '→',
+  ' ': '␣',
+};
+
+/** A key press as the window writes keys: ⇧⌘K on a Mac, Ctrl+Shift+K elsewhere. */
+export function pressedLabel(e: ShortcutEvent, mac: boolean): string {
+  const key =
+    (mac ? MAC_KEY_NAMES[e.key] : undefined) ??
+    KEY_NAMES[e.key] ??
+    (e.key.length === 1 ? e.key.toUpperCase() : e.key);
+  if (mac)
+    return `${e.ctrlKey ? '⌃' : ''}${e.altKey ? '⌥' : ''}${e.shiftKey ? '⇧' : ''}${e.metaKey ? '⌘' : ''}${key}`;
+  return [e.ctrlKey && 'Ctrl', e.altKey && 'Alt', e.shiftKey && 'Shift', key].filter(Boolean).join('+');
+}
+
+/** What a key does, for "Press a shortcut": its label and the commands it runs (none for "no command"). */
+export function whatKeyDoes(
+  catalog: CommandCatalog,
+  e: ShortcutEvent,
+  mac: boolean,
+): { readonly label: string; readonly titles: readonly string[] } {
+  return {
+    label: pressedLabel(e, mac),
+    titles: catalog.commandsForKey(e, mac).map((c) => c.title.replace(/…$/, '')),
+  };
 }
