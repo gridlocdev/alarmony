@@ -98,6 +98,7 @@ export {
   keyFocus,
   listenKeys,
   probeMenuCommand,
+  PROBE_IDLE_MS,
   startKeyProbe,
   type ProbeHandlers,
 } from './commands/index.ts';

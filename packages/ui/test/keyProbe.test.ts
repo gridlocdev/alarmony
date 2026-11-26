@@ -1,5 +1,11 @@
-import { describe, expect, it } from 'vitest';
-import { probeMenuCommand, startKeyProbe, type ProbeHandlers, type ShortcutEvent } from '../src/index.ts';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  PROBE_IDLE_MS,
+  probeMenuCommand,
+  startKeyProbe,
+  type ProbeHandlers,
+  type ShortcutEvent,
+} from '../src/index.ts';
 
 type KeyEvent = Event & ShortcutEvent;
 
@@ -130,5 +136,36 @@ describe('press a shortcut', () => {
     expect(() => probeMenuCommand('item.new')).toThrow('boom');
     expect(bad.left()).toBe(1);
     expect(probeMenuCommand('item.new')).toBe(false);
+  });
+
+  describe('with no key pressed for a while', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('ends the mode by itself, and each key or menu shortcut starts the wait again', () => {
+      vi.useFakeTimers();
+      const { win, left } = probe();
+      vi.advanceTimersByTime(PROBE_IDLE_MS - 1000);
+      win.dispatchEvent(keydown('n'));
+      vi.advanceTimersByTime(PROBE_IDLE_MS - 1000);
+      probeMenuCommand('item.new');
+      vi.advanceTimersByTime(PROBE_IDLE_MS - 1);
+      expect(left()).toBe(0);
+      vi.advanceTimersByTime(1);
+      expect(left()).toBe(1);
+      expect(win.capture).toEqual([]);
+      const next = keydown('n');
+      win.dispatchEvent(next);
+      expect(win.app).toEqual([next]);
+      expect(probeMenuCommand('item.new')).toBe(false);
+    });
+
+    it('leaves no wait behind once stopped', () => {
+      vi.useFakeTimers();
+      const { stop, left } = probe();
+      stop();
+      expect(vi.getTimerCount()).toBe(0);
+      vi.advanceTimersByTime(PROBE_IDLE_MS);
+      expect(left()).toBe(1);
+    });
   });
 });

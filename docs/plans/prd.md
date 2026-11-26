@@ -233,7 +233,7 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 
 Every action is a command in one catalog that feeds the keyboard, ⌘K, context menus, the native menu bar, the toolbar, the Keyboard Shortcuts window (⌘/) and `docs/controls.md`. Single-letter keys work only when focus isn't in a text field.
 
-The Keyboard Shortcuts window has **Press a Shortcut…**: while it's on, a key press (or, on the desktop, a menu bar shortcut) shows which command it runs, or "runs no command", and runs nothing. Esc always leaves it and is never taken, so it also closes the window; **Stop** leaves it and keeps the window open. Closing the window ends it, and so does any error while it's on, so no key stays swallowed.
+The Keyboard Shortcuts window has **Press a Shortcut…**: while it's on, a key press (or, on the desktop, a menu bar shortcut) shows which command it runs, or "runs no command", and runs nothing. Esc always leaves it and is never taken, so it also closes the window; **Stop** leaves it and keeps the window open. Closing the window ends it, and so do 30 seconds with no key press and any error while it's on, so no key stays swallowed.
 
 | Key | Command |
 | --- | --- |

@@ -1,10 +1,14 @@
 /**
  * "Press a shortcut" in the Keyboard Shortcuts window (PRD §14): while it's on, a key press shows what it does
  * instead of doing it. Escape always leaves and is never taken, so the window closes as usual, and the listener
- * comes off when the mode ends for any reason: Escape, the Stop button, the window closing, or a handler that
- * throws. No key press can stay swallowed.
+ * comes off when the mode ends for any reason: Escape, the Stop button, the window closing, a handler that
+ * throws, or 30 seconds with no key press. No key press can stay swallowed.
  */
+import { after } from '../schedule.ts';
 import { isComposingKey, type ShortcutEvent } from './shortcut.ts';
+
+/** The mode ends by itself after this long with no key press or menu shortcut. */
+export const PROBE_IDLE_MS = 30_000;
 
 const MODIFIERS = new Set(['Shift', 'Meta', 'Control', 'Alt', 'AltGraph', 'CapsLock', 'Fn', 'OS']);
 
@@ -29,8 +33,11 @@ export function probeMenuCommand(id: string): boolean {
 /** Starts the mode on `target` (the window). Returns the function that ends it; calling it twice is fine. */
 export function startKeyProbe(target: EventTarget, handlers: ProbeHandlers): () => void {
   let stopped = false;
+  let cancelIdle = after(PROBE_IDLE_MS, stop);
   /** Runs a handler; if it throws, the mode ends before the error goes on. */
   const guard = (run: () => void) => {
+    cancelIdle();
+    cancelIdle = after(PROBE_IDLE_MS, stop);
     let ok = false;
     try {
       run();
@@ -51,6 +58,7 @@ export function startKeyProbe(target: EventTarget, handlers: ProbeHandlers): () 
   function stop(): void {
     if (stopped) return;
     stopped = true;
+    cancelIdle();
     target.removeEventListener('keydown', listener, true);
     if (active === menu) active = null;
     handlers.onLeave();
