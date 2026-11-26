@@ -35,6 +35,7 @@ import { buildCommands } from './app/commands.ts';
 import { AppController } from './app/controller.ts';
 import { nativeBridge } from './app/native.ts';
 import { menuSender, nativeMenu, watchMenuInputs } from './app/nativeMenu.ts';
+import { followSelection } from './app/focus.ts';
 import pkg from '../package.json';
 
 /** How often an open window looks for changes made elsewhere (PRD §3.5). */
@@ -158,6 +159,7 @@ async function start(): Promise<void> {
   if (startNotice) app.say(startNotice, { sticky: true, tone: 'error' });
 
   effect(() => app.saveStatusChanged(session.status.value));
+  followSelection(app);
   effect(() => {
     document.title = app.title.value;
   });

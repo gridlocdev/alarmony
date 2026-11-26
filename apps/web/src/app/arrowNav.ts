@@ -81,6 +81,9 @@ export function arrowNavigate(app: AppController, e: KeyboardEvent): boolean {
     );
     to = selected >= 0 ? selected : e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? items.length - 1 : 0;
   }
+  // The selection moves first and focus follows it (PRD §14).
+  const id = items[to]!.dataset.id;
+  if (id !== undefined) app.selected.value = id;
   items[to]!.focus();
   items[to]!.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
   return true;

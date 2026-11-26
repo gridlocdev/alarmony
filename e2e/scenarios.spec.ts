@@ -707,3 +707,106 @@ test.describe('Look', () => {
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   });
 });
+
+test.describe('Commands and shortcuts', () => {
+  /** What has focus, and how it shows: the browser's own ring has outline-style auto; the app's is solid. */
+  const focusLook = (page: Page) =>
+    page.evaluate(() => {
+      const el = document.activeElement as HTMLElement | null;
+      if (!el || el === document.body) return null;
+      const css = getComputedStyle(el);
+      return {
+        name: el.getAttribute('aria-label') ?? el.textContent?.trim().slice(0, 30) ?? el.tagName,
+        outline: css.outlineStyle,
+        width: parseFloat(css.outlineWidth),
+        appRing: el.classList.contains('al-focus'),
+      };
+    });
+
+  for (const scheme of ['light', 'dark'] as const)
+    test(`Tab never shows the browser's own focus ring, and always shows the app's (${scheme})`, async ({
+      page,
+    }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      const errors = watchErrors(page);
+      await openApp(page);
+      await newTimer(page, '3m', 'Pasta');
+      await newTimer(page, '5m', 'Tea');
+      for (const t of ['Timers', 'Stopwatch', 'Alarms', 'World Clock']) {
+        await tab(page, t).click();
+        await page.locator('body').click({ position: { x: 2, y: 2 } });
+        for (let i = 0; i < 14; i++) {
+          await page.keyboard.press('Tab');
+          const look = await focusLook(page);
+          if (!look) continue;
+          expect(look.outline, `${t}: ${look.name}`).not.toBe('auto');
+          expect(look.appRing || (look.outline === 'solid' && look.width > 0), `${t}: ${look.name}`).toBe(
+            true,
+          );
+        }
+      }
+      expect(errors).toEqual([]);
+    });
+
+  test('the arrow keys move the selection and the focus ring together, and Tab finds only the selected card', async ({
+    page,
+  }) => {
+    const errors = watchErrors(page);
+    await openApp(page);
+    await newTimer(page, '3m', 'Pasta');
+    await newTimer(page, '5m', 'Tea');
+    const pasta = card(page, /^Pasta/);
+    const tea = card(page, /^Tea/);
+    await pasta.click();
+    await expect(pasta).toHaveClass(/al-selected/);
+    await expect(pasta).toHaveClass(/al-focus/);
+    await page.keyboard.press('ArrowRight');
+    await expect(tea).toBeFocused();
+    await expect(tea).toHaveClass(/al-selected/);
+    await expect(tea).toHaveClass(/al-focus/);
+    await expect(pasta).not.toHaveClass(/al-selected|al-focus/);
+    await expect(tea).toHaveAttribute('tabindex', '0');
+    await expect(pasta).toHaveAttribute('tabindex', '-1');
+    // Leaving the card for the tab row takes the ring away and keeps the selection.
+    await tab(page, 'Timers').focus();
+    await expect(tea).not.toHaveClass(/al-focus/);
+    await expect(tea).toHaveClass(/al-selected/);
+    // A command that selects something moves focus there: Undo brings back a deleted card, selected.
+    await tea.focus();
+    await page.keyboard.press('Delete');
+    await expect(tea).toHaveCount(0);
+    await expect(pasta).toBeFocused();
+    await expect(pasta).toHaveClass(/al-focus/);
+    expect(errors).toEqual([]);
+  });
+
+  test('closing a dialog puts focus back on the selected card', async ({ page }) => {
+    const errors = watchErrors(page);
+    await openApp(page);
+    await newTimer(page, '3m', 'Pasta');
+    await newTimer(page, '5m', 'Tea');
+    const pasta = card(page, /^Pasta/);
+    await pasta.click();
+    await page.keyboard.press('Enter');
+    const edit = page.getByRole('dialog', { name: 'Edit Timer' });
+    await expect(edit.getByRole('textbox', { name: 'Length' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(edit).toBeHidden();
+    await expect(pasta).toBeFocused();
+    await expect(pasta).toHaveClass(/al-focus/);
+    // A dialog that selects something new hands focus to it, not back to where it opened from.
+    await page.keyboard.press('KeyN');
+    const add = page.getByRole('dialog', { name: 'New Timer' });
+    await expect(add.getByRole('textbox', { name: 'Length' })).toBeFocused();
+    await page.keyboard.type('1m');
+    await add.getByRole('textbox', { name: 'Label' }).fill('Eggs');
+    await page.keyboard.press('Enter');
+    await expect(add).toBeHidden();
+    const eggs = card(page, /^Eggs/);
+    await expect(eggs).toHaveClass(/al-selected/);
+    await expect(eggs).toBeFocused();
+    await expect(eggs).toHaveClass(/al-focus/);
+    await expect(pasta).not.toHaveClass(/al-selected|al-focus/);
+    expect(errors).toEqual([]);
+  });
+});

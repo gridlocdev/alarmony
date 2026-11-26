@@ -145,6 +145,7 @@ export class AppController {
   readonly notice = signal<Notice | null>(null);
   readonly announcement = signal('');
   readonly selected = signal<string | null>(null);
+  readonly itemFocus = signal(false); // The keyboard is on the selected item: it shows the focus ring.
   readonly itemMenu = new ItemMenu();
   /** What is ringing on this device, newest first (PRD §9.2). */
   readonly ringing = signal<readonly Due[]>([]);

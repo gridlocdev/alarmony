@@ -14,6 +14,7 @@ import type { AppController } from './controller.ts';
 import { lockedProps } from './locked.ts';
 import { MoreButton, onMenu } from './ContextMenu.tsx';
 import { zoneClockTime } from './time.ts';
+import { itemFocusProps } from './focus.ts';
 
 const TICKS = Array.from({ length: 12 }, (_, i) => i * 30);
 
@@ -81,12 +82,14 @@ function ClockItem({
   clock,
   list,
   dragging,
+  ids,
 }: {
   readonly app: AppController;
   readonly catalog: CommandCatalog;
   readonly clock: WorldClock;
   readonly list: boolean;
   readonly dragging: Dragging;
+  readonly ids: readonly string[];
 }) {
   const at = app.clock.value;
   const s = app.settings.value;
@@ -94,14 +97,15 @@ function ClockItem({
   const name = clockName(clock);
   const time = known ? zoneClockTime(at, clock.zone, s.timeFormat, s.showSeconds) : '';
   const day = known ? compareToHere(at, clock.zone, app.zone) : `Unknown time zone ${clock.zone}`;
+  const focus = itemFocusProps(app, clock.id, ids);
   const select = () => {
     app.selected.value = clock.id;
   };
   const drop = dragging.drop?.id === clock.id ? ` al-drop-${dragging.drop.after ? 'after' : 'before'}` : '';
   return (
     <li
-      class={`al-clock${list ? ' al-clock-row' : ''}${known ? '' : ' al-clock-unknown'}${app.selected.value === clock.id ? ' al-selected' : ''}${drop}`}
-      tabIndex={0}
+      class={`al-clock${list ? ' al-clock-row' : ''}${known ? '' : ' al-clock-unknown'}${app.selected.value === clock.id ? ' al-selected' : ''}${focus.focused ? ' al-focus' : ''}${drop}`}
+      tabIndex={focus.tabIndex}
       data-id={clock.id}
       data-nav
       draggable={catalog.locked() === null}
@@ -122,7 +126,7 @@ function ClockItem({
       }}
       onDragEnd={() => dragging.end()}
       aria-label={known ? `${name}, ${time}, ${day}` : `${name}, ${day}`}
-      onFocusIn={select}
+      onPointerDown={select}
       onClick={select}
       onDblClick={() => {
         select();
@@ -154,6 +158,7 @@ export function WorldView({
   readonly catalog: CommandCatalog;
 }) {
   const clocks = app.data.value.clocks;
+  const ids = clocks.map((c) => c.id);
   const list = app.settings.value.worldView === 'list';
   const [moving, setMoving] = useState<string | null>(null);
   const [drop, setDrop] = useState<Drop | null>(null);
@@ -190,7 +195,15 @@ export function WorldView({
   return (
     <ul class={list ? 'al-clock-list' : 'al-clock-grid'} aria-label="World clocks">
       {clocks.map((c) => (
-        <ClockItem key={c.id} app={app} catalog={catalog} clock={c} list={list} dragging={dragging} />
+        <ClockItem
+          key={c.id}
+          app={app}
+          catalog={catalog}
+          clock={c}
+          list={list}
+          dragging={dragging}
+          ids={ids}
+        />
       ))}
       <li class={list ? 'al-add-row' : 'al-add-card al-clock-add'}>
         <button

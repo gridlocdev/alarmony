@@ -4,6 +4,7 @@ import type { AppController } from './controller.ts';
 import { lockedProps } from './locked.ts';
 import { MoreButton, onMenu } from './ContextMenu.tsx';
 import { clockTime } from './time.ts';
+import { itemFocusProps } from './focus.ts';
 
 /** An alarm's `HH:MM` in the chosen format: "7:00 AM" or "07:00". */
 export function alarmTime(time: string, format: TimeFormat): string {
@@ -16,18 +17,21 @@ function AlarmRow({
   catalog,
   alarm,
   soon,
+  ids,
 }: {
   readonly app: AppController;
   readonly catalog: CommandCatalog;
   readonly alarm: Alarm;
   /** "in 7 hr 12 min" on the alarm that rings next. */
   readonly soon: string | null;
+  readonly ids: readonly string[];
 }) {
   const now = app.clock.value;
   const on = app.alarmOn(alarm);
   const time = alarmTime(alarm.time, app.settings.value.timeFormat);
   const repeat = describeRepeat(alarm, now, app.zone);
   const under = [alarm.label, repeat].filter(Boolean).join(', ');
+  const focus = itemFocusProps(app, alarm.id, ids);
   const select = () => {
     app.selected.value = alarm.id;
   };
@@ -37,13 +41,13 @@ function AlarmRow({
   };
   return (
     <li
-      class={`al-alarm${on ? '' : ' al-alarm-off'}${app.selected.value === alarm.id ? ' al-selected' : ''}`}
-      tabIndex={0}
+      class={`al-alarm${on ? '' : ' al-alarm-off'}${app.selected.value === alarm.id ? ' al-selected' : ''}${focus.focused ? ' al-focus' : ''}`}
+      tabIndex={focus.tabIndex}
       data-id={alarm.id}
       data-nav
       onContextMenu={onMenu(app, 'alarm', alarm.id)}
       aria-label={`${alarm.label || 'Alarm'}, ${time}, ${repeat}, ${on ? 'on' : 'off'}`}
-      onFocusIn={select}
+      onPointerDown={select}
       onClick={select}
       onDblClick={run('alarm.edit')}
     >
@@ -84,6 +88,7 @@ export function AlarmsView({
   const alarms = sortAlarms(app.data.value.alarms);
   const now = app.clock.value;
   const next = nextAlarm(alarms, now, app.zone);
+  const ids = alarms.map((a) => a.id);
   if (alarms.length === 0)
     return (
       <div class="al-empty">
@@ -108,6 +113,7 @@ export function AlarmsView({
           catalog={catalog}
           alarm={a}
           soon={next?.alarm.id === a.id ? describeIn(next.at - now) : null}
+          ids={ids}
         />
       ))}
       <li class="al-add-row">

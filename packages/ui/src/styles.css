@@ -103,7 +103,19 @@ textarea {
   font: inherit;
   color: inherit;
 }
+/* The app draws every focus ring itself, from --al-focus; the browser's own outline never shows. */
+:focus {
+  outline: none;
+}
 :focus-visible {
+  outline: 2px solid var(--al-focus);
+  outline-offset: 1px;
+}
+/* A clock, alarm or timer shows focus from the app's state (.al-focus), not from where the browser put it. */
+:is(.al-timer, .al-alarm, .al-clock):focus-visible {
+  outline: none;
+}
+:is(.al-timer, .al-alarm, .al-clock).al-focus {
   outline: 2px solid var(--al-focus);
   outline-offset: 1px;
 }

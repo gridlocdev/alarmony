@@ -112,9 +112,10 @@ function NewTimerDialog({ app }: { readonly app: AppController }) {
     const ms = read();
     if (ms === null) return;
     const id = app.newId('t');
-    app.close();
+    // Select the new timer before the dialog closes, so focus goes back to it.
     if (app.edit(addTimer(app.data.peek(), { id, ms, label }, app.now()), 'New timer'))
       app.selected.value = id;
+    app.close();
   };
   const savePreset = () => {
     const ms = read();

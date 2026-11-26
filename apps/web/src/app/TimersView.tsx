@@ -14,6 +14,7 @@ import { clockTime, doneAgo } from './time.ts';
 import { startTimerFor } from './timerCommands.ts';
 import { quickStarts } from './quickStart.ts';
 import { MoreButton, onMenu } from './ContextMenu.tsx';
+import { itemFocusProps } from './focus.ts';
 
 const RING_R = 47;
 const RING_LENGTH = 2 * Math.PI * RING_R;
@@ -31,16 +32,19 @@ function TimerCard({
   catalog,
   timer,
   now,
+  ids,
 }: {
   readonly app: AppController;
   readonly catalog: CommandCatalog;
   readonly timer: Timer;
   readonly now: number;
+  readonly ids: readonly string[];
 }) {
   const done = isDone(timer, now);
   const left = timerLeft(timer, now);
   const progress = timerProgress(timer, now);
   const name = timerName(timer);
+  const focus = itemFocusProps(app, timer.id, ids);
   const select = () => {
     app.selected.value = timer.id;
   };
@@ -59,13 +63,13 @@ function TimerCard({
   const label = `${name}, ${done ? 'done' : timer.state === 'idle' ? describeDuration(timer.ms) : `${spoken(left)} left${timer.state === 'paused' ? ', paused' : ''}`}`;
   return (
     <li
-      class={`al-timer al-timer-${done ? 'done' : timer.state}${app.selected.value === timer.id ? ' al-selected' : ''}`}
-      tabIndex={0}
+      class={`al-timer al-timer-${done ? 'done' : timer.state}${app.selected.value === timer.id ? ' al-selected' : ''}${focus.focused ? ' al-focus' : ''}`}
+      tabIndex={focus.tabIndex}
       data-id={timer.id}
       data-nav
       onContextMenu={onMenu(app, 'timer', timer.id)}
       aria-label={label}
-      onFocusIn={select}
+      onPointerDown={select}
       onClick={select}
       onDblClick={run('timer.edit')}
     >
@@ -203,11 +207,12 @@ export function TimersView({
 }) {
   const data = app.data.value;
   const now = app.clock.value;
+  const ids = data.timers.map((t) => t.id);
   return (
     <div class="al-timers">
       <ul class="al-timer-grid" aria-label="Timers">
         {data.timers.map((t) => (
-          <TimerCard key={t.id} app={app} catalog={catalog} timer={t} now={now} />
+          <TimerCard key={t.id} app={app} catalog={catalog} timer={t} now={now} ids={ids} />
         ))}
         <AddTimerCard app={app} catalog={catalog} />
       </ul>

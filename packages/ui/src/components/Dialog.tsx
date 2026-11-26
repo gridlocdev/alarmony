@@ -1,6 +1,7 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useId, useRef, useState } from 'preact/hooks';
 import { isComposingKey, isSubmitKey, isUndoKey } from '../commands/shortcut.ts';
+import { after } from '../schedule.ts';
 import { trapTab } from './focusTrap.ts';
 
 /**
@@ -32,7 +33,16 @@ export function Dialog(props: {
         : root?.querySelector<HTMLElement>('input, select, textarea, button'));
     if (!root?.contains(document.activeElement)) first?.focus();
     return () => {
-      if (previous?.isConnected && previous !== document.body) previous.focus();
+      // In an area with a roving tab stop (data-roving), focus goes back to that area's current stop, which the
+      // dialog may have changed (a new item selected), once the area has drawn; not to where the dialog opened from.
+      const area = previous?.closest('[data-roving]');
+      if (area)
+        after(0, () => {
+          const active = document.activeElement;
+          if (!active || active === document.body)
+            area.querySelector<HTMLElement>('[data-nav][tabindex="0"]')?.focus();
+        });
+      else if (previous?.isConnected && previous !== document.body) previous.focus();
     };
   }, []);
   return (

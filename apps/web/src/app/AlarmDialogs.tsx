@@ -228,11 +228,11 @@ function NewAlarmDialog({ app }: { readonly app: AppController }) {
       return;
     }
     const id = app.newId('a');
-    app.close();
-    app.askToNotify();
     const ops = addAlarm(app.data.peek(), id, { ...fields, time, label: label.current }, app.now(), app.zone);
     if (app.edit(ops, 'New alarm', `Added an alarm for ${alarmTime(time, app.settings.peek().timeFormat)}.`))
       app.selected.value = id;
+    app.close();
+    app.askToNotify();
   };
   return (
     <Dialog
@@ -315,8 +315,8 @@ function EditAlarmDialog({ app, id }: { readonly app: AppController; readonly id
             type="button"
             class="al-button al-button-danger al-push-left"
             onClick={() => {
-              app.close();
               app.selected.value = id;
+              app.close();
               app.edit(
                 deleteAlarm(app.data.peek(), id),
                 'Delete',

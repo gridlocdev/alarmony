@@ -1,6 +1,7 @@
 import { useRef } from 'preact/hooks';
 import { keyFocus, type CommandCatalog } from '@alarmony/ui';
 import { arrowNavigate } from './arrowNav.ts';
+import { panelFocusIn, panelFocusOut } from './focus.ts';
 import { TABS, type AppController } from './controller.ts';
 import { CommandMenu } from './CommandMenu.tsx';
 import { ContextMenu } from './ContextMenu.tsx';
@@ -84,7 +85,15 @@ export function App({ app, catalog }: { readonly app: AppController; readonly ca
           </button>
         )}
       </header>
-      <div id="al-panel" class="al-panel" role="tabpanel" aria-labelledby={`al-tab-${tab}`}>
+      <div
+        id="al-panel"
+        class="al-panel"
+        data-roving
+        role="tabpanel"
+        aria-labelledby={`al-tab-${tab}`}
+        onFocusIn={(e) => panelFocusIn(app, e.target)}
+        onFocusOut={(e) => panelFocusOut(app, e.relatedTarget)}
+      >
         {tab === 'world' ? (
           <WorldView app={app} catalog={catalog} />
         ) : tab === 'alarms' ? (

@@ -254,6 +254,8 @@ The Keyboard Shortcuts window has **Press a Shortcut…**: while it's on, a key 
 
 On a tab, the arrow keys move focus between its items: the clocks, the alarms, the timers, the buttons on the add cards and rows, or the stopwatch's buttons. ← → step through them in order, ↑ ↓ go to the row above or below, and both wrap at the ends. From the page or the tab row (↓), an arrow goes to the selected item, else the first or the last.
 
+Focus follows the selection. The selected clock, alarm or timer is the tab's one tab stop, and the app draws its focus ring from that state, never the browser's outline. Clicking an item, tabbing to it or focusing one of its buttons selects it. After an arrow key, a command, a deletion, an undo or a dialog closing, focus goes to the selected item, so a dialog that adds an item leaves focus on the new one. Buttons and fields draw the same ring, from the theme's focus colour, when the keyboard reaches them.
+
 Context menus: a clock (Rename, Move Up, Move Down, Delete); an alarm (Edit, Turn On/Off, Duplicate, Delete); a timer (Start/Pause/Resume, Edit, Add 1 Minute, Cancel, Dismiss, Save as Preset, Delete); a preset (Start, Rename, Delete); a lap (Copy Time). Shift+F10, or the ⋯ button on a clock, alarm or timer, opens its menu; arrows move in it and Escape closes it.
 
 ## §15 Desktop
