@@ -69,7 +69,7 @@ just install-desktop      # macOS: package and install into /Applications
 ```
 
 - The package is signed ad hoc so it runs on Apple silicon. Swap the identity in `apps/desktop/electron-builder.yml` for a Developer ID to distribute it.
-- Packaging sets Electron fuses (`apps/desktop/scripts/fuses.mjs`, run before signing): the app can't be run as plain Node, `NODE_OPTIONS` and `--inspect` are ignored, and it loads only from `app.asar`. Check a build with `npx @electron/fuses read --app apps/desktop/release/mac-arm64/Alarmony.app`.
+- Packaging sets Electron fuses (`electronFuses` in `apps/desktop/electron-builder.yml`, applied before signing): the app can't be run as plain Node, `NODE_OPTIONS` and `--inspect` are ignored, cookies are encrypted, it loads only from `app.asar` and checks that file's integrity, and `file://` pages get no extra privileges. Check a build with `npx @electron/fuses read --app apps/desktop/release/mac-arm64/Alarmony.app`.
 - `just install-desktop` moves an existing copy to the Trash first. If Alarmony is running, it asks first, quits it the normal way so it saves, installs, and opens it again; **Cancel** leaves it running and installs nothing.
 
 ### The app icon
