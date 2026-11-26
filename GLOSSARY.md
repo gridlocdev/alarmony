@@ -14,6 +14,8 @@ Alarmony is a clock app with timers, a stopwatch, alarms and world clocks, kept 
 
 **Outside change**: A change to the **Clock file** made by another window, device or the CLI, picked up and applied as one undo step. _Avoid_: remote change, sync
 
+**Read-only**: A **Clock file** this window shows but never writes: one made by a newer Alarmony, or one opened from a **Folder** in Firefox or Safari. Every **Command** that would change it is disabled, with the reason on hover; ringing, **Stop**, **Snooze** and Export still work. _Avoid_: locked, view-only
+
 **Conflict**: When this window and an **Outside change** changed the same fields of the same item; the user picks **Keep Mine** or **Use Theirs**. _Avoid_: merge error
 
 **Snapshot**: This window's unsaved **Operations**, written aside so that **Restore unsaved changes?** can bring them back after a crash. _Avoid_: backup, autosave file
@@ -23,6 +25,8 @@ Alarmony is a clock app with timers, a stopwatch, alarms and world clocks, kept 
 ### Tabs and items
 
 **Tab**: One of the four views, in order: **Timers**, **Stopwatch**, **Alarms** and **World Clock**. _Avoid_: page, screen, mode
+
+**Selected item**: The one **Clock**, **Alarm** or **Timer** on a **Tab** that keyboard **Commands** act on (Enter edits it, Delete deletes it). It is the tab's only tab stop, and keyboard focus follows it: the app draws its focus ring from the selection, after a click, an arrow key, a **Command** or a dialog closing. _Avoid_: current item, active item, highlighted item
 
 **Timer**: A countdown with a length and an optional label, named by its label or else its length ("5 min timer"), shown as a card with a ring. It is idle, running, paused or **Done**. _Avoid_: countdown
 
@@ -70,6 +74,7 @@ Alarmony is a clock app with timers, a stopwatch, alarms and world clocks, kept 
 
 - The **Clock file** holds many **Clocks**, **Alarms**, **Presets** and **Timers**, and one **Stopwatch**.
 - A **Stopwatch** has up to 999 **Laps**.
+- Each **Tab** with items has at most one **Selected item**.
 - A **Preset** starts a new **Timer**; the **Timer** keeps no link to it.
 - Every running copy of Alarmony with the **Folder** open rings what is **Due**, unless **Ring on this device** is off in its **Device settings**.
 - Each edit is one **Operation** and one undo step; an **Outside change** is one undo step too.
