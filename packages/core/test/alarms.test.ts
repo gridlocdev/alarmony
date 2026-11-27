@@ -135,6 +135,8 @@ describe('alarm edits', () => {
     expect(describeRepeat(a, MON_NOON, NY)).toBe('Tomorrow');
     expect(alarmIsOn(a, MON_NOON, NY)).toBe(true);
     expect(alarmIsOn(a, Date.parse('2026-11-17T12:00:01Z'), NY)).toBe(false);
+    // Once it has rung it reads "Once", not "Never": it still rings once when turned back on.
+    expect(describeRepeat(a, Date.parse('2026-11-17T12:00:01Z'), NY)).toBe('Once');
     checkInvariants(doc.data);
   });
 

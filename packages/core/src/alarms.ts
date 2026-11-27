@@ -115,12 +115,12 @@ export function alarmIsOn(alarm: Alarm, now: number, zone: string): boolean {
 const sameDays = (a: readonly number[], b: readonly number[]) =>
   a.length === b.length && a.every((d, i) => d === b[i]);
 
-/** The repeat in words: "Weekdays", "Every day", "Mon, Wed, Fri", or "Today"/"Tomorrow"/"Never" for a one-off. */
+/** The repeat in words: "Weekdays", "Every day", "Mon, Wed, Fri", or "Today"/"Tomorrow"/"Once" for a one-off. */
 export function describeRepeat(alarm: Alarm, now: number, zone: string): string {
   const days = alarm.days;
   if (days.length === 0) {
     const at = alarmIsOn(alarm, now, zone) ? onceAt(alarm, zone) : null;
-    if (at === null) return 'Never';
+    if (at === null) return 'Once';
     const today = wallAt(now, zone);
     const then = wallAt(at, zone);
     const same = then.day === today.day && then.month === today.month && then.year === today.year;

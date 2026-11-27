@@ -56,7 +56,7 @@ const SHORTCUTS = [
   { label: 'Weekdays', days: WEEKDAYS },
   { label: 'Weekends', days: WEEKENDS },
   { label: 'Every Day', days: EVERY_DAY },
-  { label: 'Never', days: [] as readonly number[] },
+  { label: 'Once', days: [] as readonly number[] },
 ];
 
 const pad = (n: number) => String(n).padStart(2, '0');
