@@ -9,6 +9,7 @@ import { signal } from '@preact/signals';
 import {
   ClockDoc,
   LISTS,
+  NEWER_FILE,
   NEWER_FILE_MESSAGE,
   applyOps,
   classifyFile,
@@ -258,7 +259,11 @@ export class ClockSession {
 
   /** Why nothing here can change the file, while `readOnly` is true. */
   get lockReason(): string {
-    return this.store instanceof SnapshotStore ? readOnlyFolderMessage(this.store.name) : NEWER_FILE_MESSAGE;
+    if (this.store instanceof SnapshotStore) return readOnlyFolderMessage(this.store.name);
+    // Say how to update where the user is: a browser gets the new version by reloading.
+    return this.store.kind === 'native'
+      ? `${NEWER_FILE} To change it, get the latest Alarmony from github.com/gridlocdev/alarmony/releases.`
+      : `${NEWER_FILE} To change it, reload the page to get the latest Alarmony.`;
   }
 
   /** The version of the file this session last read or wrote. */

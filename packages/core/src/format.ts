@@ -14,7 +14,8 @@ export const MIN_DURATION_MS = 1000;
 export const MAX_DURATION_MS = (99 * 3600 + 59 * 60 + 59) * 1000;
 export const DEFAULT_SNOOZE_MINUTES = 9;
 
-export const NEWER_FILE_MESSAGE = 'This file was made by a newer Alarmony. Update to change it.';
+export const NEWER_FILE = 'This file was made by a newer Alarmony.';
+export const NEWER_FILE_MESSAGE = `${NEWER_FILE} Update to change it.`;
 
 export type RunState = 'idle' | 'running' | 'paused';
 

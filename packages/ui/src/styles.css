@@ -350,7 +350,7 @@ kbd {
   cursor: pointer;
   font-weight: 500;
 }
-.al-add-button:hover,
+.al-add-button:hover:not(:disabled),
 .al-add-button:focus-visible {
   border-color: var(--al-accent);
   background: var(--al-hover);
@@ -418,9 +418,14 @@ kbd {
   color: var(--al-text);
   cursor: pointer;
 }
-.al-quick-start:hover {
+.al-quick-start:hover:not(:disabled) {
   background: var(--al-hover);
   color: var(--al-accent);
+}
+/* While clock.json is read-only the presets and + Custom… can't start anything, so they look it. */
+:is(.al-quick-start, .al-add-button):disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 .al-quick-label {
   max-width: 100%;

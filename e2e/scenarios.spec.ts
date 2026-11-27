@@ -453,12 +453,16 @@ test.describe('Keeping your data', () => {
     await commandMenu(page).getByRole('combobox').fill('Pause All Timers');
     const pause = commandMenu(page).getByRole('option', { name: /Pause All Timers/ });
     await expect(pause).toHaveAttribute('aria-disabled', 'true');
-    await expect(pause).toHaveAttribute('title', /made by a newer Alarmony/);
+    await expect(pause).toHaveAttribute('title', /made by a newer Alarmony\. To change it, reload the page/);
     await page.keyboard.press('Enter');
     await page.keyboard.press('Escape');
     await expect(card(page, /^Laundry, .*paused/i)).toBeHidden();
     expect((await readClock(page))?.format).toBe(99);
     await expect(page.locator('.al-where')).toHaveText('Stored in this browser');
+    // The presets can't start a timer, and look it.
+    const chip = page.locator('.al-quick-start').first();
+    await expect(chip).toBeDisabled();
+    await expect(chip).toHaveCSS('opacity', '0.5');
   });
 
   test('unsaved changes from last time come back, and only Discard throws them away', async ({ page }) => {

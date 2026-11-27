@@ -69,6 +69,7 @@ export {
   MAX_LABEL,
   MAX_LAPS,
   MIN_DURATION_MS,
+  NEWER_FILE,
   NEWER_FILE_MESSAGE,
   classifyFile,
   emptyData,

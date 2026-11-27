@@ -66,7 +66,7 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 
 - One engine function, `classifyFile(text)`, is the only way any code reads `clock.json`. It returns ok with the data, newer (`format` above what this version knows), or corrupt.
 - It strips a leading byte-order mark. Valid JSON of the wrong shape (`null`, `[]`, a missing list) is corrupt. Single bad items (an alarm with `time: "25:00"`) are kept as raw JSON, written back unchanged, not shown, and the status bar says "Skipped 1 alarm Alarmony couldn't read." once per load.
-- A newer file is never written. The app shows its contents read-only, with "This file was made by a newer Alarmony. Update to change it." Alarms in it still ring.
+- A newer file is never written. The app shows its contents read-only, with "This file was made by a newer Alarmony." and how to update: in a browser, reload the page; on the desktop, the Releases page. The buttons that would change it are disabled and look it. Alarms in it still ring.
 - A corrupt file is copied aside as `clock unreadable <YYYY-MM-DD-HHmmss>.json`, never written over, a new empty file is started, and a notice says so with the copy's name.
 
 ### §3.4 Saving
