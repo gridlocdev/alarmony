@@ -809,4 +809,31 @@ test.describe('Commands and shortcuts', () => {
     await expect(pasta).not.toHaveClass(/al-selected|al-focus/);
     expect(errors).toEqual([]);
   });
+
+  test('with reduced motion, a menu opened from the keyboard takes focus at once and Esc closes it', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const errors = watchErrors(page);
+    await openApp(page);
+    await newTimer(page, '3m', 'Pasta');
+    const pasta = card(page, /^Pasta/);
+    await pasta.focus();
+    await page.keyboard.press('Shift+F10');
+    const menu = page.getByRole('menu', { name: 'Timer actions' });
+    await expect(menu.getByRole('menuitem').first()).toBeFocused();
+    // Nothing transitions: even a tiny duration animates every property, visibility included, and a popup
+    // that is still becoming visible can't take focus.
+    const moving = await page.evaluate(() =>
+      [...document.querySelectorAll('[role=menu], [role=menu] *, [role=listitem]')]
+        .map((el) => getComputedStyle(el).transitionDuration)
+        .filter((d) => d.split(',').some((part) => parseFloat(part) > 0)),
+    );
+    expect(moving).toEqual([]);
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeHidden();
+    await expect(pasta).toBeFocused();
+    await expect(pasta).toHaveClass(/al-selected/);
+    expect(errors).toEqual([]);
+  });
 });

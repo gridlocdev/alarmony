@@ -71,12 +71,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* No transitions at all: a tiny duration still transitions every property, visibility included, so a popup
+     just shown stays hidden for a moment and can't take focus. */
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition: none !important;
     scroll-behavior: auto !important;
   }
 }
