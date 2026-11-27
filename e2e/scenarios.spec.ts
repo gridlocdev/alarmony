@@ -668,6 +668,7 @@ test.describe('Commands and shortcuts', () => {
     const menu = page.getByRole('menu', { name: 'Timer actions' });
     await card(page, /^Pasta/).click({ button: 'right' });
     await expect(menu.getByRole('menuitem', { name: 'Pause' })).toBeFocused();
+    await expect(menu.getByRole('menuitem', { name: 'Cancel Timer' })).toBeVisible();
     await menu.getByRole('menuitem', { name: 'Save as Preset' }).click();
     await expect(menu).toBeHidden();
     const chip = page.getByRole('list', { name: 'Start a timer' }).getByRole('listitem').first();

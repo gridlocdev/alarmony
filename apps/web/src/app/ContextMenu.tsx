@@ -81,6 +81,8 @@ function menuTitle(app: AppController, c: Command): string {
     if (!t || t.state === 'idle') return 'Start';
     return t.state === 'running' && !isDone(t, app.clock.value) ? 'Pause' : 'Resume';
   }
+  // "Cancel" alone reads as "close this menu", so that one keeps its full title.
+  if (c.id === 'timer.cancel') return c.title;
   return c.title.replace(/ (Clock|Alarm|Timer|Preset|Lap)\b/, '');
 }
 
