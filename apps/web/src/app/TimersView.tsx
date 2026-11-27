@@ -216,6 +216,12 @@ export function TimersView({
         ))}
         <AddTimerCard app={app} catalog={catalog} />
       </ul>
+      {data.timers.length === 0 && (
+        <p class="al-muted al-empty-hint">
+          Pick a length to start a timer, or press <kbd>{catalog.keys(catalog.get('item.new')!)[0]}</kbd> to
+          type one.
+        </p>
+      )}
     </div>
   );
 }

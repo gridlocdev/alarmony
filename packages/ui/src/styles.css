@@ -339,6 +339,24 @@ kbd {
 .al-empty p {
   margin: 0 0 1em;
 }
+/* One line under an empty view: what goes here and the key that adds it (PRD §14). */
+.al-empty-hint {
+  max-width: 32em;
+  margin: 0.6em auto;
+  text-align: center;
+  color: var(--al-text-2);
+}
+.al-empty .al-empty-hint {
+  margin: 0 auto 1em;
+}
+.al-timers .al-empty-hint {
+  margin-left: 0;
+  text-align: left;
+}
+.al-empty-hint kbd {
+  font: inherit;
+  font-weight: 600;
+}
 
 /* The faded "add" card or row at the end of a tab's items: dashed, darker on hover and focus. */
 .al-add-button {

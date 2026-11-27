@@ -93,6 +93,10 @@ export function AlarmsView({
     return (
       <div class="al-empty">
         <p>No alarms.</p>
+        <p class="al-muted al-empty-hint">
+          An alarm rings at a time of day, once or on the days you pick. Press{' '}
+          <kbd>{catalog.keys(catalog.get('item.new')!)[0]}</kbd> for a new one.
+        </p>
         <button
           type="button"
           class="al-button al-button-primary"

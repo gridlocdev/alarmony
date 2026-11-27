@@ -132,7 +132,7 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 
 - **Add Clock…** (N on this tab, ⌘N, the + button) opens a search over the system's zones. Each zone shows as its city (the last part of the id, underscores as spaces: `America/New_York` → "New York"), with the region and the current offset ("America · UTC−5"). Typing matches city, region and abbreviations the system gives (`EST`, `JST`), accent- and case-insensitive. With nothing typed the list starts at the zones on this device's offset and runs east, wrapping round. Enter adds the first match; the list stays open for another. A zone already shown is marked "Added" and can't be added twice.
 - A clock can be renamed (its label shows instead of the city, with the city under it), moved (drag, or ⌥↑/⌥↓), and deleted (Delete, with Undo). The local clock is an ordinary clock: it can be deleted too.
-- After the clocks, a faded **+ Add Clock** card (a row in the list view) opens Add Clock. Empty: "No clocks." and an **Add Clock** button.
+- After the clocks, a faded **+ Add Clock** card (a row in the list view) opens Add Clock. Empty: "No clocks.", one line on what a clock is and its key, and an **Add Clock** button.
 
 ### §6.2 Cards
 
@@ -145,7 +145,7 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 ### §7.1 The list
 
 - Rows sorted by time of day, then label. Each: the time large, the label and the repeat in words under it ("Wake up, weekdays", "Every day", "Mon, Wed, Fri", "Tomorrow" / "Today" for a one-off), and a switch. Disabled alarms are greyed. The row of the next alarm to ring says "in 7 hr 12 min" while the window shows.
-- After the alarms, a faded **+ New Alarm** row opens New Alarm. Empty: "No alarms." and a **New Alarm** button.
+- After the alarms, a faded **+ New Alarm** row opens New Alarm. Empty: "No alarms.", one line on what an alarm is and its key, and a **New Alarm** button.
 - Arrow keys select, Space toggles the switch, Enter edits, Delete deletes with Undo.
 
 ### §7.2 Editing
@@ -172,7 +172,7 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 - Each timer is a card: a ring that empties, the time left (`H:MM:SS` or `M:SS`), its name (the label, or its length: "5 min timer"), the time it will end ("Ends 6:20 PM"), **Cancel** (a quiet button: back to idle with its length kept), **+1 min** and **Pause/Resume**. **+1 min** adds a minute to the time left and to the length. Delete removes a timer, with Undo. An ⋯ button on each card opens its context menu. An idle timer shows its length and **Start**. Any number run at once. Space pauses or resumes the selected timer.
 - After the timers, a faded **New Timer** card: one button per preset (its label and length), then the common lengths 1, 3, 5 and 10 min that no preset already has, each starting a timer in one click, and **+ Custom…**, which opens New Timer. Right-click on a preset: Start, Rename, Delete.
 - A finished timer rings (§9) and its card shows "Done" and the minutes since, with **Dismiss**, which closes the timer (removes it, with Undo), **+1 min**, which runs it again for a minute, and **Restart**. **Cancel** is only for a timer still running or paused, and puts it back to idle. Dismissing writes the file; the ringing itself doesn't.
-- Empty: the New Timer card alone.
+- Empty: the New Timer card, and one line under it: pick a length, or the key that opens New Timer.
 
 ## §9 Ringing
 

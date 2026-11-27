@@ -123,6 +123,7 @@ test.describe('Alarms', () => {
     await openApp(page);
     await page.keyboard.press('ControlOrMeta+Digit3');
     await expect(page.getByText('No alarms.')).toBeVisible();
+    await expect(page.locator('.al-empty-hint')).toContainText(/Press .+ for a new one/);
     await page.locator('.al-empty').getByRole('button', { name: 'New Alarm' }).click();
     await expect(
       page.getByRole('dialog', { name: 'New Alarm' }).getByRole('textbox', { name: /^Time/ }),

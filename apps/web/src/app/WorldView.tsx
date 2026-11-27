@@ -181,6 +181,10 @@ export function WorldView({
     return (
       <div class="al-empty">
         <p>No clocks.</p>
+        <p class="al-muted al-empty-hint">
+          A clock shows the time in another city. Press <kbd>{catalog.keys(catalog.get('item.new')!)[0]}</kbd>{' '}
+          to add one.
+        </p>
         <button
           type="button"
           class="al-button al-button-primary"
