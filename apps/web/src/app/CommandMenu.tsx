@@ -78,7 +78,7 @@ export function CommandMenu({
         >
           <span class="al-palette-title">{e.title}</span>
           <span class="al-palette-group">{e.group}</span>
-          {e.keys && <kbd>{e.keys}</kbd>}
+          {e.keys && <kbd class="al-menu-key">{e.keys}</kbd>}
         </li>
       ))}
     </ListPopup>

@@ -1320,3 +1320,10 @@ kbd {
   flex-wrap: wrap;
   gap: 8px;
 }
+
+/* A touch screen with no keyboard has no use for the key hints in menus. */
+@media (hover: none) and (pointer: coarse) {
+  :is(.al-context-key, .al-menu-key) {
+    display: none;
+  }
+}

@@ -895,3 +895,16 @@ test.describe('Commands and shortcuts', () => {
     expect(errors).toEqual([]);
   });
 });
+
+test.describe('Look', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+
+  test('on a touch phone the menus leave out key hints', async ({ page }) => {
+    await openApp(page);
+    await newTimer(page, '3m', 'Pasta');
+    await card(page, /^Pasta/).click({ button: 'right' });
+    const menu = page.getByRole('menu', { name: 'Timer actions' });
+    await expect(menu).toBeVisible();
+    await expect(menu.locator('.al-context-key').first()).toBeHidden();
+  });
+});
