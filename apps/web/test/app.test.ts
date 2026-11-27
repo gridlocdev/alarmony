@@ -337,10 +337,10 @@ describe('ringing', () => {
 
 describe('where the file is', () => {
   it('names a folder by its last part, and says the rest as it is (PRD §3.7)', () => {
-    expect(placeLabel('native', '/Users/me/Documents/Alarmony')).toBe('Alarmony');
-    expect(placeLabel('native', '/Users/me/Dropbox/Clocks/')).toBe('Clocks');
-    expect(placeLabel('native', 'C:\\Users\\me\\Alarmony')).toBe('Alarmony');
-    expect(placeLabel('native', '/')).toBe('/');
+    expect(placeLabel('native', '/Users/me/Documents/Alarmony')).toBe('Folder: Alarmony');
+    expect(placeLabel('native', '/Users/me/Dropbox/Clocks/')).toBe('Folder: Clocks');
+    expect(placeLabel('native', 'C:\\Users\\me\\Alarmony')).toBe('Folder: Alarmony');
+    expect(placeLabel('native', '/')).toBe('Folder: /');
     expect(placeLabel('browser', 'Stored in this browser')).toBe('Stored in this browser');
   });
 });

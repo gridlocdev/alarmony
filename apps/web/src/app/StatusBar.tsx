@@ -6,12 +6,13 @@ const STATUS_TEXT = { saved: '', saving: 'Saving…', failed: 'Not saved', confl
 /** What the status bar says about where the file is: a folder by its name (the path is on hover), else as is (PRD §3.7). */
 export function placeLabel(kind: ClockStore['kind'], location: string): string {
   if (kind !== 'native') return location;
-  return (
+  // A bare folder name doesn't say what it is, so it says "Folder:"; the full path is on hover.
+  const name =
     location
       .replace(/[\\/]+$/, '')
       .split(/[\\/]/)
-      .pop() || location
-  );
+      .pop() || location;
+  return `Folder: ${name}`;
 }
 
 /** In a browser something will ring, but only while this tab is open: the status bar says so (PRD §5.3, §9). */
