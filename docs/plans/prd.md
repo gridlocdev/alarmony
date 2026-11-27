@@ -183,7 +183,7 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 
 ### §9.2 What ringing looks like
 
-- The sound plays, rising from 20% to the set volume over 30 s, looped. The window (when shown) shows a ringing sheet over the tab: the alarm's time and label or the timer's label, **Stop** (default, Enter or Escape) and **Snooze** (S, only for alarms with snooze on). Several due at once stack in one sheet, newest first, each with its buttons, and one sound plays.
+- The sound plays, rising from 20% to the set volume over 30 s, looped. The window (when shown) shows a ringing sheet over the tab: the alarm's time and label or the timer's label, **Stop** (default, Enter or Escape) and **Snooze** (S, only for alarms with snooze on), which says how long ("Snooze 9 min"). One item is named once, in the sheet's title. Several due at once stack in one sheet, newest first, each with its name and buttons, and one sound plays.
 - A native notification ("Wake up · 7:00 AM" / "Pasta · Timer done"); clicking it shows the window with the sheet.
 - Desktop: the menu-bar menu gains **Stop** and **Snooze** at its top while anything rings, so the window needn't open.
 - Ringing stops by itself after 15 minutes. The notice then says "Missed: Wake up at 7:00 AM", and stays until dismissed.

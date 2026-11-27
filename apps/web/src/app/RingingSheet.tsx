@@ -12,6 +12,7 @@ export function RingingSheet({ app }: { readonly app: AppController }) {
   const first = list[0]!;
   const many = list.length > 1;
   const name = (r: (typeof list)[number]) => r.label || (r.kind === 'alarm' ? 'Alarm' : 'Timer');
+  const snoozeLabel = `Snooze ${app.data.value.settings.snoozeMinutes} min`;
   return (
     <Dialog
       title={many ? `${list.length} ringing` : app.ringTitle(first)}
@@ -23,7 +24,7 @@ export function RingingSheet({ app }: { readonly app: AppController }) {
         <>
           {!many && first.snooze && (
             <button type="button" class="al-button" onClick={() => app.snooze(first.key)}>
-              Snooze
+              {snoozeLabel}
             </button>
           )}
           <button type="submit" class="al-button al-button-primary" data-autofocus>
@@ -35,13 +36,14 @@ export function RingingSheet({ app }: { readonly app: AppController }) {
       <ul class="al-ringing-list">
         {list.map((r) => (
           <li key={r.key}>
-            <span class="al-ringing-name">{name(r)}</span>
+            {/* One ringing item is already named in the title. */}
+            {many && <span class="al-ringing-name">{name(r)}</span>}
             <span class="al-muted">
               {r.kind === 'alarm' ? clockTime(r.at, format) : `Done at ${clockTime(r.at, format)}`}
             </span>
             {many && r.snooze && (
               <button type="button" class="al-button al-button-small" onClick={() => app.snooze(r.key)}>
-                Snooze
+                {snoozeLabel}
               </button>
             )}
             {many && (

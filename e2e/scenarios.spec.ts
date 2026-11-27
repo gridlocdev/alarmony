@@ -136,6 +136,7 @@ test.describe('Alarms', () => {
     await page.clock.runFor(5 * 60_000);
     const sheet = page.getByRole('alertdialog', { name: 'Stand up · 9:05 AM' });
     await expect(sheet).toBeVisible();
+    await expect(sheet.getByRole('button', { name: 'Snooze 9 min' })).toBeVisible();
     await page.keyboard.press('KeyS');
     await expect(sheet).toBeHidden();
     await expect(page.locator('.al-notice')).toContainText('Snoozed “Stand up” until 9:14');
@@ -354,6 +355,7 @@ test.describe('Ringing', () => {
     const sheet = page.getByRole('alertdialog', { name: 'Tea · Timer done' });
     await expect(sheet).toBeVisible();
     await expect(sheet.getByRole('button', { name: 'Stop' })).toBeFocused();
+    await expect(sheet.getByText('Tea', { exact: true }), 'the title already names it').toHaveCount(0);
     await page.keyboard.press('Enter');
     await expect(sheet).toBeHidden();
     await expect(card(page, /^Tea, done$/)).toBeVisible();
