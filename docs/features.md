@@ -10,7 +10,7 @@ The faded **New Timer** card after the timers starts one in a single click: your
 
 ## Stopwatch
 
-The Stopwatch tab shows the time to hundredths of a second, an analog dial with a lap hand, and the laps under it, newest first. Press **Space** to start or stop, **L** for a lap and **R** to reset. Once there are three laps the fastest is green and the slowest red, and both say so in words. The stopwatch keeps running when you close the window or restart the app, because its start time is in the file.
+The Stopwatch tab shows the time to hundredths of a second, an analog dial with a grey lap hand, labelled on the dial once there are laps, and the laps under it, newest first. Press **Space** to start or stop, **L** for a lap and **R** to reset. Once there are three laps the fastest is green and the slowest red, and both say so in words. The stopwatch keeps running when you close the window or restart the app, because its start time is in the file.
 
 ## Alarms
 

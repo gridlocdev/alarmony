@@ -488,6 +488,11 @@ kbd {
   stroke-width: 2.5;
   stroke-linecap: round;
 }
+.al-dial-label {
+  fill: var(--al-text-2);
+  font-size: 9px;
+  text-anchor: middle;
+}
 .al-hand-lap {
   stroke: var(--al-text-3);
   stroke-width: 2;

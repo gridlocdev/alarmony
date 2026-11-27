@@ -202,6 +202,7 @@ test.describe('Stopwatch', () => {
     const laps = page.getByRole('list', { name: 'Laps' }).getByRole('listitem');
     await expect(laps).toHaveCount(2);
     await expect(laps.last()).toContainText('Lap 1');
+    await expect(page.locator('.al-dial-label')).toHaveText('grey hand: this lap');
     await page.keyboard.press('KeyR');
     await expect(page.getByText('Stopwatch stopped at 00:00')).toBeAttached();
     expect(errors).toEqual([]);

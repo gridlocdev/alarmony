@@ -63,6 +63,12 @@ export function StopwatchView({
         {sw.laps.length > 0 && <line x1={DIAL} y1={DIAL} x2={lapHand.x} y2={lapHand.y} class="al-hand-lap" />}
         <line x1={DIAL} y1={DIAL} x2={second.x} y2={second.y} class="al-hand" />
         <circle cx={DIAL} cy={DIAL} r={3} class="al-hand-pin" />
+        {/* Says what the second hand is, since it only shows once there are laps. */}
+        {sw.laps.length > 0 && (
+          <text x={DIAL} y={DIAL + 44} class="al-dial-label">
+            grey hand: this lap
+          </text>
+        )}
       </svg>
       <div class="al-big-time" aria-hidden="true">
         {formatStopwatch(elapsed)}
