@@ -1,6 +1,7 @@
 /** `timers`, `timer start|pause|resume|cancel|delete`, `presets`, `preset add|delete` (PRD §12, §8.2). */
 import {
   addPreset,
+  timerName,
   addTimer,
   deletePreset,
   deleteTimer,
@@ -33,8 +34,6 @@ function parseLength(text: string): number {
     );
   return ms;
 }
-
-const timerName = (t: Timer) => t.label || `${formatCountdown(t.ms)} timer`;
 
 /** One timer action, searching only the timers it can act on. */
 function timerAction(

@@ -11,6 +11,7 @@ import {
   restartTimer,
   toggleTimer,
   addPreset,
+  timerName,
 } from '@alarmony/core';
 import type { CommandSpec, MenuEntry } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
@@ -178,7 +179,7 @@ export function timerCommandSpecs(app: AppController): CommandSpec[] {
 export function dynamicEntries(app: AppController): (MenuEntry & { readonly run: () => void })[] {
   return app.data.peek().presets.map((p) => ({
     id: `preset:${p.id}`,
-    title: `Start ${p.label || 'Timer'} (${describeDuration(p.ms)})`,
+    title: p.label ? `Start ${p.label} (${describeDuration(p.ms)})` : `Start ${timerName(p)}`,
     group: 'Presets',
     keywords: 'preset timer start',
     run: () => startPreset(app, p.id),

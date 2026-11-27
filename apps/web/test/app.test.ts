@@ -1,7 +1,7 @@
 // The app's commands, notices and ringing, run against a file in memory with a clock the test moves.
 import { describe, expect, it } from 'vitest';
-import { addTimer, deleteTimer, serialize } from '@alarmony/core';
-import { startPreset } from '../src/app/timerCommands.ts';
+import { addPreset, addTimer, deleteTimer, serialize } from '@alarmony/core';
+import { dynamicEntries, startPreset } from '../src/app/timerCommands.ts';
 import { placeLabel } from '../src/app/StatusBar.tsx';
 import { NOW, makeApp } from './helpers.ts';
 
@@ -351,5 +351,14 @@ describe('window title', () => {
     clock.at = NOW + 61_000;
     app.tick();
     expect(app.title.value).toBe('3:59 · Alarmony');
+  });
+});
+
+describe('timer names', () => {
+  it('names a preset without a label the way the cards do, in ⌘K', async () => {
+    const { app } = await makeApp();
+    app.edit(addPreset(app.data.peek(), { id: 'p1', ms: 25 * MIN, label: '' }), 'Add');
+    app.edit(addPreset(app.data.peek(), { id: 'p2', ms: 3 * MIN, label: 'Tea' }), 'Add');
+    expect(dynamicEntries(app).map((e) => e.title)).toEqual(['Start 25 min timer', 'Start Tea (3 minutes)']);
   });
 });

@@ -9,6 +9,7 @@ import {
   parseDuration,
   renamePreset,
   setSnoozeMinutes,
+  timerName,
 } from '@alarmony/core';
 import { Dialog, isMac, type CommandCatalog, type Theme, type TimeFormat } from '@alarmony/ui';
 import type { AppController } from './controller.ts';
@@ -167,7 +168,13 @@ function NewTimerDialog({ app }: { readonly app: AppController }) {
                 startPreset(app, p.id);
               }}
             >
-              {p.label || 'Timer'} <span class="al-num al-muted">{formatCountdown(p.ms)}</span>
+              {p.label ? (
+                <>
+                  {p.label} <span class="al-num al-muted">{formatCountdown(p.ms)}</span>
+                </>
+              ) : (
+                timerName(p)
+              )}
             </button>
           ))}
         </div>
