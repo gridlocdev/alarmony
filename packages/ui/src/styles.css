@@ -566,7 +566,7 @@ kbd {
 }
 .al-ring-track {
   fill: none;
-  stroke: var(--al-border);
+  stroke: var(--al-border-strong);
   stroke-width: 5;
 }
 .al-ring-left {
@@ -871,7 +871,8 @@ kbd {
   width: 3em;
   height: 1.7em;
   padding: 0;
-  border: 1px solid var(--al-border-strong);
+  /* Off, the outline and knob use secondary text colour, so the switch shows at 3:1 or more in both themes. */
+  border: 1px solid var(--al-text-3);
   border-radius: 0.85em;
   background: var(--al-hover);
   cursor: pointer;
@@ -888,11 +889,12 @@ kbd {
   width: 1.28em;
   height: 1.28em;
   border-radius: 50%;
-  background: var(--al-raised);
+  background: var(--al-text-3);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   transition: transform 0.15s;
 }
 .al-switch[aria-checked='true'] .al-switch-knob {
+  background: var(--al-raised);
   transform: translateX(1.28em);
 }
 .al-days {

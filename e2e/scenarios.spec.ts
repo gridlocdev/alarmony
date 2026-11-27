@@ -707,6 +707,34 @@ test.describe('Look', () => {
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   });
 
+  test('an alarm switch that is off still stands out from its card in dark mode', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await openApp(page);
+    await page.keyboard.press('ControlOrMeta+Digit3');
+    await newAlarm(page, '905', 'Stand up');
+    const sw = page.getByRole('switch').first();
+    await sw.click();
+    await expect(sw).toHaveAttribute('aria-checked', 'false');
+    const ratios = await sw.evaluate((el) => {
+      const rgb = (c: string) => (c.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
+      const lum = (c: string) => {
+        const [r, g, b] = rgb(c).map((v) => {
+          const x = v / 255;
+          return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+      };
+      const ratio = (a: string, b: string) => {
+        const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+        return (hi! + 0.05) / (lo! + 0.05);
+      };
+      const card = getComputedStyle(el.closest('.al-alarm')!).backgroundColor;
+      const knob = getComputedStyle(el.querySelector('.al-switch-knob')!).backgroundColor;
+      return [ratio(getComputedStyle(el).borderTopColor, card), ratio(knob, card)];
+    });
+    for (const r of ratios) expect(r).toBeGreaterThanOrEqual(3);
+  });
+
   test('at phone width each tab fits on one line and the + sits beside them', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 700 });
     await openApp(page);
