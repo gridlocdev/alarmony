@@ -53,7 +53,13 @@ test.describe('World Clock', () => {
     await page.keyboard.press('ControlOrMeta+KeyA');
     await page.keyboard.type('tokyo');
     await expect(dialog.getByRole('option', { name: /Tokyo.*Added/ })).toBeVisible();
-    await page.keyboard.press('Escape');
+    // The dialog stays put as the list shrinks, says what to try when nothing matches, and Done closes it.
+    const top = (await dialog.boundingBox())!.y;
+    await page.keyboard.press('ControlOrMeta+KeyA');
+    await page.keyboard.type('zzqx');
+    await expect(dialog).toContainText('Try a city or a country.');
+    expect((await dialog.boundingBox())!.y).toBe(top);
+    await dialog.getByRole('button', { name: 'Done' }).click();
     await expect(dialog).toBeHidden();
     await expect(place(page, /^Tokyo, 6:00 PM, Today, \+9 hrs$/)).toBeVisible();
     await expect(place(page, /^Sao Paulo, 6:00 AM, Today, −3 hrs$/)).toBeVisible();

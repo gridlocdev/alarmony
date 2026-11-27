@@ -969,6 +969,11 @@ kbd {
 }
 
 /* Dialogs */
+/* A dialog whose list grows and shrinks as you type stays put at the top instead of re-centring. */
+.al-dialog-top {
+  align-self: flex-start;
+  margin-top: 10vh;
+}
 .al-backdrop {
   position: fixed;
   inset: 0;

@@ -43,7 +43,17 @@ function AddClockDialog({ app }: { readonly app: AppController }) {
     listRef.current?.children[next]?.scrollIntoView({ block: 'nearest' });
   };
   return (
-    <Dialog title="Add Clock" class="al-dialog-wide" onClose={() => app.close()} onSubmit={() => add(at)}>
+    <Dialog
+      title="Add Clock"
+      class="al-dialog-wide al-dialog-top"
+      onClose={() => app.close()}
+      onSubmit={() => add(at)}
+      actions={
+        <button type="button" class="al-button" onClick={() => app.close()}>
+          Done
+        </button>
+      }
+    >
       <input
         type="text"
         role="combobox"
@@ -86,7 +96,9 @@ function AddClockDialog({ app }: { readonly app: AppController }) {
             </li>
           );
         })}
-        {hits.length === 0 && <li class="al-palette-empty">No time zone matches “{query}”.</li>}
+        {hits.length === 0 && (
+          <li class="al-palette-empty">No time zone matches “{query}”. Try a city or a country.</li>
+        )}
       </ul>
     </Dialog>
   );
