@@ -706,6 +706,21 @@ test.describe('Look', () => {
     await openApp(page);
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   });
+
+  test('at phone width each tab fits on one line and the + sits beside them', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 700 });
+    await openApp(page);
+    const tabs = await page
+      .getByRole('tab')
+      .evaluateAll((els) => els.map((e) => e.getBoundingClientRect().toJSON()));
+    const plus = (await page.locator('.al-plus').boundingBox())!;
+    const bar = (await page.locator('.al-toolbar').boundingBox())!;
+    for (const t of tabs) {
+      expect(t.height).toBeLessThan(32);
+      expect(t.right).toBeLessThanOrEqual(plus.x);
+      expect(t.top).toBeGreaterThanOrEqual(bar.y);
+    }
+  });
 });
 
 test.describe('Commands and shortcuts', () => {
