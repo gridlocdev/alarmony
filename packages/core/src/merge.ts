@@ -89,6 +89,30 @@ export function findClashes(base: ClockData, theirs: ClockData, mine: readonly O
   return found;
 }
 
+/**
+ * What operations changed, named the way the conflict dialog names items (PRD §3.6): items added, edited, moved
+ * or deleted, then the stopwatch and the settings.
+ */
+export function changedNames(base: ClockData, ops: readonly Op[]): string[] {
+  const after = applyOps(base, ops);
+  const moved = new Set(ops.flatMap((op) => (op.kind === 'move' ? [op.id] : [])));
+  const names: string[] = [];
+  for (const list of LISTS) {
+    const before = base[list] as readonly Item[];
+    const now = after[list] as readonly Item[];
+    const old = byId(before);
+    const kept = byId(now);
+    for (const item of now) {
+      const was = old.get(item.id);
+      if (!was || !sameValue(was, item) || moved.has(item.id)) names.push(itemName(list, item));
+    }
+    for (const item of before) if (!kept.has(item.id)) names.push(itemName(list, item));
+  }
+  if (!sameValue(base.stopwatch, after.stopwatch)) names.push('Stopwatch');
+  if (changedFields('settings', base.settings, after.settings).size) names.push('Settings');
+  return [...new Set(names)];
+}
+
 function keyOf(op: Op): string {
   switch (op.kind) {
     case 'insert':

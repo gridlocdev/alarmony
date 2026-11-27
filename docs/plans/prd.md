@@ -88,7 +88,7 @@ Alarmony is a clock for one person: world clocks, alarms, a stopwatch and timers
 ### §3.6 Recovery
 
 - Every edit not yet saved is written to a per-window snapshot (browser storage; desktop: the app's data folder) along with the version it was based on.
-- On start, a snapshot newer than the file opens "Restore unsaved changes?": **Restore** (default; replays the snapshot's operations onto the file through §3.5) or **Discard**. The snapshot is read before anything can save. A snapshot from a window still open is never offered. A snapshot write that fails shows a status-bar warning.
+- On start, a snapshot newer than the file opens "Restore unsaved changes?", which lists the items those changes are about (named as in the conflict dialog, plus **Stopwatch** and **Settings**): **Restore** (default; replays the snapshot's operations onto the file through §3.5) or **Discard**. The snapshot is read before anything can save. A snapshot from a window still open is never offered. A snapshot write that fails shows a status-bar warning.
 
 ### §3.7 Where the folder lives
 

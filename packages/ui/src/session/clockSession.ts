@@ -12,6 +12,7 @@ import {
   NEWER_FILE,
   NEWER_FILE_MESSAGE,
   applyOps,
+  changedNames,
   classifyFile,
   diffOps,
   emptyData,
@@ -175,6 +176,8 @@ export class ClockSession {
   readonly choosing = signal(false);
   /** Unsaved changes another window left; the UI offers Restore or Discard (PRD §3.6). */
   readonly recoverable = signal<string | null>(null);
+  /** What the changes Restore would bring back are about, named as in the conflict dialog. */
+  readonly recoverableItems = signal<readonly string[]>([]);
   /**
    * Nothing here changes the file: it is from a newer Alarmony (PRD §3.3), or the store can't be written (a folder
    * picked in Firefox or Safari, PRD §3.7). It is shown and rings. `lockReason` says which.
@@ -249,6 +252,7 @@ export class ClockSession {
       const snap = readSnapshot(left, data, file.version);
       if (snap && serialize(applyOps(snap.base, snap.ops)) !== serialize(data)) {
         session.#leftover = snap;
+        session.recoverableItems.value = changedNames(snap.base, snap.ops);
         session.recoverable.value = left;
       } else recovery.dropLeftover();
     }

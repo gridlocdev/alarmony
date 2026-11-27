@@ -467,7 +467,12 @@ function RecoveryDialog({ app }: { readonly app: AppController }) {
         </>
       }
     >
-      <p>Alarmony closed last time before it could save some changes. Restore them?</p>
+      <p>Alarmony closed last time before it could save changes to these. Restore them?</p>
+      <ul class="al-conflict-items">
+        {app.session.recoverableItems.value.map((name) => (
+          <li key={name}>{name}</li>
+        ))}
+      </ul>
     </Dialog>
   );
 }

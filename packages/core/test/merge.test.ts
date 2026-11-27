@@ -5,6 +5,7 @@ import {
   addClock,
   addTimer,
   applyOps,
+  changedNames,
   deleteAlarm,
   deleteClock,
   diffOps,
@@ -45,6 +46,17 @@ const shown = (d: ClockData) => ({
 });
 
 describe('changes made elsewhere', () => {
+  it('names what unsaved operations changed, for Restore unsaved changes', () => {
+    const b = base();
+    const ops = [
+      ...(renameClock(b, 'c1', 'Office') ?? []),
+      ...(deleteAlarm(b, 'a2') ?? []),
+      ...(setSnoozeMinutes(b, 15) ?? []),
+    ];
+    expect(changedNames(b, ops).sort()).toEqual(['08:00', 'Office', 'Settings']);
+    expect(changedNames(b, [])).toEqual([]);
+  });
+
   it('keeps both sides when they changed different fields of one alarm', () => {
     const b = base();
     const theirs = applyOps(b, editAlarm(b, 'a1', { label: 'Gym' }, T0, Z) ?? []);

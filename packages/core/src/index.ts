@@ -93,6 +93,7 @@ export {
 export { newId } from './ids.ts';
 export { applyOp, applyOps, changedFields, invertOp, invertOps, isNoop, sameValue, type Op } from './ops.ts';
 export {
+  changedNames,
   diffOps,
   findClashes,
   readOps,

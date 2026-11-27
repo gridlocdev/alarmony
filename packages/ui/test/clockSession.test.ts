@@ -247,6 +247,7 @@ describe('ClockSession', () => {
     const recovery = memoryRecovery(slot.text);
     const { session } = await open(store, recovery);
     expect(session.recoverable.value).not.toBeNull();
+    expect(session.recoverableItems.value).toEqual(['Tea']);
     session.restoreRecovered();
     expect(recovery.left).toBeNull();
     await session.flush();

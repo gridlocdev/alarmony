@@ -484,6 +484,7 @@ test.describe('Keeping your data', () => {
     await page.reload();
     const ask = page.getByRole('dialog', { name: 'Restore unsaved changes?' });
     await expect(ask.getByRole('button', { name: 'Restore' })).toBeFocused();
+    await expect(ask.getByRole('listitem')).toHaveText(['Ironing']);
     await page.keyboard.press('Escape');
     await expect(ask).toBeVisible();
     await ask.getByRole('button', { name: 'Restore' }).click();
