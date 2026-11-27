@@ -1181,6 +1181,9 @@ kbd {
 }
 .al-shortcut dd {
   margin: 0;
+  text-align: right;
+}
+.al-shortcut dd > span {
   white-space: nowrap;
 }
 

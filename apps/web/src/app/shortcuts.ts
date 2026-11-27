@@ -16,33 +16,45 @@ const GROUP_TITLES: Record<CommandGroup, string> = {
   File: 'Adding',
   Edit: 'Undo',
   View: 'Tabs and windows',
-  Clock: 'Stopwatch and timers',
+  Clock: 'Items on a tab',
   Help: 'Help',
 };
 
 /** Keys handled outside the catalog: in dialogs, on the ringing sheet, in the tab row, and Escape everywhere. */
-function extras(mod: string): Partial<Record<CommandGroup, ShortcutLine[]>> {
+function extras(mac: boolean): Partial<Record<CommandGroup, ShortcutLine[]>> {
+  const k = (key: string, mods: Partial<ShortcutEvent> = {}): string[] => [
+    pressedLabel(
+      { key, code: '', metaKey: false, ctrlKey: false, altKey: false, shiftKey: false, ...mods },
+      mac,
+    ),
+  ];
+  const enter = k('Enter');
+  const esc = k('Escape');
+  const [up, down, left, right] = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].map((key) => k(key));
   return {
     File: [
-      { title: 'Start the timer (in New Timer)', keys: [['Enter'], [mod === '⌘' ? '⌘Enter' : 'Ctrl+Enter']] },
+      {
+        title: 'Start the timer (in New Timer)',
+        keys: [enter, k('Enter', mac ? { metaKey: true } : { ctrlKey: true })],
+      },
     ],
     View: [
-      { title: 'Next / previous tab (in the tab row)', keys: [['Right'], ['Left']] },
-      { title: 'Move between the items on a tab', keys: [['Up'], ['Down'], ['Left'], ['Right']] },
+      { title: 'Next / previous tab (in the tab row)', keys: [right!, left!] },
+      { title: 'Move between the items on a tab', keys: [up!, down!, left!, right!] },
     ],
-    Clock: [{ title: 'Stop ringing (on the ringing sheet)', keys: [['Enter'], ['Esc']] }],
+    Clock: [{ title: 'Stop ringing (on the ringing sheet)', keys: [enter, esc] }],
     Help: [
       {
         title: 'Next / previous command in the command menu',
-        keys: [['Down'], ['Up'], ['Tab'], ['Shift+Tab']],
+        keys: [down!, up!, k('Tab'), k('Tab', { shiftKey: true })],
       },
-      { title: 'Close a window or the command menu', keys: [['Esc']] },
+      { title: 'Close a window or the command menu', keys: [esc] },
     ],
   };
 }
 
 export function shortcutGroups(catalog: CommandCatalog, mac: boolean): ShortcutGroup[] {
-  const more = extras(mac ? '⌘' : 'Ctrl');
+  const more = extras(mac);
   return COMMAND_GROUPS.map((group) => {
     const lines: ShortcutLine[] = catalog.all
       .filter((c) => c.group === group && c.sequences.length > 0)

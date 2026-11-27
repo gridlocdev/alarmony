@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ShortcutEvent } from '@alarmony/ui';
-import { pressedLabel, whatKeyDoes } from '../src/app/shortcuts.ts';
+import { pressedLabel, shortcutGroups, whatKeyDoes } from '../src/app/shortcuts.ts';
 import { makeApp } from './helpers.ts';
 
 type KeyEvent = Event & ShortcutEvent;
@@ -24,6 +24,15 @@ describe('what a key does', () => {
     expect(pressedLabel(keydown('k', { ctrlKey: true, shiftKey: true }), false)).toBe('Ctrl+Shift+K');
     expect(pressedLabel(keydown(' '), false)).toBe('Space');
     expect(pressedLabel(keydown('ArrowUp'), true)).toBe('↑');
+  });
+
+  it('writes every key in the Keyboard Shortcuts window in one notation', async () => {
+    const { catalog } = await makeApp();
+    const keys = (mac: boolean) =>
+      shortcutGroups(catalog, mac).flatMap((g) => g.lines.flatMap((l) => l.keys.flat()));
+    for (const k of keys(true)) expect(k).not.toMatch(/Enter|Up|Down|Left|Right|Shift|Tab/);
+    expect(keys(true)).toEqual(expect.arrayContaining(['↩', '⌘↩', '↑', '⇧⇥']));
+    expect(keys(false)).toEqual(expect.arrayContaining(['Enter', 'Ctrl+Enter', 'Up', 'Shift+Tab']));
   });
 
   it('finds the command for a key, enabled or not, and says when there is none', async () => {
